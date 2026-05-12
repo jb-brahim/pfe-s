@@ -47,7 +47,7 @@ export function SpendingChart() {
             axisLine={false}
             tickLine={false}
             tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }}
-            tickFormatter={(value) => `$${value / 1000}k`}
+            tickFormatter={(value) => `${value / 1000}k DT`}
           />
           <Tooltip
             contentStyle={{

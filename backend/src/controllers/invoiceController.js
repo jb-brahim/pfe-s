@@ -13,7 +13,7 @@ const { validateInvoice } = require('../services/ValidationEngine');
 // ──────────────────────────────────────────────
 async function notifyManagers(type, message, invoiceId) {
   try {
-    const managers = await User.find({ role: { $in: ['MANAGER', 'ADMIN'] } });
+    const managers = await User.find({ role: 'ADMIN' });
     const notifications = managers.map(m => ({
       userId: m._id,
       type,
@@ -302,7 +302,7 @@ const updateExtractedData = async (req, res, next) => {
       return res.status(404).json({ message: 'Invoice not found' });
     }
 
-    if (invoice.userId.toString() !== req.user._id.toString() && !['MANAGER', 'ADMIN'].includes(req.user.role)) {
+    if (invoice.userId.toString() !== req.user._id.toString() && req.user.role !== 'ADMIN') {
       return res.status(403).json({ message: 'Not authorized to edit this invoice' });
     }
 
@@ -355,7 +355,7 @@ const updateExtractedData = async (req, res, next) => {
 const getInvoices = async (req, res, next) => {
   try {
     let filter = {};
-    if (req.user.role === 'EMPLOYEE') {
+    if (req.user.role === 'ACCOUNTANT') {
       filter.userId = req.user._id;
     }
 
@@ -413,7 +413,7 @@ const getInvoiceById = async (req, res, next) => {
       return res.status(404).json({ message: 'Invoice not found' });
     }
 
-    if (req.user.role === 'EMPLOYEE' && invoice.userId._id.toString() !== req.user._id.toString()) {
+    if (req.user.role === 'ACCOUNTANT' && invoice.userId._id.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Not authorized to view this invoice' });
     }
 
@@ -454,7 +454,7 @@ const deleteInvoice = async (req, res, next) => {
       return res.status(404).json({ message: 'Invoice not found' });
     }
 
-    if (invoice.userId.toString() !== req.user._id.toString() && !['ADMIN', 'MANAGER'].includes(req.user.role)) {
+    if (invoice.userId.toString() !== req.user._id.toString() && req.user.role !== 'ADMIN') {
       return res.status(403).json({ message: 'Not authorized to delete this invoice' });
     }
 

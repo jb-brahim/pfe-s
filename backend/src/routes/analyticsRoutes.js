@@ -5,9 +5,9 @@ const { protect } = require('../middlewares/authMiddleware');
 const { authorize } = require('../middlewares/roleMiddleware');
 
 // Dashboard overview
-router.get('/dashboard', protect, authorize('MANAGER', 'ADMIN'), getDashboardStats);
+router.get('/dashboard', protect, authorize('ACCOUNTANT', 'ADMIN'), getDashboardStats);
 
 // Monthly stats for charts
-router.get('/monthly', protect, authorize('MANAGER', 'ADMIN'), getMonthlyStats);
+router.get('/monthly', protect, authorize('ACCOUNTANT', 'ADMIN'), getMonthlyStats);
 
 module.exports = router;

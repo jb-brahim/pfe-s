@@ -66,7 +66,7 @@ export function InvoiceCard({
           <div>
             <p className="text-slate-400 text-xs">Amount</p>
             <p className="text-blue-300 text-sm font-bold">
-              {invoice.currency || '$'}
+              {invoice.currency || 'DT'}
               {invoice.amount.toLocaleString()}
             </p>
           </div>

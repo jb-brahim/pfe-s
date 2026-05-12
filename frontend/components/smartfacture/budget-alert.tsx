@@ -16,7 +16,7 @@ export function BudgetAlert({
   category,
   spent,
   limit,
-  currency = '$',
+  currency = 'DT',
   severity = 'info',
   className,
 }: BudgetAlertProps) {

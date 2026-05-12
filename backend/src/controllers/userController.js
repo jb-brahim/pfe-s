@@ -11,15 +11,9 @@ const getAllUsers = async (req, res, next) => {
     let query = {};
     console.log(`[getAllUsers] Role: ${req.user.role}, ID: ${req.user._id}`);
     
-    // MANAGER only sees their direct reports
-    if (req.user.role === 'MANAGER') {
-      query = { managedBy: req.user._id };
-    }
-    
     console.log(`[getAllUsers] Query:`, query);
 
     const users = await User.find(query)
-      .populate('managedBy', 'name email')
       .select('-passwordHash')
       .sort({ createdAt: -1 });
       
@@ -54,8 +48,8 @@ const createUser = async (req, res, next) => {
       name,
       email,
       passwordHash,
-      role: role || 'EMPLOYEE',
-      managedBy: req.user.role === 'ADMIN' ? (req.body.managedBy || null) : req.user._id
+      role: role || 'ACCOUNTANT',
+      managedBy: null
     });
 
     res.status(201).json({
@@ -80,8 +74,8 @@ const updateUserRole = async (req, res, next) => {
     const { id } = req.params;
     const { role } = req.body;
 
-    if (!['EMPLOYEE', 'MANAGER', 'ADMIN'].includes(role)) {
-      return res.status(400).json({ message: 'Invalid role. Must be EMPLOYEE, MANAGER, or ADMIN' });
+    if (!['ACCOUNTANT', 'ADMIN'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid role. Must be ACCOUNTANT or ADMIN' });
     }
 
     const user = await User.findByIdAndUpdate(id, { role }, { new: true }).select('-passwordHash');
@@ -124,9 +118,6 @@ const deleteUser = async (req, res, next) => {
 const getUserStats = async (req, res, next) => {
   try {
     let query = {};
-    if (req.user.role === 'MANAGER') {
-      query = { managedBy: req.user._id };
-    }
 
     const users = await User.find(query).select('-passwordHash');
 

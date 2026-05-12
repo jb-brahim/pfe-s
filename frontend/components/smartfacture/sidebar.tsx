@@ -37,16 +37,31 @@ interface SidebarProps {
 export function Sidebar({ items, className }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const [isDark, setIsDark] = useState(typeof document !== 'undefined' ? document.documentElement.classList.contains('dark') : false);
+  const [isDark, setIsDark] = useState(false);
   const { logout } = useAuth();
+
+  React.useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const activeDark = savedTheme ? savedTheme === 'dark' : systemPrefersDark;
+    
+    setIsDark(activeDark);
+    if (activeDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
 
   const toggleTheme = () => {
     const newDark = !isDark;
     setIsDark(newDark);
     if (newDark) {
       document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
     }
   };
 

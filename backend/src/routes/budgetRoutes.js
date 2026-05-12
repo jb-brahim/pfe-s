@@ -5,7 +5,7 @@ const { protect } = require('../middlewares/authMiddleware');
 const { authorize } = require('../middlewares/roleMiddleware');
 
 // Set budget (admin/manager only)
-router.post('/', protect, authorize('MANAGER', 'ADMIN'), setBudget);
+router.post('/', protect, authorize('ADMIN'), setBudget);
 
 // Get budget status (any authenticated user)
 router.get('/status', protect, getBudgetStatus);

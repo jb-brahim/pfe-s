@@ -27,11 +27,12 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Handle unauthorized (e.g., redirect to login or clear token)
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // Handle unauthorized or forbidden (e.g., redirect to login or clear token)
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
-        // window.location.href = '/login';
+        localStorage.removeItem('user');
+        window.location.href = '/login';
       }
     }
     return Promise.reject(error);

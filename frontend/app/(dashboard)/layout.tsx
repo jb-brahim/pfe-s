@@ -49,11 +49,11 @@ export default function DashboardLayout({
   const { user } = useAuth();
   
   const filteredItems = navItems.filter(item => {
-    // Hide 'Processing Lab' for Admin and Manager as requested
-    if ((user?.role === 'ADMIN' || user?.role === 'MANAGER') && item.href === '/processing-lab') return false;
+    // Hide 'Processing Lab' for Admin as requested
+    if (user?.role === 'ADMIN' && item.href === '/processing-lab') return false;
     
-    // Hide 'Team Hub' and 'Governance' for Employees
-    if (user?.role === 'EMPLOYEE' && (item.href === '/team' || item.href === '/rules')) return false;
+    // Hide 'Team Hub' and 'Governance' for Accountants
+    if (user?.role === 'ACCOUNTANT' && (item.href === '/team' || item.href === '/rules')) return false;
 
     return true;
   });

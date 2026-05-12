@@ -33,9 +33,16 @@ const getBudgetStatus = async (req, res, next) => {
     const year = parseInt(req.query.year) || new Date().getFullYear();
     const month = parseInt(req.query.month) || (new Date().getMonth() + 1);
 
-    const budget = await Budget.findOne({ year, month });
+    let budget = await Budget.findOne({ year, month });
     if (!budget) {
-      return res.json({ message: 'No budget set for this month', budget: null });
+      // Auto-initialize a default corporate budget of $10,000 if none exists for this period
+      budget = await Budget.create({
+        year,
+        month,
+        monthlyLimit: 10000,
+        alertThreshold: 80,
+        createdBy: req.user?._id
+      });
     }
 
     // Calculate current spending

@@ -26,7 +26,7 @@ interface TeamMember {
   _id: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
+  role: 'ADMIN' | 'ACCOUNTANT';
   status?: string;
   createdAt?: string;
 }
@@ -41,9 +41,7 @@ export default function TeamPage() {
   const [newName, setNewName] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [newRole, setNewRole] = useState<'MANAGER' | 'EMPLOYEE'>(
-    user?.role === 'ADMIN' ? 'MANAGER' : 'EMPLOYEE'
-  );
+  const [newRole, setNewRole] = useState<'ADMIN' | 'ACCOUNTANT'>('ACCOUNTANT');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -97,7 +95,7 @@ export default function TeamPage() {
            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Team Management</h1>
            <p className="text-slate-400 font-medium">Manage permissions and add new members to your organization.</p>
         </div>
-        {(user?.role === 'ADMIN' || user?.role === 'MANAGER') && (
+        {user?.role === 'ADMIN' && (
           <button 
             onClick={() => setIsModalOpen(true)}
             className="px-6 py-3 bg-primary text-white rounded-2xl font-bold flex items-center gap-2 shadow-purple hover:scale-105 transition-all"
@@ -135,8 +133,7 @@ export default function TeamPage() {
                 <div className={cn(
                   "w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg",
                   member.role === 'ADMIN' ? "bg-indigo-50 text-indigo-500" :
-                  member.role === 'MANAGER' ? "bg-primary/5 text-primary" :
-                  "bg-slate-100 text-slate-400"
+                  "bg-primary/5 text-primary"
                 )}>
                   {member.name.charAt(0)}
                 </div>
@@ -147,8 +144,7 @@ export default function TeamPage() {
                     <span className={cn(
                       "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
                       member.role === 'ADMIN' ? "bg-indigo-50 text-indigo-500" :
-                      member.role === 'MANAGER' ? "bg-primary/5 text-primary" :
-                      "bg-slate-200 text-slate-500"
+                      "bg-primary/5 text-primary"
                     )}>
                       {member.role}
                     </span>
@@ -209,8 +205,7 @@ export default function TeamPage() {
 
                 <form className="space-y-6" onSubmit={handleCreateUser}>
                   <div className="grid grid-cols-2 gap-4 mb-4">
-                    {(['MANAGER', 'EMPLOYEE'] as const)
-                      .filter(r => user?.role === 'ADMIN' || r === 'EMPLOYEE')
+                    {(['ADMIN', 'ACCOUNTANT'] as const)
                       .map((r) => (
                       <button
                         key={r}
@@ -220,12 +215,10 @@ export default function TeamPage() {
                           "p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all",
                           newRole === r 
                             ? "border-primary bg-primary/5 text-primary" 
-                            : "border-slate-100 text-slate-400 hover:border-slate-200",
-                          // Make it full width if only one option is available
-                          user?.role === 'MANAGER' ? "col-span-2" : ""
+                            : "border-slate-100 text-slate-400 hover:border-slate-200"
                         )}
                       >
-                        {r === 'MANAGER' ? <Briefcase size={20} /> : <UserCheck size={20} />}
+                        {r === 'ADMIN' ? <Briefcase size={20} /> : <UserCheck size={20} />}
                         <span className="text-[10px] font-black uppercase tracking-widest">{r}</span>
                       </button>
                     ))}

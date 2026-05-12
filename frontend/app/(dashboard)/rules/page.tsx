@@ -12,7 +12,9 @@ import {
   Save, 
   Trash2, 
   AlertTriangle,
-  Globe
+  Globe,
+  Info,
+  RefreshCw
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import api from '@/lib/api';
@@ -107,11 +109,11 @@ export default function RulesPage() {
 
   if (user?.role !== 'ADMIN') {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center p-10 bg-white rounded-[2.5rem] shadow-soft border border-slate-100 max-w-md">
+      <div className="h-[70vh] flex items-center justify-center p-6">
+        <div className="text-center p-12 sf-card max-w-md">
            <AlertTriangle size={48} className="mx-auto text-amber-500 mb-6" />
-           <h2 className="text-2xl font-black text-slate-900 mb-4">Access Denied</h2>
-           <p className="text-slate-400 font-medium">Only System Administrators can manage global validation rules.</p>
+           <h2 className="text-2xl font-black text-foreground mb-4">Access Denied</h2>
+           <p className="text-muted-foreground font-semibold">Only System Administrators are authorized to configure global compliance rules.</p>
         </div>
       </div>
     );
@@ -119,10 +121,16 @@ export default function RulesPage() {
 
   return (
     <div className="space-y-10 pb-10">
+      {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">System Governance</h1>
-           <p className="text-slate-400 font-medium">Define the AI validation rules and compliance guardrails.</p>
+           <div className="flex items-center gap-2 mb-2">
+              <span className="p-1 px-2.5 rounded-full bg-primary/10 text-primary text-[9px] font-black uppercase tracking-wider border border-primary/20">
+                Governance Desk
+              </span>
+           </div>
+           <h1 className="text-3xl font-extrabold text-foreground tracking-tight mb-2">Compliance Rules</h1>
+           <p className="text-muted-foreground font-semibold">Define the automated OCR extraction validations and risk guardrails.</p>
         </div>
         <button 
           onClick={() => {
@@ -131,100 +139,112 @@ export default function RulesPage() {
             setValue('');
             setIsModalOpen(true);
           }}
-          className="px-8 py-4 bg-primary text-white rounded-2xl font-bold flex items-center gap-2 shadow-purple hover:scale-105 active:scale-95 transition-all"
+          className="px-6 py-3.5 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 shadow-purple hover:scale-102 transition-all cursor-pointer"
         >
-          <Plus size={20} />
-          New Rule
+          <Plus size={16} />
+          Create Rule Assert
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        {/* Rule Types Column */}
-        <div className="lg:col-span-2 space-y-6">
-           {rules.map((rule) => (
+        {/* Active Rules Grid */}
+        <div className="lg:col-span-8 space-y-6">
+           {loading ? (
+             <div className="flex flex-col items-center justify-center py-24 space-y-4">
+                <RefreshCw className="w-8 h-8 text-indigo-400 animate-spin" />
+                <p className="text-muted-foreground font-black uppercase tracking-widest text-xs">Accessing compliance rules...</p>
+             </div>
+           ) : rules.map((rule) => (
              <motion.div 
                key={rule._id}
                layout
                className={cn(
-                 "p-8 rounded-[2.5rem] border transition-all flex items-center gap-8",
-                 rule.isActive ? "bg-white border-slate-50 shadow-soft" : "bg-slate-50/50 border-transparent opacity-60"
+                 "sf-card p-6 border transition-all flex items-center justify-between gap-6",
+                 rule.isActive ? "border-white/5 bg-card/60" : "border-white/1 bg-white/1 opacity-50"
                )}
              >
-                <div 
-                  onClick={() => openEdit(rule)}
-                  className={cn(
-                    "w-14 h-14 rounded-2xl flex items-center justify-center cursor-pointer hover:scale-110 transition-transform",
-                    rule.type === 'TVA_CHECK' ? "bg-emerald-50 text-emerald-500" :
-                    rule.type === 'MAX_AMOUNT' ? "bg-amber-50 text-amber-500" :
-                    "bg-primary/5 text-primary"
-                  )}
-                >
-                  {rule.type === 'TVA_CHECK' ? <Percent size={24} /> :
-                   rule.type === 'MAX_AMOUNT' ? <DollarSign size={24} /> :
-                   <ShieldCheck size={24} />}
-                </div>
+                <div className="flex items-center gap-6">
+                  <div 
+                    onClick={() => openEdit(rule)}
+                    className={cn(
+                      "w-12 h-12 rounded-2xl flex items-center justify-center cursor-pointer hover:scale-105 transition-transform",
+                      rule.type === 'TVA_CHECK' ? "bg-emerald-500/10 text-emerald-400" :
+                      rule.type === 'MAX_AMOUNT' ? "bg-amber-500/10 text-amber-400" :
+                      "bg-indigo-500/10 text-indigo-400"
+                    )}
+                  >
+                    {rule.type === 'TVA_CHECK' ? <Percent size={20} /> :
+                     rule.type === 'MAX_AMOUNT' ? <DollarSign size={20} /> :
+                     <ShieldCheck size={20} />}
+                  </div>
 
-                <div className="flex-1 cursor-pointer" onClick={() => openEdit(rule)}>
-                   <div className="flex items-center gap-3 mb-1">
-                      <h3 className="text-xl font-extrabold text-slate-900">{rule.name}</h3>
-                      <span className="px-3 py-1 bg-slate-100 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400">
-                        {rule.type.replace('_', ' ')}
-                      </span>
-                   </div>
-                   <p className="text-sm text-slate-400 font-medium">Value threshold: <span className="text-slate-900 font-bold">{rule.value}</span></p>
+                  <div className="cursor-pointer" onClick={() => openEdit(rule)}>
+                     <div className="flex items-center gap-3 mb-1">
+                        <h3 className="text-lg font-extrabold text-foreground tracking-tight">{rule.name}</h3>
+                        <span className="px-2.5 py-1 bg-white/4 border border-white/5 rounded-md text-[8px] font-black uppercase tracking-widest text-slate-400">
+                          {rule.type.replace('_', ' ')}
+                        </span>
+                     </div>
+                     <p className="text-xs text-muted-foreground font-semibold">Value threshold assert: <span className="text-primary font-bold font-mono">{rule.value}</span></p>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-4">
+                   {/* Switch Toggle */}
                    <button 
                      onClick={() => handleToggleRule(rule)}
                      className={cn(
-                       "w-14 h-8 rounded-full transition-all relative",
-                       rule.isActive ? "bg-primary" : "bg-slate-200"
+                       "w-12 h-7 rounded-full transition-all relative",
+                       rule.isActive ? "bg-primary" : "bg-white/10"
                      )}
                    >
                       <div className={cn(
-                        "absolute top-1 w-6 h-6 bg-white rounded-full transition-all shadow-sm",
-                        rule.isActive ? "right-1" : "left-1"
+                        "absolute top-0.5 w-6 h-6 bg-white rounded-full transition-all shadow-md",
+                        rule.isActive ? "right-0.5" : "left-0.5"
                       )} />
                    </button>
                    <button 
                      onClick={() => handleDelete(rule._id)}
-                     className="p-3 text-slate-300 hover:text-red-500 transition-colors"
+                     className="p-2.5 rounded-xl bg-white/2 hover:bg-red-500/10 hover:text-red-400 border border-white/5 text-muted-foreground transition-all cursor-pointer"
                    >
-                      <Trash2 size={20} />
+                      <Trash2 size={15} />
                    </button>
                 </div>
              </motion.div>
            ))}
 
-           <button 
-             onClick={() => setIsModalOpen(true)}
-             className="w-full py-8 border-2 border-dashed border-slate-100 rounded-[2.5rem] text-slate-300 font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:border-primary/20 hover:text-primary transition-all"
-           >
-              <Plus size={24} />
-              Add New Governance Rule
-           </button>
+           {(!loading && rules.length === 0) && (
+             <div className="sf-card text-center py-16">
+               <ShieldCheck className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+               <h4 className="text-lg font-bold text-foreground">No active rules</h4>
+               <p className="text-muted-foreground text-xs font-semibold mt-1">Configure compliance rules to enforce automatic OCR checking.</p>
+             </div>
+           )}
         </div>
 
-        {/* Info Column */}
-        <div className="space-y-8">
-           <div className="bg-indigo-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-soft">
-              <div className="absolute -top-10 -right-10 opacity-10">
-                 <ShieldCheck size={200} />
+        {/* Rules Sidebar Meta info */}
+        <div className="lg:col-span-4 space-y-6">
+           <div className="sf-card bg-gradient-to-b from-[#1E1B4B] to-card/60">
+              <div className="absolute top-0 right-0 p-8 opacity-5">
+                 <ShieldCheck size={140} className="text-primary" />
               </div>
               <div className="relative z-10">
-                 <h3 className="text-xl font-bold mb-4">Rule Engine Info</h3>
-                 <p className="text-white/60 text-sm font-medium leading-relaxed mb-6">
-                    Rules defined here are applied automatically by the AI during the extraction phase. Invoices that violate these rules will be flagged for Manager review.
+                 <h3 className="text-xl font-extrabold text-white mb-3">Auditing Policy</h3>
+                 <p className="text-white/60 text-xs font-medium leading-relaxed mb-6">
+                   Validation criteria configured on this page execute in real time when accountants submit extractions. Failures will result in a compliance flag on the manager detail page.
                  </p>
+                 <div className="p-4 bg-white/2 border border-white/5 rounded-2xl flex items-start gap-3">
+                   <Info size={16} className="text-indigo-300 mt-0.5" />
+                   <p className="text-[11px] text-white/50 leading-normal font-medium">To keep verification highly accurate, we recommend keeping active TVA rate checks and maximum monthly spending boundaries.</p>
+                 </div>
               </div>
            </div>
         </div>
 
       </div>
 
-      {/* Modal */}
+      {/* Modern Pop-up Dialog */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
@@ -233,68 +253,70 @@ export default function RulesPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsModalOpen(false)}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" 
+              className="absolute inset-0 bg-background/80 backdrop-blur-md" 
             />
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl p-10 border border-slate-100"
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="relative w-full max-w-lg bg-card border border-white/5 rounded-[2rem] shadow-2xl p-8"
             >
-              <h3 className="text-2xl font-black text-slate-900 mb-8">{editingRule ? 'Edit Rule' : 'Create New Rule'}</h3>
+              <h3 className="text-2xl font-black text-foreground mb-6 tracking-tight">
+                {editingRule ? 'Modify Governance Assert' : 'Create Compliance Assert'}
+              </h3>
               
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">Rule Name</label>
+                  <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 px-1">Rule Identifier</label>
                   <input 
                     type="text" 
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Max Monthly Spend"
-                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-primary/30 transition-all font-medium"
+                    placeholder="e.g. Standard Corporate Spending Boundary"
+                    className="w-full px-4 py-3 bg-white/3 border border-white/5 rounded-xl outline-none focus:border-primary/40 transition-all font-bold text-foreground text-sm"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">Rule Type</label>
+                  <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 px-1">Evaluation Type</label>
                   <select 
                     value={type}
                     onChange={(e) => setType(e.target.value)}
-                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-primary/30 transition-all font-medium"
+                    className="w-full px-4 py-3 bg-white/3 border border-white/5 rounded-xl outline-none focus:border-primary/40 transition-all font-bold text-foreground text-sm"
                   >
-                    <option value="TVA_CHECK">TVA Check</option>
-                    <option value="MAX_AMOUNT">Max Amount</option>
-                    <option value="VENDOR_WHITELIST">Vendor Whitelist</option>
+                    <option value="TVA_CHECK" className="bg-card">TVA Percentage Matching Check</option>
+                    <option value="MAX_AMOUNT" className="bg-card">Maximum Spending Budget Boundary</option>
+                    <option value="VENDOR_WHITELIST" className="bg-card">Vendor Credibility Check</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">Threshold Value</label>
+                  <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 px-1">Threshold Assert Target</label>
                   <input 
                     type="text" 
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
-                    placeholder="Value (number or text)"
-                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-primary/30 transition-all font-medium"
+                    placeholder="e.g. 5000 (limits) or 19 (TVA check)"
+                    className="w-full px-4 py-3 bg-white/3 border border-white/5 rounded-xl outline-none focus:border-primary/40 transition-all font-bold text-foreground text-sm font-mono"
                     required
                   />
                 </div>
 
-                <div className="flex gap-4 pt-4">
+                <div className="flex gap-4 pt-4 border-t border-white/5">
                   <button 
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="flex-1 py-4 bg-slate-50 text-slate-600 rounded-2xl font-bold hover:bg-slate-100 transition-all"
+                    className="flex-1 py-4 bg-white/2 border border-white/5 text-muted-foreground hover:text-foreground rounded-2xl font-extrabold text-xs uppercase tracking-wider cursor-pointer"
                   >
-                    Cancel
+                    Close
                   </button>
                   <button 
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 py-4 bg-primary text-white rounded-2xl font-bold shadow-purple hover:scale-[1.02] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="flex-1 py-4 bg-primary text-white rounded-2xl font-extrabold text-xs uppercase tracking-wider shadow-purple hover:scale-102 transition-all cursor-pointer"
                   >
-                    {isSubmitting ? 'Saving...' : 'Save Rule'}
+                    {isSubmitting ? 'Configuring...' : 'Establish Assert'}
                   </button>
                 </div>
               </form>

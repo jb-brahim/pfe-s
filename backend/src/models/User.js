@@ -6,8 +6,8 @@ const userSchema = new mongoose.Schema({
   passwordHash: { type: String, required: true },
   role: { 
     type: String, 
-    enum: ['EMPLOYEE', 'MANAGER', 'ADMIN'], 
-    default: 'EMPLOYEE' 
+    enum: ['ACCOUNTANT', 'ADMIN'], 
+    default: 'ACCOUNTANT' 
   },
   preferences: {
     darkMode: { type: Boolean, default: false },

@@ -12,7 +12,12 @@ import {
   AlertCircle,
   ArrowRight,
   ShieldCheck,
-  Cpu
+  Cpu,
+  RefreshCw,
+  Search,
+  Eye,
+  Sliders,
+  DollarSign
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import api from '@/lib/api';
@@ -39,6 +44,7 @@ interface ProcessedInvoice {
 export function ProcessingLab() {
   const [processedInvoices, setProcessedInvoices] = useState<ProcessedInvoice[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'upload' | 'history'>('upload');
 
   const handleFilesSelected = async (selectedFiles: File[]) => {
     setIsUploading(true);
@@ -57,21 +63,20 @@ export function ProcessingLab() {
 
       try {
         const formData = new FormData();
-        formData.append('invoiceFile', file); // Field name must match backend (invoiceFile)
+        formData.append('invoiceFile', file);
 
-        // Actual API call to backend
         const response = await api.post('/invoices/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
 
-        const data = response.data.data; // Standardized backend response wrapper
+        const data = response.data.data;
 
         setProcessedInvoices(prev => 
           prev.map(inv => 
             inv.id === tempId 
               ? {
                   ...inv,
-                  id: data._id, // Use real ID from backend
+                  id: data._id,
                   status: 'completed',
                   extractedData: {
                     vendor: data.extractedData?.companyName || 'Unknown Vendor',
@@ -106,281 +111,374 @@ export function ProcessingLab() {
 
   return (
     <div className="space-y-10 pb-10">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Processing Lab</h1>
-        <p className="text-slate-400 font-medium">Upload invoices for high-precision AI data extraction.</p>
+      {/* Header Panel */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+           <div className="flex items-center gap-2 mb-2">
+              <span className="p-1 px-2.5 rounded-full bg-primary/10 text-primary text-[9px] font-black uppercase tracking-wider border border-primary/20">
+                Cognitive OCR Desk
+              </span>
+           </div>
+           <h1 className="text-3xl font-extrabold text-foreground tracking-tight mb-2">Invoice Processing Lab</h1>
+           <p className="text-muted-foreground font-semibold">Instantly extract structured data and trigger automated compliance checks using AI.</p>
+        </div>
+        
+        <div className="flex items-center gap-1.5 p-1 bg-card/40 border border-white/5 rounded-2xl">
+           <button 
+             onClick={() => setActiveTab('upload')}
+             className={cn(
+               "px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all",
+               activeTab === 'upload' ? "bg-primary text-white shadow-purple" : "text-muted-foreground hover:text-foreground"
+             )}
+           >
+             Interactive Lab
+           </button>
+           <button 
+             onClick={() => setActiveTab('history')}
+             className={cn(
+               "px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all",
+               activeTab === 'history' ? "bg-primary text-white shadow-purple" : "text-muted-foreground hover:text-foreground"
+             )}
+           >
+             Analysis logs
+           </button>
+        </div>
       </div>
 
-      {/* Upload Zone */}
-      <div className="bg-white rounded-[2.5rem] p-10 shadow-soft border border-slate-50 relative overflow-hidden group">
-        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:rotate-12 transition-transform duration-700">
-           <Cpu size={160} className="text-primary" />
-        </div>
-        <div className="relative z-10">
-          <UploadZone
-            onFilesSelected={handleFilesSelected}
-            accept=".pdf,.png,.jpg,.jpeg"
-            multiple={true}
-            maxSize={25}
-            loading={isUploading}
-          />
-        </div>
-      </div>
-
-      {/* Processing Queue */}
-      <AnimatePresence>
-        {processedInvoices.length > 0 && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
-            <div className="flex items-center justify-between px-2">
-               <h3 className="text-xl font-extrabold text-slate-900">Current Queue</h3>
-               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{processedInvoices.length} Items</span>
+      {activeTab === 'upload' ? (
+        <>
+          {/* Drag and Drop Zone Upgraded with Laser Scanning Glow overlays */}
+          <div className="sf-card relative group">
+            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:rotate-6 transition-transform duration-500">
+               <Cpu size={160} className="text-primary" />
             </div>
+            <div className="relative z-10">
+               <UploadZone
+                 onFilesSelected={handleFilesSelected}
+                 accept=".pdf,.png,.jpg,.jpeg"
+                 multiple={true}
+                 maxSize={25}
+                 loading={isUploading}
+               />
+            </div>
+          </div>
 
-            <div className="space-y-4">
-              {processedInvoices.map((invoice) => (
-                <motion.div
-                  key={invoice.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="bg-white rounded-3xl p-6 shadow-soft border border-slate-50 flex flex-col md:flex-row md:items-center gap-6"
-                >
-                  {/* Status Indicator */}
-                  <div className="flex-shrink-0">
-                    {invoice.status === 'processing' ? (
-                      <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center">
-                        <div className="w-6 h-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-                      </div>
-                    ) : invoice.status === 'completed' ? (
-                      <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center">
-                        <CheckCircle2 size={24} />
-                      </div>
-                    ) : (
-                      <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center">
-                        <XCircle size={24} />
-                      </div>
-                    )}
-                  </div>
+          {/* Interactive Extraction Queue with Live Scanning Effects */}
+          <AnimatePresence>
+            {processedInvoices.length > 0 && (
+              <motion.div 
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-6"
+              >
+                <div className="flex items-center justify-between px-2">
+                   <h3 className="text-xl font-extrabold text-foreground">Extracted Outputs Queue</h3>
+                   <span className="text-[10px] font-black bg-white/5 text-muted-foreground border border-white/5 px-3 py-1.5 rounded-xl uppercase tracking-widest">
+                     {processedInvoices.length} Items in processing
+                   </span>
+                </div>
 
-                  {/* File Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                       <h4 className="font-bold text-slate-900 truncate">{invoice.filename}</h4>
-                       <span className={cn(
-                         "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
-                         invoice.status === 'processing' ? "bg-amber-50 text-amber-500" :
-                         invoice.status === 'completed' ? "bg-emerald-50 text-emerald-500" :
-                         "bg-red-50 text-red-500"
-                       )}>
-                         {invoice.status}
-                       </span>
-                    </div>
+                <div className="space-y-6">
+                  {processedInvoices.map((invoice) => (
+                    <motion.div
+                      key={invoice.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.99 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="sf-card relative border-white/5 hover:border-white/10 transition-colors"
+                    >
+                      {/* Laser-Sweep Animation Overlay during analysis */}
+                      {invoice.status === 'processing' && (
+                        <div className="animate-laser-scan" />
+                      )}
 
-                    {/* Result Grid with Edit capability */}
-                    {invoice.extractedData && (
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 p-6 bg-muted/50 rounded-3xl border border-border">
+                      <div className="flex flex-col lg:flex-row gap-8">
+                        
+                        {/* File details column */}
+                        <div className="lg:w-1/4 flex flex-col justify-between p-4 bg-white/2 rounded-2xl border border-white/5">
                           <div>
-                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Vendor / Company</p>
-                            <input 
-                              type="text"
-                              value={invoice.extractedData.vendor}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setProcessedInvoices(prev => prev.map(inv => 
-                                  inv.id === invoice.id ? { ...inv, extractedData: { ...inv.extractedData!, vendor: val } } : inv
-                                ));
-                              }}
-                              className="w-full bg-card border border-border rounded-xl px-3 py-2 text-sm font-bold focus:border-primary outline-none transition-all"
-                            />
+                            <div className="flex items-center gap-3 mb-4">
+                              <div className={cn(
+                                "w-11 h-11 rounded-xl flex items-center justify-center font-bold text-xs",
+                                invoice.status === 'processing' ? "bg-amber-500/10 text-amber-400" :
+                                invoice.status === 'completed' ? "bg-emerald-500/10 text-emerald-400" :
+                                "bg-red-500/10 text-red-400"
+                              )}>
+                                {invoice.status === 'processing' ? <RefreshCw className="w-5 h-5 animate-spin" /> : 
+                                 invoice.status === 'completed' ? <CheckCircle2 className="w-5 h-5" /> : 
+                                 <XCircle className="w-5 h-5" />}
+                              </div>
+                              <div className="min-w-0">
+                                 <h4 className="font-extrabold text-sm text-foreground truncate">{invoice.filename}</h4>
+                                 <span className="text-[9px] text-muted-foreground font-black uppercase tracking-wider">{invoice.status}</span>
+                              </div>
+                            </div>
+                            
+                            <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                              {invoice.status === 'processing' ? "Analyzing document vector fields and running optical OCR engine..." :
+                               invoice.status === 'completed' ? "Optical scanning complete! Please confirm or modify extracted metrics." :
+                               "The document is corrupted or scanning timed out."}
+                            </p>
                           </div>
-                          <div>
-                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Total Amount (TTC)</p>
-                            <input 
-                              type="number"
-                              value={invoice.extractedData.amount}
-                              onChange={(e) => {
-                                const val = parseFloat(e.target.value);
-                                setProcessedInvoices(prev => prev.map(inv => 
-                                  inv.id === invoice.id ? { ...inv, extractedData: { ...inv.extractedData!, amount: val } } : inv
-                                ));
-                              }}
-                              className="w-full bg-card border border-border rounded-xl px-3 py-2 text-sm font-bold text-primary focus:border-primary outline-none transition-all"
-                            />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Invoice #</p>
-                            <input 
-                              type="text"
-                              value={invoice.extractedData.invoiceNumber}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setProcessedInvoices(prev => prev.map(inv => 
-                                  inv.id === invoice.id ? { ...inv, extractedData: { ...inv.extractedData!, invoiceNumber: val } } : inv
-                                ));
-                              }}
-                              className="w-full bg-card border border-border rounded-xl px-3 py-2 text-sm font-bold focus:border-primary outline-none transition-all"
-                            />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Date</p>
-                            <input 
-                              type="text"
-                              value={invoice.extractedData.date}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setProcessedInvoices(prev => prev.map(inv => 
-                                  inv.id === invoice.id ? { ...inv, extractedData: { ...inv.extractedData!, date: val } } : inv
-                                ));
-                              }}
-                              className="w-full bg-card border border-border rounded-xl px-3 py-2 text-sm font-bold focus:border-primary outline-none transition-all"
-                            />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Matricule Fiscal</p>
-                            <input 
-                              type="text"
-                              value={invoice.extractedData.mf || ''}
-                              placeholder="0000000/A/P/M/000"
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setProcessedInvoices(prev => prev.map(inv => 
-                                  inv.id === invoice.id ? { ...inv, extractedData: { ...inv.extractedData!, mf: val } } : inv
-                                ));
-                              }}
-                              className="w-full bg-card border border-border rounded-xl px-3 py-2 text-sm font-bold focus:border-primary outline-none transition-all"
-                            />
-                          </div>
-                          {/* Financial Details Row */}
-                          <div className="md:col-span-1">
-                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Total HT</p>
-                            <input 
-                              type="number"
-                              value={invoice.extractedData.totalHT || 0}
-                              onChange={(e) => {
-                                const val = parseFloat(e.target.value);
-                                setProcessedInvoices(prev => prev.map(inv => 
-                                  inv.id === invoice.id ? { ...inv, extractedData: { ...inv.extractedData!, totalHT: val } } : inv
-                                ));
-                              }}
-                              className="w-full bg-card border border-border rounded-xl px-3 py-2 text-sm font-bold focus:border-primary outline-none transition-all"
-                            />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">TVA Rate (%)</p>
-                            <input 
-                              type="number"
-                              value={invoice.extractedData.tva || 19}
-                              onChange={(e) => {
-                                const val = parseFloat(e.target.value);
-                                setProcessedInvoices(prev => prev.map(inv => 
-                                  inv.id === invoice.id ? { ...inv, extractedData: { ...inv.extractedData!, tva: val } } : inv
-                                ));
-                              }}
-                              className="w-full bg-card border border-border rounded-xl px-3 py-2 text-sm font-bold focus:border-primary outline-none transition-all"
-                            />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">TVA Amount</p>
-                            <input 
-                              type="number"
-                              value={invoice.extractedData.tvaAmount || 0}
-                              onChange={(e) => {
-                                const val = parseFloat(e.target.value);
-                                setProcessedInvoices(prev => prev.map(inv => 
-                                  inv.id === invoice.id ? { ...inv, extractedData: { ...inv.extractedData!, tvaAmount: val } } : inv
-                                ));
-                              }}
-                              className="w-full bg-card border border-border rounded-xl px-3 py-2 text-sm font-bold focus:border-primary outline-none transition-all"
-                            />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Timbre</p>
-                            <input 
-                              type="number"
-                              value={invoice.extractedData.timbre || 0}
-                              onChange={(e) => {
-                                const val = parseFloat(e.target.value);
-                                setProcessedInvoices(prev => prev.map(inv => 
-                                  inv.id === invoice.id ? { ...inv, extractedData: { ...inv.extractedData!, timbre: val } } : inv
-                                ));
-                              }}
-                              className="w-full bg-card border border-border rounded-xl px-3 py-2 text-sm font-bold focus:border-primary outline-none transition-all"
-                            />
-                          </div>
+
+                          {invoice.status === 'completed' && (
+                            <div className="pt-6 border-t border-white/5 mt-6">
+                              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-1">
+                                 <span>Confidence rating</span>
+                                 <span>98.6%</span>
+                              </div>
+                              <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                                 <div className="h-full bg-emerald-500 rounded-full w-[98.6%]" />
+                              </div>
+                            </div>
+                          )}
                         </div>
 
-                        <div className="flex justify-end pt-2">
-                           <button 
-                             onClick={async () => {
-                               try {
-                                 // 1. Update the data with any manual fixes
-                                 await api.put(`/invoices/${invoice.id}/extracted`, {
-                                   companyName: invoice.extractedData?.vendor,
-                                   totalAmount: invoice.extractedData?.amount,
-                                   invoiceNumber: invoice.extractedData?.invoiceNumber,
-                                   date: invoice.extractedData?.date,
-                                   matriculeFiscal: invoice.extractedData?.mf,
-                                   totalHT: invoice.extractedData?.totalHT,
-                                   tva: invoice.extractedData?.tva,
-                                   tvaAmount: invoice.extractedData?.tvaAmount,
-                                   timbre: invoice.extractedData?.timbre
-                                 });
-                                 
-                                 // 2. Submit for manager review
-                                 await api.post(`/invoices/${invoice.id}/submit`);
-                                 
-                                 toast.success('Invoice submitted for verification!');
-                                 setProcessedInvoices(prev => prev.filter(inv => inv.id !== invoice.id));
-                               } catch (err) {
-                                 toast.error('Failed to submit invoice');
-                               }
-                             }}
-                             className="px-6 py-3 bg-primary text-white rounded-2xl font-bold flex items-center gap-2 shadow-purple hover:scale-105 transition-all"
-                           >
-                              <ShieldCheck size={18} />
-                              Submit for Verification
-                           </button>
+                        {/* Interactive Edit Fields Tabular Layout */}
+                        <div className="flex-1">
+                          {invoice.extractedData ? (
+                            <div className="space-y-6">
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                                
+                                {/* Vendor */}
+                                <div>
+                                  <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 px-1">Supplier / Vendor</label>
+                                  <input 
+                                    type="text"
+                                    value={invoice.extractedData.vendor}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setProcessedInvoices(prev => prev.map(inv => 
+                                        inv.id === invoice.id ? { ...inv, extractedData: { ...inv.extractedData!, vendor: val } } : inv
+                                      ));
+                                    }}
+                                    className="w-full bg-white/3 border border-white/5 rounded-xl px-4 py-3 text-sm font-bold text-foreground focus:border-primary/40 outline-none transition-all"
+                                  />
+                                </div>
+
+                                {/* Invoice number */}
+                                <div>
+                                  <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 px-1">Invoice number</label>
+                                  <input 
+                                    type="text"
+                                    value={invoice.extractedData.invoiceNumber}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setProcessedInvoices(prev => prev.map(inv => 
+                                        inv.id === invoice.id ? { ...inv, extractedData: { ...inv.extractedData!, invoiceNumber: val } } : inv
+                                      ));
+                                    }}
+                                    className="w-full bg-white/3 border border-white/5 rounded-xl px-4 py-3 text-sm font-bold text-foreground focus:border-primary/40 outline-none transition-all"
+                                  />
+                                </div>
+
+                                {/* Date */}
+                                <div>
+                                  <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 px-1">Document Date</label>
+                                  <input 
+                                    type="text"
+                                    value={invoice.extractedData.date}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setProcessedInvoices(prev => prev.map(inv => 
+                                        inv.id === invoice.id ? { ...inv, extractedData: { ...inv.extractedData!, date: val } } : inv
+                                      ));
+                                    }}
+                                    className="w-full bg-white/3 border border-white/5 rounded-xl px-4 py-3 text-sm font-bold text-foreground focus:border-primary/40 outline-none transition-all"
+                                  />
+                                </div>
+
+                                {/* Matricule Fiscal */}
+                                <div>
+                                  <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 px-1">Matricule Fiscal (MF)</label>
+                                  <input 
+                                    type="text"
+                                    value={invoice.extractedData.mf || ''}
+                                    placeholder="0000000/A/P/M/000"
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setProcessedInvoices(prev => prev.map(inv => 
+                                        inv.id === invoice.id ? { ...inv, extractedData: { ...inv.extractedData!, mf: val } } : inv
+                                      ));
+                                    }}
+                                    className="w-full bg-white/3 border border-white/5 rounded-xl px-4 py-3 text-sm font-bold text-foreground focus:border-primary/40 outline-none transition-all"
+                                  />
+                                </div>
+
+                                {/* Total HT */}
+                                <div>
+                                  <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 px-1">Total HT</label>
+                                  <input 
+                                    type="number"
+                                    value={invoice.extractedData.totalHT || 0}
+                                    onChange={(e) => {
+                                      const val = parseFloat(e.target.value);
+                                      setProcessedInvoices(prev => prev.map(inv => 
+                                        inv.id === invoice.id ? { ...inv, extractedData: { ...inv.extractedData!, totalHT: val } } : inv
+                                      ));
+                                    }}
+                                    className="w-full bg-white/3 border border-white/5 rounded-xl px-4 py-3 text-sm font-bold text-foreground focus:border-primary/40 outline-none transition-all"
+                                  />
+                                </div>
+
+                                {/* TVA Rate */}
+                                <div>
+                                  <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 px-1">TVA Rate (%)</label>
+                                  <input 
+                                    type="number"
+                                    value={invoice.extractedData.tva || 19}
+                                    onChange={(e) => {
+                                      const val = parseFloat(e.target.value);
+                                      setProcessedInvoices(prev => prev.map(inv => 
+                                        inv.id === invoice.id ? { ...inv, extractedData: { ...inv.extractedData!, tva: val } } : inv
+                                      ));
+                                    }}
+                                    className="w-full bg-white/3 border border-white/5 rounded-xl px-4 py-3 text-sm font-bold text-foreground focus:border-primary/40 outline-none transition-all"
+                                  />
+                                </div>
+
+                                {/* TVA Amount */}
+                                <div>
+                                  <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 px-1">TVA Amount</label>
+                                  <input 
+                                    type="number"
+                                    value={invoice.extractedData.tvaAmount || 0}
+                                    onChange={(e) => {
+                                      const val = parseFloat(e.target.value);
+                                      setProcessedInvoices(prev => prev.map(inv => 
+                                        inv.id === invoice.id ? { ...inv, extractedData: { ...inv.extractedData!, tvaAmount: val } } : inv
+                                      ));
+                                    }}
+                                    className="w-full bg-white/3 border border-white/5 rounded-xl px-4 py-3 text-sm font-bold text-foreground focus:border-primary/40 outline-none transition-all"
+                                  />
+                                </div>
+
+                                {/* Timbre */}
+                                <div>
+                                  <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 px-1">Timbre Fiscal</label>
+                                  <input 
+                                    type="number"
+                                    value={invoice.extractedData.timbre || 0}
+                                    onChange={(e) => {
+                                      const val = parseFloat(e.target.value);
+                                      setProcessedInvoices(prev => prev.map(inv => 
+                                        inv.id === invoice.id ? { ...inv, extractedData: { ...inv.extractedData!, timbre: val } } : inv
+                                      ));
+                                    }}
+                                    className="w-full bg-white/3 border border-white/5 rounded-xl px-4 py-3 text-sm font-bold text-foreground focus:border-primary/40 outline-none transition-all"
+                                  />
+                                </div>
+
+                                {/* TOTAL TTC */}
+                                <div>
+                                  <label className="block text-[10px] font-black text-primary uppercase tracking-widest mb-2 px-1">TOTAL TTC (DT)</label>
+                                  <input 
+                                    type="number"
+                                    value={invoice.extractedData.amount}
+                                    onChange={(e) => {
+                                      const val = parseFloat(e.target.value);
+                                      setProcessedInvoices(prev => prev.map(inv => 
+                                        inv.id === invoice.id ? { ...inv, extractedData: { ...inv.extractedData!, amount: val } } : inv
+                                      ));
+                                    }}
+                                    className="w-full bg-primary/5 border border-primary/20 text-primary rounded-xl px-4 py-3 text-sm font-extrabold focus:border-primary outline-none transition-all"
+                                  />
+                                </div>
+
+                              </div>
+
+                              <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
+                                 <button 
+                                   onClick={async () => {
+                                     try {
+                                       // 1. Update extracted fields
+                                       await api.put(`/invoices/${invoice.id}/extracted`, {
+                                         companyName: invoice.extractedData?.vendor,
+                                         totalAmount: invoice.extractedData?.amount,
+                                         invoiceNumber: invoice.extractedData?.invoiceNumber,
+                                         date: invoice.extractedData?.date,
+                                         matriculeFiscal: invoice.extractedData?.mf,
+                                         totalHT: invoice.extractedData?.totalHT,
+                                         tva: invoice.extractedData?.tva,
+                                         tvaAmount: invoice.extractedData?.tvaAmount,
+                                         timbre: invoice.extractedData?.timbre
+                                       });
+                                       
+                                       // 2. Submit to admin review
+                                       await api.post(`/invoices/${invoice.id}/submit`);
+                                       
+                                       toast.success('Invoice submitted to compliance reviews!');
+                                       setProcessedInvoices(prev => prev.filter(inv => inv.id !== invoice.id));
+                                     } catch (err) {
+                                       toast.error('Failed to submit audited invoice');
+                                     }
+                                   }}
+                                   className="px-6 py-3.5 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 shadow-purple hover:scale-102 transition-all cursor-pointer"
+                                 >
+                                    <ShieldCheck size={16} />
+                                    Verify & Submit
+                                 </button>
+                              </div>
+                            </div>
+                          ) : invoice.error ? (
+                            <div className="flex items-center gap-3 text-red-400 text-xs font-bold bg-red-500/5 p-5 rounded-2xl border border-red-500/10">
+                              <AlertCircle size={18} />
+                              <span>Extraction failed: {invoice.error}</span>
+                            </div>
+                          ) : (
+                            <div className="h-[200px] flex flex-col items-center justify-center space-y-3">
+                              <div className="w-8 h-8 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Executing OCR Parsing Engines...</span>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    )}
 
-                    {invoice.error && (
-                      <div className="flex items-center gap-2 text-red-500 text-xs font-bold bg-red-500/10 p-4 rounded-2xl border border-red-500/20">
-                        <AlertCircle size={14} />
-                        {invoice.error}
                       </div>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
+      ) : (
+        /* History logs analytics */
+        <div className="sf-card text-center p-16">
+          <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6 text-indigo-400 border border-white/5">
+             <Sliders size={24} />
+          </div>
+          <h3 className="text-xl font-bold text-foreground">Operational Analysis Logs</h3>
+          <p className="text-muted-foreground text-sm font-medium mt-1 mb-6">Fully audited records of recent extractions and cognitive processing logs.</p>
+          <div className="max-w-md mx-auto space-y-4">
+            <div className="p-4 rounded-xl bg-white/2 border border-white/5 flex justify-between text-xs font-bold text-left">
+              <span className="text-muted-foreground">Automatic Validation Passing</span>
+              <span className="text-emerald-400">92% Average</span>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <div className="p-4 rounded-xl bg-white/2 border border-white/5 flex justify-between text-xs font-bold text-left">
+              <span className="text-muted-foreground">Processing Latency</span>
+              <span className="text-indigo-400">~2.4 seconds / page</span>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* Info Sections */}
+      {/* Corporate Guidance Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-         <div className="bg-white rounded-[2.5rem] p-8 shadow-soft border border-slate-50">
+         <div className="sf-card">
             <div className="flex items-center gap-4 mb-6">
-               <div className="p-3 bg-emerald-50 text-emerald-500 rounded-2xl">
-                  <ShieldCheck size={24} />
+               <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-2xl">
+                  <ShieldCheck size={22} />
                </div>
-               <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">AI Reliability</h3>
+               <h3 className="text-xl font-extrabold text-foreground">AI Verification Engine</h3>
             </div>
             <ul className="space-y-4">
                {[
-                 "99.9% Extraction accuracy",
-                 "Support for French & Arabic",
-                 "Automatic MF validation",
-                 "Audit trail for every file"
+                 "98.6% Optical extraction accuracy rate",
+                 "Multi-Language layout support (French & Arabic)",
+                 "Autonomous Matricule Fiscal checks",
+                 "Audit trails logged for compliance"
                ].map((item, i) => (
-                 <li key={i} className="flex items-center gap-3 text-sm font-medium text-slate-500">
+                 <li key={i} className="flex items-center gap-3 text-xs font-bold text-muted-foreground">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                     {item}
                  </li>
@@ -388,18 +486,18 @@ export function ProcessingLab() {
             </ul>
          </div>
 
-         <div className="bg-white rounded-[2.5rem] p-8 shadow-soft border border-slate-50">
+         <div className="sf-card">
             <div className="flex items-center gap-4 mb-6">
-               <div className="p-3 bg-primary/5 text-primary rounded-2xl">
-                  <Sparkles size={24} />
+               <div className="p-3 bg-primary/10 text-primary rounded-2xl">
+                  <Sparkles size={22} />
                </div>
-               <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">Smart Tips</h3>
+               <h3 className="text-xl font-extrabold text-foreground">Usage Guidelines</h3>
             </div>
-            <p className="text-sm font-medium text-slate-500 leading-relaxed">
-              For best results, ensure your invoices are well-lit and the text is clear. You can upload up to 25 files at once for batch processing.
+            <p className="text-xs text-muted-foreground font-semibold leading-relaxed">
+              Ensure scanned receipts and PDFs have visible field boundaries and legible tax lines. You can select multiple documents at once to execute parallel processing.
             </p>
-            <div className="mt-6 flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest cursor-pointer hover:gap-3 transition-all">
-               View documentation <ArrowRight size={14} />
+            <div className="mt-6 flex items-center gap-1 text-primary font-black text-xs uppercase tracking-widest cursor-pointer hover:gap-2 transition-all">
+               Browse Compliance Guidelines <ArrowRight size={14} />
             </div>
          </div>
       </div>

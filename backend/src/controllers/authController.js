@@ -33,21 +33,15 @@ const registerUser = async (req, res, next) => {
     } 
     // 2. INTERNAL REGISTRATION (Creator exists)
     else {
-      // ADMIN can create MANAGER or EMPLOYEE
+      // ADMIN can create ACCOUNTANT or ADMIN
       if (creator.role === 'ADMIN') {
-        if (!['MANAGER', 'EMPLOYEE'].includes(role)) {
-          return res.status(400).json({ message: 'Admins can only create Managers or Employees.' });
+        if (!['ACCOUNTANT', 'ADMIN'].includes(role)) {
+          return res.status(400).json({ message: 'Admins can only create Accountants or Admins.' });
         }
       }
-      // MANAGER can only create EMPLOYEE
-      else if (creator.role === 'MANAGER') {
-        if (role !== 'EMPLOYEE') {
-          return res.status(403).json({ message: 'Managers can only create Employees.' });
-        }
-      }
-      // EMPLOYEE cannot create anyone
+      // ACCOUNTANT cannot create anyone
       else {
-        return res.status(403).json({ message: 'Employees are not authorized to create users.' });
+        return res.status(403).json({ message: 'Accountants are not authorized to create users.' });
       }
     }
 
@@ -63,8 +57,8 @@ const registerUser = async (req, res, next) => {
       name,
       email,
       passwordHash,
-      role: role || (creator ? 'EMPLOYEE' : 'ADMIN'),
-      managedBy: creator?.role === 'MANAGER' ? creator._id : (req.body.managedBy || null)
+      role: role || (creator ? 'ACCOUNTANT' : 'ADMIN'),
+      managedBy: null
     });
 
     if (user) {

@@ -32,7 +32,7 @@ const processApproval = async (req, res, next) => {
 
     await AuditLog.create({
       userId: req.user._id,
-      action: `MANAGER_${decision}`,
+      action: `ADMIN_${decision}`,
       entityType: 'Invoice',
       entityId: invoice._id
     });

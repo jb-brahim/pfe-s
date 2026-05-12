@@ -17,9 +17,9 @@ router.get('/profile', protect, getProfile);
 router.put('/preferences', protect, updatePreferences);
 
 // All team management routes
-router.get('/', protect, authorize('MANAGER', 'ADMIN'), getAllUsers);
+router.get('/', protect, authorize('ADMIN'), getAllUsers);
 router.post('/', protect, authorize('ADMIN'), createUser);
-router.get('/stats', protect, authorize('MANAGER', 'ADMIN'), getUserStats);
+router.get('/stats', protect, authorize('ADMIN'), getUserStats);
 router.put('/:id/role', protect, authorize('ADMIN'), updateUserRole);
 router.delete('/:id', protect, authorize('ADMIN'), deleteUser);
 

@@ -11,8 +11,8 @@ const getDashboardStats = async (req, res, next) => {
     const { role, _id: userId } = req.user;
     let filter = {};
     
-    // Isolation: Employees only see their own data
-    if (role === 'EMPLOYEE') {
+    // Isolation: Accountants only see their own data
+    if (role === 'ACCOUNTANT') {
       filter.userId = userId;
     }
 
@@ -82,7 +82,7 @@ const getDashboardStats = async (req, res, next) => {
     // Assemble metrics for the frontend CommandCenter
     const metrics = [
       { 
-        label: role === 'EMPLOYEE' ? 'My Submissions' : 'Total Invoices', 
+        label: role === 'ACCOUNTANT' ? 'My Submissions' : 'Total Invoices', 
         value: stats.total.toString(), 
         trend: 'neutral', 
         icon: 'FileText' 
@@ -100,10 +100,10 @@ const getDashboardStats = async (req, res, next) => {
         icon: 'CheckCircle2' 
       },
       { 
-        label: role === 'EMPLOYEE' ? 'Rejected' : 'Avg. Processing', 
-        value: role === 'EMPLOYEE' ? stats.rejected.toString() : '1.2d', 
-        trend: role === 'EMPLOYEE' ? (stats.rejected > 0 ? 'negative' : 'positive') : 'positive', 
-        icon: role === 'EMPLOYEE' ? 'XCircle' : 'Activity' 
+        label: role === 'ACCOUNTANT' ? 'Rejected' : 'Avg. Processing', 
+        value: role === 'ACCOUNTANT' ? stats.rejected.toString() : '1.2d', 
+        trend: role === 'ACCOUNTANT' ? (stats.rejected > 0 ? 'negative' : 'positive') : 'positive', 
+        icon: role === 'ACCOUNTANT' ? 'XCircle' : 'Activity' 
       }
     ];
 
@@ -145,7 +145,7 @@ const getMonthlyStats = async (req, res, next) => {
       }
     };
     
-    if (role === 'EMPLOYEE') filter.userId = userId;
+    if (role === 'ACCOUNTANT') filter.userId = userId;
 
     const monthlyData = await Invoice.aggregate([
       { $match: filter },
