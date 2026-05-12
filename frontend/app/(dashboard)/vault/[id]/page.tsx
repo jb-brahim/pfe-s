@@ -285,7 +285,7 @@ export default function InvoiceDetailPage() {
            <div className="absolute inset-0 flex items-center justify-center p-6">
               {invoiceData.fileUrl && invoiceData.fileUrl !== 'MANUAL_ENTRY' ? (
                 <img 
-                  src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/${invoiceData.fileUrl.replace(/\\/g, '/')}`} 
+                  src={`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/api$/, '')}/${invoiceData.fileUrl.replace(/\\/g, '/')}`} 
                   alt="Scanned Invoice" 
                   className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl border border-white/5"
                 />
