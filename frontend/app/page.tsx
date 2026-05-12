@@ -23,7 +23,7 @@ export default function LandingPage() {
   const [showDemo, setShowDemo] = useState(false);
   
   return (
-    <div className="min-h-screen bg-[#080710] text-foreground font-sans selection:bg-primary/30 selection:text-white scroll-smooth relative overflow-hidden">
+    <div className="dark min-h-screen bg-[#080710] text-foreground font-sans selection:bg-primary/30 selection:text-white scroll-smooth relative overflow-hidden">
       {/* Decorative cosmic background glows */}
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-[150px] pointer-events-none" />
