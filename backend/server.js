@@ -15,6 +15,7 @@ const commentRoutes = require('./src/routes/commentRoutes');
 const userRoutes = require('./src/routes/userRoutes');
 const budgetRoutes = require('./src/routes/budgetRoutes');
 const ruleRoutes = require('./src/routes/ruleRoutes');
+const mailRoutes = require('./src/routes/mailRoutes');
 
 // Middlewares
 const { errorHandler } = require('./src/middlewares/errorMiddleware');
@@ -55,6 +56,7 @@ app.use('/api/comments', commentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/budget', budgetRoutes);
 app.use('/api/rules', ruleRoutes);
+app.use('/api/mail', mailRoutes);
 
 // Error logic
 app.use((req, res, next) => {

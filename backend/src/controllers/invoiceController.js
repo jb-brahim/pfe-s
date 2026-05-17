@@ -144,6 +144,21 @@ const uploadInvoice = async (req, res, next) => {
       invoice.status = 'EXTRACTED';
       await invoice.save();
 
+      // If this request came from n8n with email data, create a Mail record
+      if (req.body.sender && req.body.subject) {
+        const Mail = require('../models/Mail');
+        await Mail.create({
+          sender: req.body.sender,
+          name: req.body.name || '',
+          subject: req.body.subject,
+          body: req.body.body || '',
+          hasAttachment: true,
+          status: 'extracted',
+          snippet: req.body.body ? req.body.body.substring(0, 100) : '',
+          invoiceId: invoice._id
+        }).catch(e => console.error('Failed to create mail record from n8n:', e));
+      }
+
       console.log('📝 Creating audit log...');
       await AuditLog.create({
         userId: req.user._id,
@@ -179,21 +194,41 @@ const uploadInvoice = async (req, res, next) => {
       overallStatus
     });
 
-    invoice.status = 'VERIFIED';
-    await invoice.save();
+    // ROLE-BASED FLOW:
+    // ADMIN → auto-approve (no review needed)
+    // ACCOUNTANT → needs admin review
+    if (req.user.role === 'ADMIN') {
+      invoice.status = 'APPROVED';
+      await invoice.save();
 
-    await AuditLog.create({
-      userId: req.user._id,
-      action: 'VALIDATION',
-      entityType: 'Invoice',
-      entityId: invoice._id
-    });
+      await AuditLog.create({
+        userId: req.user._id,
+        action: 'AUTO_APPROVE',
+        entityType: 'Invoice',
+        entityId: invoice._id
+      });
+    } else {
+      invoice.status = 'VERIFIED';
+      await invoice.save();
+
+      await AuditLog.create({
+        userId: req.user._id,
+        action: 'VALIDATION',
+        entityType: 'Invoice',
+        entityId: invoice._id
+      });
+
+      // Only notify managers when an accountant uploads
+      await notifyManagers('NEEDS_REVIEW', `New invoice ${extractedData.invoiceNumber || ''} from ${req.user.name} needs review`, invoice._id);
+    }
 
     // Budget alert check
     const budgetAlert = await checkBudgetAlert(extractedData.totalAmount || 0);
 
     res.status(201).json({
-      message: 'Invoice uploaded and processed successfully',
+      message: req.user.role === 'ADMIN' 
+        ? 'Invoice uploaded, processed and auto-approved' 
+        : 'Invoice uploaded and sent for review',
       data: {
         _id: invoice._id,
         status: invoice.status,

@@ -46,9 +46,41 @@ const extractInvoiceData = async (filePath) => {
     // Use Gemini Flash Latest (confirmed working in your environment)
     const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
-    const prompt = `Extract invoice data as JSON. 
-    Required fields: companyName, invoiceNumber, matriculeFiscal, date (YYYY-MM-DD), client, totalHT, tva (percentage), tvaAmount, timbre, totalAmount, rawText (summary).
-    Also include confidenceScores (0-1) for each field.`;
+    const prompt = `You are an expert invoice data extractor. Extract the following fields from the invoice image and return them as a valid JSON object.
+    
+    Fields to extract:
+    - companyName: The name of the vendor or supplier (look for "Société", "STE", or large text at top).
+    - invoiceNumber: The unique number of the invoice (look for "Facture N°", "N° Facture").
+    - matriculeFiscal: The tax identification number (Matricule Fiscal in Tunisia, usually formatted like 1234567A/P/M000 or similar).
+    - date: The date of the invoice (formatted as YYYY-MM-DD).
+    - client: The name of the client or customer (look for "Client", "Facturé à").
+    - totalHT: The total amount before tax (Hors Taxe).
+    - tva: The TVA percentage (e.g., 19, 13, 7).
+    - tvaAmount: The total TVA amount.
+    - timbre: The fiscal stamp amount (Timbre fiscal).
+    - totalAmount: The total amount after tax (TTC or Net à Payer).
+    - rawText: A short summary of the items or services.
+
+    Return ONLY the JSON object inside a json code block.
+    Example response structure:
+    \`\`\`json
+    {
+      "companyName": "STE EXAMPLE",
+      "invoiceNumber": "INV123",
+      "matriculeFiscal": "1234567/A/P/M/000",
+      "date": "2023-10-15",
+      "client": "CLIENT NAME",
+      "totalHT": 1000.00,
+      "tva": 19,
+      "tvaAmount": 190.00,
+      "timbre": 1.000,
+      "totalAmount": 1191.000,
+      "rawText": "Purchase of equipment",
+      "confidenceScores": {
+        "overall": 0.95
+      }
+    }
+    \`\`\``;
 
     // Send to Gemini with the file
     const result = await model.generateContent([

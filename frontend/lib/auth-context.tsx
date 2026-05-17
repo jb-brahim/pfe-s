@@ -1,21 +1,19 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import api from './api';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { authAPI } from './api';
 
 interface User {
-  id?: string;
-  _id?: string;
+  _id: string;
   name: string;
   email: string;
-  role: string;
+  role: 'ADMIN' | 'ACCOUNTANT';
 }
 
 interface AuthContextType {
   user: User | null;
-  loading: boolean;
-  login: (token: string, userData: User) => void;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -24,48 +22,55 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Initialize auth on mount
   useEffect(() => {
-    // Check for token on mount
-    const checkAuth = async () => {
-      const token = localStorage.getItem('token');
+    const initAuth = async () => {
+      const token = localStorage.getItem('authToken');
       if (token) {
         try {
-          // Verify token with backend or just trust it for now if we have user data
-          // In a real app, we'd call /auth/me
-          const savedUser = localStorage.getItem('user');
-          if (savedUser) {
-            setUser(JSON.parse(savedUser));
+          const result = await authAPI.getProfile();
+          if (result.data) {
+            setUser(result.data);
           }
         } catch (error) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          localStorage.removeItem('authToken');
         }
       }
-      setLoading(false);
+      setIsLoading(false);
     };
 
-    checkAuth();
+    initAuth();
   }, []);
 
-  const login = (token: string, userData: User) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
-    router.push('/dashboard');
+  const login = async (email: string, password: string) => {
+    try {
+      const result = await authAPI.login(email, password);
+      if (result.data) {
+        localStorage.setItem('authToken', result.data.token);
+        setUser(result.data);
+      }
+    } catch (error) {
+      throw error;
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem('authToken');
     setUser(null);
-    router.push('/login');
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        login,
+        logout,
+        isAuthenticated: !!user,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -74,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth must be used within AuthProvider');
   }
   return context;
 }

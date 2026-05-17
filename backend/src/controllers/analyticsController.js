@@ -107,11 +107,18 @@ const getDashboardStats = async (req, res, next) => {
       }
     ];
 
+    // 7. Recent Invoices (For AI Telegram Assistant Q&A)
+    const recentInvoices = await ExtractedData.find()
+      .populate('invoiceId', 'status createdAt')
+      .sort({ createdAt: -1 })
+      .limit(5);
+
     res.json({
       data: {
         metrics,
         totalAmount,
         topVendors,
+        recentInvoices,
         auditEntries: auditEntries.map(e => ({
           id: e._id,
           timestamp: e.timestamp,
@@ -192,4 +199,38 @@ const getMonthlyStats = async (req, res, next) => {
   }
 };
 
-module.exports = { getDashboardStats, getMonthlyStats };
+const getSuppliers = async (req, res, next) => {
+  try {
+    const { role, _id: userId } = req.user;
+    let filter = {};
+    
+    // Isolation: Accountants only see their own data if needed
+    // But for suppliers summary, maybe all see all or filtered.
+    // Let's stick to the same pattern if we want to filter by user's invoices.
+    
+    const suppliers = await ExtractedData.aggregate([
+      {
+        $group: {
+          _id: { $ifNull: ["$companyName", "Unknown Vendor"] },
+          totalSpend: { $sum: "$totalAmount" },
+          invoiceCount: { $sum: 1 },
+        }
+      },
+      {
+        $project: {
+          name: "$_id",
+          totalSpend: 1,
+          invoiceCount: 1,
+          _id: 0
+        }
+      },
+      { $sort: { totalSpend: -1 } }
+    ]);
+
+    res.json({ success: true, data: suppliers });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getDashboardStats, getMonthlyStats, getSuppliers };
