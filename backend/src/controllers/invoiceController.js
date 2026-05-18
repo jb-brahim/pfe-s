@@ -144,17 +144,25 @@ const uploadInvoice = async (req, res, next) => {
       invoice.status = 'EXTRACTED';
       await invoice.save();
 
-      // If this request came from n8n with email data, create a Mail record
-      if (req.body.sender && req.body.subject) {
+      // If this request came from n8n (via API key) or has email data, create a Mail record
+      const isFromN8n = req.user.email === 'n8n-bot@system.com';
+      if (isFromN8n || (req.body.sender && req.body.subject)) {
         const Mail = require('../models/Mail');
+        
+        // Handle cases where n8n sends "undefined" as a string or empty values
+        const sender = (req.body.sender && req.body.sender !== 'undefined') ? req.body.sender : 'n8n-automation@system.com';
+        const subject = (req.body.subject && req.body.subject !== 'undefined' && req.body.subject !== '[empty]') ? req.body.subject : 'Scanned Invoice';
+        const name = (req.body.name && req.body.name !== 'undefined') ? req.body.name : 'N8N Scanner';
+        const body = (req.body.body && req.body.body !== 'undefined') ? req.body.body : 'Automated upload via n8n.';
+
         await Mail.create({
-          sender: req.body.sender,
-          name: req.body.name || '',
-          subject: req.body.subject,
-          body: req.body.body || '',
+          sender,
+          name,
+          subject,
+          body,
           hasAttachment: true,
           status: 'extracted',
-          snippet: req.body.body ? req.body.body.substring(0, 100) : '',
+          snippet: body.substring(0, 100),
           invoiceId: invoice._id
         }).catch(e => console.error('Failed to create mail record from n8n:', e));
       }

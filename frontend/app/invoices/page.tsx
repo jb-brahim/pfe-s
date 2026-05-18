@@ -68,7 +68,33 @@ export default function InvoicesPage() {
 
       try {
         const result = await invoiceAPI.uploadFile(file);
-        setInvoices((prev) => [result.data || { _id: Date.now().toString(), status: 'EXTRACTED', invoiceNumber: 'NEW', companyName: file.name, totalAmount: 0, confidence: 0.92 }, ...prev]);
+        const newInvoice = result.data?.data;
+        if (newInvoice) {
+          const mappedInvoice = {
+            _id: newInvoice._id,
+            status: newInvoice.status,
+            invoiceNumber: newInvoice.extractedData?.invoiceNumber || 'NEW',
+            companyName: newInvoice.extractedData?.companyName || file.name,
+            totalAmount: newInvoice.extractedData?.totalAmount || 0,
+            taxAmount: newInvoice.extractedData?.tvaAmount || 0,
+            confidence: newInvoice.extractedData?.confidenceScores?.overall || 0.92,
+            createdAt: newInvoice.createdAt || new Date().toISOString(),
+            extractedData: newInvoice.extractedData || {}
+          };
+          setInvoices((prev) => [mappedInvoice, ...prev]);
+        } else {
+          setInvoices((prev) => [result.data || { 
+            _id: Date.now().toString(), 
+            status: 'EXTRACTED', 
+            invoiceNumber: 'NEW', 
+            companyName: file.name, 
+            totalAmount: 0, 
+            taxAmount: 0,
+            confidence: 0.92,
+            createdAt: new Date().toISOString(),
+            extractedData: {}
+          }, ...prev]);
+        }
       } catch (error) {
         console.error('Upload failed:', error);
       } finally {
@@ -231,7 +257,8 @@ export default function InvoicesPage() {
                 filteredInvoices.map((invoice, idx) => {
                   const style = getStatusStyle(invoice.status);
                   return (
-                    <div 
+                    <Link 
+                      href={`/invoices/${invoice._id}`}
                       key={invoice._id} 
                       className="group relative bg-[rgba(255,255,255,0.03)] backdrop-blur-xl border border-[rgba(255,255,255,0.05)] hover:border-[#D98F8F]/40 hover:bg-[rgba(255,255,255,0.05)] rounded-[24px] p-5 flex flex-col md:flex-row md:items-center gap-6 transition-all duration-400 hover:shadow-[0_15px_40px_rgba(0,0,0,0.4)] hover:-translate-y-1"
                       style={{ animationDelay: `${idx * 100}ms` }}
@@ -262,7 +289,7 @@ export default function InvoicesPage() {
                       {/* Amount */}
                       <div className="md:w-[150px] md:text-right">
                         <p className="text-[12px] text-[#A69697] mb-1">Total Amount</p>
-                        <p className="text-[22px] font-bold text-white tracking-tight">${invoice.totalAmount.toLocaleString()}</p>
+                        <p className="text-[22px] font-bold text-white tracking-tight">${invoice.totalAmount?.toLocaleString() || '0'}</p>
                       </div>
 
                       {/* AI Match */}
@@ -278,20 +305,25 @@ export default function InvoicesPage() {
 
                       {/* Actions */}
                       <div className="flex items-center gap-2 md:pl-4 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <button className="p-3 rounded-[14px] bg-[#1A0A0B] border border-white/5 text-[#A69697] hover:border-white/20 hover:text-white transition-all hover:scale-105">
+                        <button 
+                          onClick={(e) => e.stopPropagation()} 
+                          className="p-3 rounded-[14px] bg-[#1A0A0B] border border-white/5 text-[#A69697] hover:border-white/20 hover:text-white transition-all hover:scale-105"
+                        >
                           <Edit size={18} />
                         </button>
-                        <button className="p-3 rounded-[14px] bg-[#1A0A0B] border border-white/5 text-[#A69697] hover:border-[#D98F8F]/50 hover:text-[#D98F8F] transition-all hover:scale-105">
+                        <button 
+                          onClick={(e) => e.stopPropagation()} 
+                          className="p-3 rounded-[14px] bg-[#1A0A0B] border border-white/5 text-[#A69697] hover:border-[#D98F8F]/50 hover:text-[#D98F8F] transition-all hover:scale-105"
+                        >
                           <Trash2 size={18} />
                         </button>
-                        <Link
-                          href={`/invoices/${invoice._id}`}
+                        <div
                           className="ml-2 p-3 rounded-[14px] bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white shadow-[0_0_15px_rgba(142,27,58,0.4)] hover:shadow-[0_0_25px_rgba(217,143,143,0.6)] transition-all hover:scale-105 flex items-center justify-center"
                         >
                           <ChevronRight size={20} />
-                        </Link>
+                        </div>
                       </div>
-                    </div>
+                    </Link>
                   );
                 })
               )}
