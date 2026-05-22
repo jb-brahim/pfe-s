@@ -13,9 +13,11 @@ const setBudget = async (req, res, next) => {
       return res.status(400).json({ message: 'monthlyLimit, year, and month are required' });
     }
 
+    const rootAdminId = req.user.managedBy || req.user._id;
+
     const budget = await Budget.findOneAndUpdate(
-      { year, month },
-      { monthlyLimit, alertThreshold: alertThreshold || 80, createdBy: req.user._id },
+      { year, month, createdBy: rootAdminId },
+      { monthlyLimit, alertThreshold: alertThreshold || 80 },
       { upsert: true, new: true }
     );
 
@@ -28,12 +30,16 @@ const setBudget = async (req, res, next) => {
 // ──────────────────────────────────────────────
 // GET BUDGET STATUS FOR A MONTH
 // ──────────────────────────────────────────────
+const { getTeamUserIds } = require('../utils/tenant');
+
 const getBudgetStatus = async (req, res, next) => {
   try {
     const year = parseInt(req.query.year) || new Date().getFullYear();
     const month = parseInt(req.query.month) || (new Date().getMonth() + 1);
 
-    let budget = await Budget.findOne({ year, month });
+    const rootAdminId = req.user.managedBy || req.user._id;
+
+    let budget = await Budget.findOne({ year, month, createdBy: rootAdminId });
     if (!budget) {
       // Auto-initialize a default corporate budget of $10,000 if none exists for this period
       budget = await Budget.create({
@@ -41,15 +47,18 @@ const getBudgetStatus = async (req, res, next) => {
         month,
         monthlyLimit: 10000,
         alertThreshold: 80,
-        createdBy: req.user?._id
+        createdBy: rootAdminId
       });
     }
+
+    const teamUserIds = await getTeamUserIds(req.user);
 
     // Calculate current spending
     const monthStart = new Date(year, month - 1, 1);
     const monthEnd = new Date(year, month, 0, 23, 59, 59);
 
     const approvedInvoices = await Invoice.find({
+      userId: { $in: teamUserIds },
       status: 'APPROVED',
       createdAt: { $gte: monthStart, $lte: monthEnd }
     }).select('_id');

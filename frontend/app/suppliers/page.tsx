@@ -81,16 +81,16 @@ export default function SuppliersPage() {
     fetchSuppliers();
   }, []);
 
-  const displaySuppliers = suppliers.length > 0 ? suppliers.map((s, index) => ({
+  const displaySuppliers = suppliers.map((s, index) => ({
     id: `sup-${index}`,
     name: s.name,
     category: 'General Vendor',
-    autoCreated: s.name === 'Unknown Vendor' ? false : true, // Mark AI extracted as autoCreated
+    autoCreated: s.name === 'Unknown Vendor' ? false : true,
     risk: 'Low',
     totalSpend: s.totalSpend,
     invoiceCount: s.invoiceCount,
-    recentInvoices: []
-  })) : mockSuppliers; // Fallback to mock if empty for demo
+    recentInvoices: [] as any[]
+  }));
 
   const filteredSuppliers = displaySuppliers.filter(s => 
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -124,12 +124,12 @@ export default function SuppliersPage() {
           <div className="bg-[#1A0A0B] border border-white/10 rounded-[16px] px-6 py-3 flex items-center gap-8 shadow-lg">
              <div>
                <p className="text-[#A69697] text-[12px] font-bold uppercase tracking-wider mb-1">Total Suppliers</p>
-               <p className="text-white text-[24px] font-bold leading-none">{mockSuppliers.length}</p>
+               <p className="text-white text-[24px] font-bold leading-none">{displaySuppliers.length}</p>
              </div>
              <div className="w-px h-10 bg-white/10"></div>
              <div>
                <p className="text-[#A69697] text-[12px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1"><Zap size={12} className="text-[#D98F8F]"/> AI Auto-Created</p>
-               <p className="text-[#D98F8F] text-[24px] font-bold leading-none">{mockSuppliers.filter(s => s.autoCreated).length}</p>
+               <p className="text-[#D98F8F] text-[24px] font-bold leading-none">{displaySuppliers.filter(s => s.autoCreated).length}</p>
              </div>
           </div>
         </div>

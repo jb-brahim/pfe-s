@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { invoiceAPI, mockInvoices } from '@/lib/api';
-import { Upload, Loader, Eye, Edit, Trash2, Search, FileText, Zap, Sparkles, CheckCircle2, ChevronRight } from 'lucide-react';
+import { Upload, Loader, Eye, Edit, Trash2, Search, FileText, Zap, Sparkles, CheckCircle2, ChevronRight, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
-type InvoiceStatus = 'ALL' | 'DRAFT' | 'EXTRACTED' | 'VERIFIED' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
+type InvoiceStatus = 'ALL' | 'DRAFT' | 'EXTRACTED' | 'VERIFIED' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'FAILED';
 
 const ConfidenceRing = ({ score }: { score: number }) => {
   const radius = 16;
@@ -40,8 +42,9 @@ export default function InvoicesPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedStatus, setSelectedStatus] = useState<InvoiceStatus>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
 
-  const statuses: InvoiceStatus[] = ['ALL', 'DRAFT', 'EXTRACTED', 'VERIFIED', 'SUBMITTED', 'APPROVED', 'REJECTED'];
+  const statuses: InvoiceStatus[] = ['ALL', 'SUBMITTED', 'APPROVED', 'REJECTED', 'FAILED'];
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -95,8 +98,13 @@ export default function InvoicesPage() {
             extractedData: {}
           }, ...prev]);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Upload failed:', error);
+        if (error.response?.status === 409) {
+          toast.error(`Duplicate Invoice: ${file.name} has already been uploaded.`);
+        } else {
+          toast.error(`Failed to upload ${file.name}`);
+        }
       } finally {
         clearInterval(interval);
         setUploadProgress(100);
@@ -110,6 +118,19 @@ export default function InvoicesPage() {
     }, 1000);
   };
 
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this invoice?')) return;
+    try {
+      await invoiceAPI.delete(id);
+      setInvoices(invoices.filter(inv => inv._id !== id));
+      toast.success('Invoice deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete invoice');
+    }
+  };
+
   const getStatusStyle = (status: string) => {
     switch(status) {
       case 'APPROVED':
@@ -120,6 +141,8 @@ export default function InvoicesPage() {
         return { bg: 'bg-[#FFC107]/10', text: 'text-[#FFC107]', border: 'border-[#FFC107]/30', dot: 'bg-[#FFC107]' };
       case 'REJECTED':
         return { bg: 'bg-[#8E1B3A]/30', text: 'text-[#D98F8F]', border: 'border-[#8E1B3A]/50', dot: 'bg-[#D98F8F]' };
+      case 'FAILED':
+        return { bg: 'bg-[#8E1B3A]', text: 'text-white', border: 'border-[#FF5252]', dot: 'bg-[#FF5252]' };
       default:
         return { bg: 'bg-white/5', text: 'text-[#A69697]', border: 'border-white/10', dot: 'bg-[#A69697]' };
     }
@@ -260,7 +283,11 @@ export default function InvoicesPage() {
                     <Link 
                       href={`/invoices/${invoice._id}`}
                       key={invoice._id} 
-                      className="group relative bg-[rgba(255,255,255,0.03)] backdrop-blur-xl border border-[rgba(255,255,255,0.05)] hover:border-[#D98F8F]/40 hover:bg-[rgba(255,255,255,0.05)] rounded-[24px] p-5 flex flex-col md:flex-row md:items-center gap-6 transition-all duration-400 hover:shadow-[0_15px_40px_rgba(0,0,0,0.4)] hover:-translate-y-1"
+                      className={`group relative backdrop-blur-xl border rounded-[24px] p-3 sm:p-4 flex flex-col lg:flex-row lg:items-center gap-3 sm:gap-4 transition-all duration-400 hover:-translate-y-1 overflow-hidden ${
+                        invoice.status === 'FAILED' 
+                          ? 'bg-[#8E1B3A]/10 border-[#FF5252]/30 hover:border-[#FF5252]/60 hover:shadow-[0_15px_40px_rgba(255,82,82,0.15)]' 
+                          : 'bg-[rgba(255,255,255,0.03)] border-[rgba(255,255,255,0.05)] hover:border-[#D98F8F]/40 hover:bg-[rgba(255,255,255,0.05)] hover:shadow-[0_15px_40px_rgba(0,0,0,0.4)]'
+                      }`}
                       style={{ animationDelay: `${idx * 100}ms` }}
                     >
                       {/* Left Accent Bar on Hover */}
@@ -287,14 +314,19 @@ export default function InvoicesPage() {
                       </div>
 
                       {/* Amount */}
-                      <div className="md:w-[150px] md:text-right">
+                      <div className="lg:w-[100px] xl:w-[120px] lg:text-right shrink-0">
                         <p className="text-[12px] text-[#A69697] mb-1">Total Amount</p>
                         <p className="text-[22px] font-bold text-white tracking-tight">${invoice.totalAmount?.toLocaleString() || '0'}</p>
                       </div>
 
-                      {/* AI Match */}
-                      <div className="md:w-[120px] flex md:justify-center border-t md:border-t-0 md:border-l border-white/5 pt-4 md:pt-0 md:pl-6">
-                        {invoice.confidence ? (
+                      {/* AI Match / Error */}
+                      <div className="lg:w-[120px] xl:w-[140px] shrink-0 flex lg:justify-center border-t lg:border-t-0 lg:border-l border-white/5 pt-3 lg:pt-0 lg:pl-4">
+                        {invoice.status === 'FAILED' ? (
+                          <div className="flex items-center gap-2 text-[#FF5252] bg-[#FF5252]/10 px-3 py-2 rounded-xl">
+                            <AlertTriangle size={16} />
+                            <span className="text-[12px] font-bold">Extraction Failed</span>
+                          </div>
+                        ) : invoice.confidence ? (
                           <div className="flex items-center gap-3">
                             <ConfidenceRing score={invoice.confidence} />
                           </div>
@@ -304,23 +336,27 @@ export default function InvoicesPage() {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-center gap-2 md:pl-4 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="flex items-center gap-1.5 lg:pl-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity duration-300 shrink-0 mt-3 lg:mt-0">
                         <button 
-                          onClick={(e) => e.stopPropagation()} 
-                          className="p-3 rounded-[14px] bg-[#1A0A0B] border border-white/5 text-[#A69697] hover:border-white/20 hover:text-white transition-all hover:scale-105"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            router.push(`/invoices/${invoice._id}`);
+                          }} 
+                          className="p-2.5 rounded-[12px] bg-[#1A0A0B] border border-white/5 text-[#A69697] hover:border-white/20 hover:text-white transition-all hover:scale-105"
                         >
-                          <Edit size={18} />
+                          <Edit size={16} />
                         </button>
                         <button 
-                          onClick={(e) => e.stopPropagation()} 
-                          className="p-3 rounded-[14px] bg-[#1A0A0B] border border-white/5 text-[#A69697] hover:border-[#D98F8F]/50 hover:text-[#D98F8F] transition-all hover:scale-105"
+                          onClick={(e) => handleDelete(e, invoice._id)} 
+                          className="p-2.5 rounded-[12px] bg-[#1A0A0B] border border-white/5 text-[#A69697] hover:border-[#D98F8F]/50 hover:text-[#D98F8F] transition-all hover:scale-105"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={16} />
                         </button>
                         <div
-                          className="ml-2 p-3 rounded-[14px] bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white shadow-[0_0_15px_rgba(142,27,58,0.4)] hover:shadow-[0_0_25px_rgba(217,143,143,0.6)] transition-all hover:scale-105 flex items-center justify-center"
+                          className="ml-1 p-2.5 rounded-[12px] bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white shadow-[0_0_15px_rgba(142,27,58,0.4)] hover:shadow-[0_0_25px_rgba(217,143,143,0.6)] transition-all hover:scale-105 flex items-center justify-center"
                         >
-                          <ChevronRight size={20} />
+                          <ChevronRight size={18} />
                         </div>
                       </div>
                     </Link>

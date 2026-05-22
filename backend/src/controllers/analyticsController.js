@@ -2,6 +2,7 @@ const ExtractedData = require('../models/ExtractedData');
 const Invoice = require('../models/Invoice');
 const AuditLog = require('../models/AuditLog');
 const Budget = require('../models/Budget');
+const { getTeamUserIds } = require('../utils/tenant');
 
 // ──────────────────────────────────────────────
 // Main Dashboard Stats (Role-Aware)
@@ -11,8 +12,11 @@ const getDashboardStats = async (req, res, next) => {
     const { role, _id: userId } = req.user;
     let filter = {};
     
-    // Isolation: Accountants only see their own data
-    if (role === 'ACCOUNTANT') {
+    // Isolation: Accountants only see their own data, Admins see their team's data
+    if (role === 'ADMIN' || req.user.approvalLevel >= 2) {
+      const teamUserIds = await getTeamUserIds(req.user);
+      filter.userId = { $in: teamUserIds };
+    } else {
       filter.userId = userId;
     }
 
@@ -52,10 +56,12 @@ const getDashboardStats = async (req, res, next) => {
       .limit(5);
 
     // 4. Budget Status (Current month)
+    const rootAdminId = req.user.managedBy || req.user._id;
     const now = new Date();
     const budget = await Budget.findOne({ 
       year: now.getFullYear(), 
-      month: now.getMonth() + 1 
+      month: now.getMonth() + 1,
+      createdBy: rootAdminId
     });
 
     // 5. Metric: Active Suppliers Count
@@ -108,7 +114,10 @@ const getDashboardStats = async (req, res, next) => {
     ];
 
     // 7. Recent Invoices (For AI Telegram Assistant Q&A)
-    const recentInvoices = await ExtractedData.find()
+    const allInvoices = await Invoice.find(filter).select('_id');
+    const allInvoiceIds = allInvoices.map(i => i._id);
+
+    const recentInvoices = await ExtractedData.find({ invoiceId: { $in: allInvoiceIds } })
       .populate('invoiceId', 'status createdAt')
       .sort({ createdAt: -1 })
       .limit(5);
@@ -152,14 +161,21 @@ const getMonthlyStats = async (req, res, next) => {
       }
     };
     
-    if (role === 'ACCOUNTANT') filter.userId = userId;
+    if (role === 'ADMIN' || req.user.approvalLevel >= 2) {
+      const teamUserIds = await getTeamUserIds(req.user);
+      filter.userId = { $in: teamUserIds };
+    } else {
+      filter.userId = userId;
+    }
 
+    // 1. Monthly invoice count
     const monthlyData = await Invoice.aggregate([
       { $match: filter },
       { $group: { _id: { $month: "$createdAt" }, count: { $sum: 1 } } },
       { $sort: { _id: 1 } }
     ]);
 
+    // 2. Approved Invoices & Expenses
     const approvedInvoices = await Invoice.find({ 
       ...filter, 
       status: 'APPROVED' 
@@ -181,15 +197,46 @@ const getMonthlyStats = async (req, res, next) => {
       { $sort: { _id: 1 } }
     ]);
 
+    // 3. Pending Invoices & Expenses (Submitted, Processing, Extracted, Verified)
+    const pendingInvoices = await Invoice.find({ 
+      ...filter, 
+      status: { $in: ['SUBMITTED', 'PROCESSING', 'EXTRACTED', 'VERIFIED'] } 
+    }).select('_id');
+    const pendingIds = pendingInvoices.map(i => i._id);
+
+    const monthlyPendingExpenses = await ExtractedData.aggregate([
+      { $match: { invoiceId: { $in: pendingIds } } },
+      {
+        $lookup: {
+          from: 'invoices',
+          localField: 'invoiceId',
+          foreignField: '_id',
+          as: 'invoice'
+        }
+      },
+      { $unwind: '$invoice' },
+      { $group: { _id: { $month: "$invoice.createdAt" }, total: { $sum: "$totalAmount" } } },
+      { $sort: { _id: 1 } }
+    ]);
+
+    // 4. Budgets
+    const rootAdminId = req.user.managedBy || req.user._id;
+    const budgets = await Budget.find({ year, createdBy: rootAdminId });
+
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const result = months.map((name, i) => {
       const monthNum = i + 1;
       const invoiceData = monthlyData.find(d => d._id === monthNum);
       const expenseData = monthlyExpenses.find(d => d._id === monthNum);
+      const pendingExpenseData = monthlyPendingExpenses.find(d => d._id === monthNum);
+      const budgetData = budgets.find(b => b.month === monthNum);
+      
       return {
         month: name,
         invoiceCount: invoiceData ? invoiceData.count : 0,
-        totalExpenses: expenseData ? expenseData.total : 0
+        totalExpenses: expenseData ? expenseData.total : 0,
+        pendingExpenses: pendingExpenseData ? pendingExpenseData.total : 0,
+        budgetLimit: budgetData ? budgetData.monthlyLimit : 0
       };
     });
 
@@ -204,11 +251,18 @@ const getSuppliers = async (req, res, next) => {
     const { role, _id: userId } = req.user;
     let filter = {};
     
-    // Isolation: Accountants only see their own data if needed
-    // But for suppliers summary, maybe all see all or filtered.
-    // Let's stick to the same pattern if we want to filter by user's invoices.
+    if (role === 'ADMIN' || req.user.approvalLevel >= 2) {
+      const teamUserIds = await getTeamUserIds(req.user);
+      filter.userId = { $in: teamUserIds };
+    } else {
+      filter.userId = userId;
+    }
+    
+    const invoices = await Invoice.find(filter).select('_id');
+    const invoiceIds = invoices.map(i => i._id);
     
     const suppliers = await ExtractedData.aggregate([
+      { $match: { invoiceId: { $in: invoiceIds } } },
       {
         $group: {
           _id: { $ifNull: ["$companyName", "Unknown Vendor"] },

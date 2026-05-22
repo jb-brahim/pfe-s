@@ -8,7 +8,13 @@ const bcrypt = require('bcryptjs');
 // ──────────────────────────────────────────────
 const getAllUsers = async (req, res, next) => {
   try {
-    let query = {};
+    const rootAdminId = req.user.managedBy || req.user._id;
+    let query = {
+      $or: [
+        { _id: rootAdminId },
+        { managedBy: rootAdminId }
+      ]
+    };
     console.log(`[getAllUsers] Role: ${req.user.role}, ID: ${req.user._id}`);
     
     console.log(`[getAllUsers] Query:`, query);
@@ -49,7 +55,7 @@ const createUser = async (req, res, next) => {
       email,
       passwordHash,
       role: role || 'ACCOUNTANT',
-      managedBy: null
+      managedBy: req.user._id
     });
 
     res.status(201).json({
@@ -90,6 +96,29 @@ const updateUserRole = async (req, res, next) => {
 };
 
 // ──────────────────────────────────────────────
+// UPDATE USER LEVEL (Admin only)
+// ──────────────────────────────────────────────
+const updateUserLevel = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { level } = req.body;
+
+    if (![1, 2].includes(level)) {
+      return res.status(400).json({ message: 'Invalid level. Must be 1 or 2' });
+    }
+
+    const user = await User.findByIdAndUpdate(id, { approvalLevel: level }, { new: true }).select('-passwordHash');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({ data: user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ──────────────────────────────────────────────
 // DELETE USER (Admin only)
 // ──────────────────────────────────────────────
 const deleteUser = async (req, res, next) => {
@@ -117,7 +146,13 @@ const deleteUser = async (req, res, next) => {
 // ──────────────────────────────────────────────
 const getUserStats = async (req, res, next) => {
   try {
-    let query = {};
+    const rootAdminId = req.user.managedBy || req.user._id;
+    let query = {
+      $or: [
+        { _id: rootAdminId },
+        { managedBy: rootAdminId }
+      ]
+    };
 
     const users = await User.find(query).select('-passwordHash');
 
@@ -144,6 +179,8 @@ const getUserStats = async (req, res, next) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        approvalLevel: user.approvalLevel || 1,
+        profileImage: user.profileImage || '',
         totalInvoices,
         approved,
         rejected,
@@ -190,6 +227,82 @@ const updatePreferences = async (req, res, next) => {
   }
 };
 
+// ──────────────────────────────────────────────
+// UPDATE COMPANY DETAILS
+// ──────────────────────────────────────────────
+const updateCompanyDetails = async (req, res, next) => {
+  try {
+    const { companyDetails } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { companyDetails },
+      { new: true, runValidators: true }
+    ).select('-passwordHash');
+    res.json({ data: user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ──────────────────────────────────────────────
+// GENERATE API KEY
+// ──────────────────────────────────────────────
+const generateApiKey = async (req, res, next) => {
+  try {
+    const { name } = req.body;
+    const crypto = require('crypto');
+    const key = 'sk_live_' + crypto.randomBytes(16).toString('hex');
+    
+    const user = await User.findById(req.user._id);
+    user.apiKeys.push({ name: name || 'New API Key', key });
+    await user.save();
+    
+    res.json({ data: user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ──────────────────────────────────────────────
+// UPDATE INTEGRATIONS
+// ──────────────────────────────────────────────
+const updateIntegrations = async (req, res, next) => {
+  try {
+    const { integrations } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { integrations },
+      { new: true, runValidators: true }
+    ).select('-passwordHash');
+    res.json({ data: user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ──────────────────────────────────────────────
+// UPLOAD PROFILE IMAGE
+// ──────────────────────────────────────────────
+const uploadProfileImage = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    // Normalize path for Windows compatibility
+    const profileImage = req.file.path.replace(/\\/g, '/');
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { profileImage },
+      { new: true }
+    ).select('-passwordHash');
+
+    res.json({ data: user });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = { 
   getAllUsers, 
   createUser, 
@@ -197,5 +310,10 @@ module.exports = {
   deleteUser, 
   getUserStats,
   getProfile,
-  updatePreferences
+  updatePreferences,
+  updateCompanyDetails,
+  generateApiKey,
+  updateIntegrations,
+  updateUserLevel,
+  uploadProfileImage
 };

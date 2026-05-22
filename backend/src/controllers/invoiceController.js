@@ -7,6 +7,17 @@ const User = require('../models/User');
 const Budget = require('../models/Budget');
 const { extractInvoiceData } = require('../services/AiService');
 const { validateInvoice } = require('../services/ValidationEngine');
+const { getTeamUserIds } = require('../utils/tenant');
+
+async function isInvoiceInAdminOrganization(invoice, user) {
+  if (user.role === 'ACCOUNTANT') {
+    const userId = invoice.userId._id ? invoice.userId._id.toString() : invoice.userId.toString();
+    return userId === user._id.toString();
+  }
+  const teamUserIds = await getTeamUserIds(user);
+  const invoiceUserId = invoice.userId._id ? invoice.userId._id.toString() : invoice.userId.toString();
+  return teamUserIds.some(id => id.toString() === invoiceUserId);
+}
 
 // ──────────────────────────────────────────────
 // HELPER: Notify all managers
@@ -31,38 +42,46 @@ async function notifyManagers(type, message, invoiceId) {
 // ──────────────────────────────────────────────
 // HELPER: Check for duplicate invoices
 // ──────────────────────────────────────────────
-async function checkDuplicate(invoiceNumber, companyName) {
+async function checkDuplicate(invoiceNumber, companyName, user) {
   if (!invoiceNumber) return null;
 
-  const existing = await ExtractedData.findOne({
+  const teamUserIds = await getTeamUserIds(user);
+
+  const existingRecords = await ExtractedData.find({
     invoiceNumber: invoiceNumber,
     ...(companyName && { companyName: companyName })
-  }).populate('invoiceId');
+  }).populate({
+    path: 'invoiceId',
+    match: { userId: { $in: teamUserIds }, status: { $ne: 'FAILED' } }
+  });
 
-  if (existing && existing.invoiceId && existing.invoiceId.status !== 'FAILED') {
-    return existing;
-  }
-  return null;
+  const duplicate = existingRecords.find(record => record.invoiceId != null);
+  return duplicate || null;
 }
 
 // ──────────────────────────────────────────────
 // HELPER: Check budget alerts
 // ──────────────────────────────────────────────
-async function checkBudgetAlert(invoiceAmount) {
+async function checkBudgetAlert(invoiceAmount, user) {
   try {
     const now = new Date();
+    const rootAdminId = user.managedBy || user._id;
     const budget = await Budget.findOne({
       year: now.getFullYear(),
-      month: now.getMonth() + 1
+      month: now.getMonth() + 1,
+      createdBy: rootAdminId
     });
 
     if (!budget) return null;
+    
+    const teamUserIds = await getTeamUserIds(user);
 
     // Calculate current month's approved expenses
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
     const approvedInvoices = await Invoice.find({
+      userId: { $in: teamUserIds },
       status: 'APPROVED',
       createdAt: { $gte: monthStart, $lte: monthEnd }
     }).select('_id');
@@ -122,7 +141,7 @@ const uploadInvoice = async (req, res, next) => {
 
       // DUPLICATE DETECTION
       console.log('🕵️ Checking for duplicates...');
-      const duplicate = await checkDuplicate(aiResponse.invoiceNumber, aiResponse.companyName);
+      const duplicate = await checkDuplicate(aiResponse.invoiceNumber, aiResponse.companyName, req.user);
       if (duplicate) {
         console.log('⚠️ Duplicate found!');
         invoice.status = 'FAILED';
@@ -203,9 +222,9 @@ const uploadInvoice = async (req, res, next) => {
     });
 
     // ROLE-BASED FLOW:
-    // ADMIN → auto-approve (no review needed)
-    // ACCOUNTANT → needs admin review
-    if (req.user.role === 'ADMIN') {
+    // ADMIN or LEVEL 2 ACCOUNTANT → auto-approve (no review needed)
+    // LEVEL 1 ACCOUNTANT → needs admin/L2 review
+    if (req.user.role === 'ADMIN' || req.user.approvalLevel >= 2) {
       invoice.status = 'APPROVED';
       await invoice.save();
 
@@ -231,7 +250,7 @@ const uploadInvoice = async (req, res, next) => {
     }
 
     // Budget alert check
-    const budgetAlert = await checkBudgetAlert(extractedData.totalAmount || 0);
+    const budgetAlert = await checkBudgetAlert(extractedData.totalAmount || 0, req.user);
 
     res.status(201).json({
       message: req.user.role === 'ADMIN' 
@@ -316,7 +335,7 @@ const manualEntry = async (req, res, next) => {
 
     await notifyManagers('NEEDS_REVIEW', `Manual invoice ${invoiceNumber} submitted by ${req.user.name}`, invoice._id);
 
-    const budgetAlert = await checkBudgetAlert(Number(totalAmount));
+    const budgetAlert = await checkBudgetAlert(Number(totalAmount), req.user);
 
     res.status(201).json({
       message: 'Manual invoice created successfully',
@@ -345,7 +364,8 @@ const updateExtractedData = async (req, res, next) => {
       return res.status(404).json({ message: 'Invoice not found' });
     }
 
-    if (invoice.userId.toString() !== req.user._id.toString() && req.user.role !== 'ADMIN') {
+    const isAuthorized = await isInvoiceInAdminOrganization(invoice, req.user);
+    if (!isAuthorized) {
       return res.status(403).json({ message: 'Not authorized to edit this invoice' });
     }
 
@@ -398,7 +418,10 @@ const updateExtractedData = async (req, res, next) => {
 const getInvoices = async (req, res, next) => {
   try {
     let filter = {};
-    if (req.user.role === 'ACCOUNTANT') {
+    if (req.user.role === 'ADMIN' || req.user.approvalLevel >= 2) {
+      const teamUserIds = await getTeamUserIds(req.user);
+      filter.userId = { $in: teamUserIds };
+    } else {
       filter.userId = req.user._id;
     }
 
@@ -456,7 +479,8 @@ const getInvoiceById = async (req, res, next) => {
       return res.status(404).json({ message: 'Invoice not found' });
     }
 
-    if (req.user.role === 'ACCOUNTANT' && invoice.userId._id.toString() !== req.user._id.toString()) {
+    const isAuthorized = await isInvoiceInAdminOrganization(invoice, req.user);
+    if (!isAuthorized) {
       return res.status(403).json({ message: 'Not authorized to view this invoice' });
     }
 
@@ -497,7 +521,8 @@ const deleteInvoice = async (req, res, next) => {
       return res.status(404).json({ message: 'Invoice not found' });
     }
 
-    if (invoice.userId.toString() !== req.user._id.toString() && req.user.role !== 'ADMIN') {
+    const isAuthorized = await isInvoiceInAdminOrganization(invoice, req.user);
+    if (!isAuthorized) {
       return res.status(403).json({ message: 'Not authorized to delete this invoice' });
     }
 
@@ -531,7 +556,16 @@ const deleteInvoice = async (req, res, next) => {
 const exportInvoices = async (req, res, next) => {
   try {
     const statusFilter = req.query.status || 'APPROVED';
-    const invoices = await Invoice.find({ status: statusFilter }).populate('userId', 'name email');
+    
+    let filter = { status: statusFilter };
+    if (req.user.role === 'ACCOUNTANT') {
+      filter.userId = req.user._id;
+    } else {
+      const teamUserIds = await getTeamUserIds(req.user);
+      filter.userId = { $in: teamUserIds };
+    }
+    
+    const invoices = await Invoice.find(filter).populate('userId', 'name email');
     const invoiceIds = invoices.map(i => i._id);
     const extractedDataList = await ExtractedData.find({ invoiceId: { $in: invoiceIds } });
 
@@ -675,6 +709,18 @@ const approveInvoice = async (req, res, next) => {
 
     if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
     
+    const isAuthorized = await isInvoiceInAdminOrganization(invoice, req.user);
+    const isLevel2 = req.user.role === 'ACCOUNTANT' && req.user.approvalLevel >= 2;
+    const canApprove = req.user.role === 'ADMIN' || isLevel2;
+
+    if (!isAuthorized || !canApprove) {
+      return res.status(403).json({ message: 'Not authorized to approve this invoice' });
+    }
+
+    if (isLevel2 && invoice.totalAmount > 5000) {
+      return res.status(403).json({ message: 'Level 2 Accountants can only approve invoices up to 5,000 TND' });
+    }
+    
     invoice.status = 'APPROVED';
     invoice.rejectionReason = undefined; // Clear any previous reason
     await invoice.save();
@@ -711,6 +757,14 @@ const rejectInvoice = async (req, res, next) => {
 
     const invoice = await Invoice.findById(id);
     if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
+
+    const isAuthorized = await isInvoiceInAdminOrganization(invoice, req.user);
+    const isLevel2 = req.user.role === 'ACCOUNTANT' && req.user.approvalLevel >= 2;
+    const canReject = req.user.role === 'ADMIN' || isLevel2;
+
+    if (!isAuthorized || !canReject) {
+      return res.status(403).json({ message: 'Not authorized to reject this invoice' });
+    }
 
     invoice.status = 'REJECTED';
     invoice.rejectionReason = reason;

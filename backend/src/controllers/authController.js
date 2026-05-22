@@ -58,7 +58,7 @@ const registerUser = async (req, res, next) => {
       email,
       passwordHash,
       role: role || (creator ? 'ACCOUNTANT' : 'ADMIN'),
-      managedBy: null
+      managedBy: creator ? creator._id : null
     });
 
     if (user) {
@@ -68,6 +68,7 @@ const registerUser = async (req, res, next) => {
           name: user.name,
           email: user.email,
           role: user.role,
+          profileImage: user.profileImage || '',
           token: generateToken(user._id),
         }
       });
@@ -92,6 +93,7 @@ const loginUser = async (req, res, next) => {
           name: user.name,
           email: user.email,
           role: user.role,
+          profileImage: user.profileImage || '',
           token: generateToken(user._id),
         }
       });

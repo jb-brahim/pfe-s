@@ -8,7 +8,7 @@ const budgetSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 }, { timestamps: true });
 
-// Unique constraint: one budget per month
-budgetSchema.index({ year: 1, month: 1 }, { unique: true });
+// Unique constraint: one budget per month per organization
+budgetSchema.index({ year: 1, month: 1, createdBy: 1 }, { unique: true });
 
 module.exports = mongoose.model('Budget', budgetSchema);

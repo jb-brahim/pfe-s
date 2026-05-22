@@ -16,14 +16,18 @@ const userRoutes = require('./src/routes/userRoutes');
 const budgetRoutes = require('./src/routes/budgetRoutes');
 const ruleRoutes = require('./src/routes/ruleRoutes');
 const mailRoutes = require('./src/routes/mailRoutes');
+const reportRoutes = require('./src/routes/reportRoutes');
 
 // Middlewares
 const { errorHandler } = require('./src/middlewares/errorMiddleware');
 
-// Ensure uploads directory exists
+// Ensure uploads and reports directories exist
 const fs = require('fs');
 if (!fs.existsSync(path.join(__dirname, 'uploads'))) {
   fs.mkdirSync(path.join(__dirname, 'uploads'), { recursive: true });
+}
+if (!fs.existsSync(path.join(__dirname, 'uploads', 'reports'))) {
+  fs.mkdirSync(path.join(__dirname, 'uploads', 'reports'), { recursive: true });
 }
 
 // Connect to database
@@ -57,6 +61,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/budget', budgetRoutes);
 app.use('/api/rules', ruleRoutes);
 app.use('/api/mail', mailRoutes);
+app.use('/api/reports', reportRoutes);
 
 // Error logic
 app.use((req, res, next) => {

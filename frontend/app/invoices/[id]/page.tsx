@@ -150,7 +150,7 @@ export default function InvoiceDetailsPage() {
               </div>
             </div>
 
-            <button className="w-full py-4 rounded-xl bg-gradient-to-r from-[#EBD8D8] to-[#D98F8F] shadow-[0_0_20px_rgba(217,143,143,0.2)] font-semibold text-[15px] flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform text-[#1E0A0B]">
+            <button className="w-full py-4 rounded-xl bg-gradient-to-r from-[#EBD8D8] to-[#D98F8F] shadow-[0_0_20px_rgba(217,143,143,0.2)] font-semibold text-[15px] flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform text-[#3C0D0D]">
               <Download size={18} /> Download PDF Invoice
             </button>
           </div>
@@ -238,12 +238,12 @@ export default function InvoiceDetailsPage() {
               </div>
 
               {/* TTN Signature Status */}
-              <div className="bg-[rgba(255,255,255,0.05)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.1)] rounded-[16px] p-5">
+              <div className="bg-[#2D0A0A] backdrop-blur-[10px] border border-[#D98F8F]/10 rounded-[16px] p-5">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-[#FFFFFF] text-[14px] font-medium">Digital Signature Status</h3>
                   <MoreHorizontal size={16} className="text-[#A69697]" />
                 </div>
-                <div className="bg-[rgba(255,255,255,0.03)] border border-white/5 rounded-[12px] p-4 flex flex-col gap-3 h-[120px] justify-center items-center">
+                <div className="bg-[#3C0D0D]/50 border border-[#D98F8F]/10 rounded-[16px] py-3 pl-10 pr-4 text-[14px] text-[#FFFFFF] outline-none focus:border-[#D98F8F]/50 focus:bg-[#3C0D0D] transition-all placeholder:text-[#A69697]">
                   <CheckCircle2 size={32} className="text-[#4CAF50]" />
                   <p className="text-[#4CAF50] font-medium text-[13px]">Signature Valide</p>
                 </div>
@@ -259,22 +259,43 @@ export default function InvoiceDetailsPage() {
               
               <div className="relative">
                 {/* Connecting Line */}
-                <div className="absolute top-4 left-4 right-4 h-0.5 bg-white/10 z-0"></div>
+                <div className="absolute top-4 left-4 right-4 h-0.5 bg-white/10 z-0">
+                  {/* Dynamic Progress Line */}
+                  <div className="h-full bg-[#4CAF50] transition-all" style={{ width: invoice.status === 'APPROVED' ? '100%' : invoice.status === 'SUBMITTED' || invoice.status === 'VERIFIED' ? '50%' : '0%' }}></div>
+                </div>
                 
                 <div className="flex justify-between relative z-10">
                   <div className="flex flex-col items-center">
-                    <div className="bg-[#4CAF50]/10 border border-[#4CAF50] text-[#4CAF50] px-3 py-1.5 rounded-full text-[12px] font-medium mb-3 whitespace-nowrap">1. Scan & Extract</div>
-                    <p className="text-[11px] text-[#A69697]">Completed</p>
+                    <div className={`px-3 py-1.5 rounded-full text-[12px] font-medium mb-3 whitespace-nowrap ${
+                      invoice.status === 'FAILED' ? 'bg-[#D98F8F]/10 border border-[#D98F8F] text-[#D98F8F]' : 'bg-[#4CAF50]/10 border border-[#4CAF50] text-[#4CAF50]'
+                    }`}>1. Scan & Extract</div>
+                    <p className="text-[11px] text-[#A69697]">{invoice.status === 'FAILED' ? 'Failed' : 'Completed'}</p>
                   </div>
                   
                   <div className="flex flex-col items-center">
-                    <div className="bg-[#FFC107]/10 border border-[#FFC107] text-[#FFC107] px-3 py-1.5 rounded-full text-[12px] font-medium mb-3 whitespace-nowrap">2. Verification</div>
-                    <p className="text-[11px] text-[#A69697]">{invoice.status}</p>
+                    <div className={`px-3 py-1.5 rounded-full text-[12px] font-medium mb-3 whitespace-nowrap ${
+                      ['APPROVED', 'SUBMITTED', 'VERIFIED'].includes(invoice.status) ? 'bg-[#4CAF50]/10 border border-[#4CAF50] text-[#4CAF50]' :
+                      invoice.status === 'REJECTED' ? 'bg-[#D98F8F]/10 border border-[#D98F8F] text-[#D98F8F]' :
+                      'bg-[#FFC107]/10 border border-[#FFC107] text-[#FFC107]'
+                    }`}>2. Verification</div>
+                    <p className="text-[11px] text-[#A69697]">{
+                      ['APPROVED', 'SUBMITTED', 'VERIFIED'].includes(invoice.status) ? 'Completed' :
+                      invoice.status === 'REJECTED' ? 'Failed' : 'In Progress'
+                    }</p>
                   </div>
 
                   <div className="flex flex-col items-center">
-                    <div className="bg-white/5 border border-white/10 text-[#A69697] px-3 py-1.5 rounded-full text-[12px] font-medium mb-3 whitespace-nowrap">3. Final Approval</div>
-                    <p className="text-[11px] text-[#A69697]">Pending</p>
+                    <div className={`px-3 py-1.5 rounded-full text-[12px] font-medium mb-3 whitespace-nowrap ${
+                      invoice.status === 'APPROVED' ? 'bg-[#4CAF50]/10 border border-[#4CAF50] text-[#4CAF50]' :
+                      invoice.status === 'REJECTED' ? 'bg-[#D98F8F]/10 border border-[#D98F8F] text-[#D98F8F]' :
+                      invoice.status === 'SUBMITTED' ? 'bg-[#FFC107]/10 border border-[#FFC107] text-[#FFC107]' :
+                      'bg-white/5 border border-white/10 text-[#A69697]'
+                    }`}>3. Final Approval</div>
+                    <p className="text-[11px] text-[#A69697]">{
+                      invoice.status === 'APPROVED' ? 'Approved' :
+                      invoice.status === 'REJECTED' ? 'Rejected' :
+                      invoice.status === 'SUBMITTED' ? 'Pending' : 'Pending'
+                    }</p>
                   </div>
                 </div>
               </div>

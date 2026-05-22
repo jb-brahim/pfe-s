@@ -28,8 +28,8 @@ router.post('/manual', protect, manualEntry);
 
 // Workflow Actions
 router.post('/:id/submit', protect, submitInvoice);
-router.post('/:id/approve', protect, authorize('ADMIN'), approveInvoice);
-router.post('/:id/reject', protect, authorize('ADMIN'), rejectInvoice);
+router.post('/:id/approve', protect, authorize('ADMIN', 'ACCOUNTANT'), approveInvoice);
+router.post('/:id/reject', protect, authorize('ADMIN', 'ACCOUNTANT'), rejectInvoice);
 
 // Export
 router.get('/export', protect, authorize('ADMIN'), exportInvoices);

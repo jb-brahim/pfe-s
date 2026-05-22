@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Shield, Lock, Loader, FileText, PieChart, BarChart3, Sun, Moon } from 'lucide-react';
@@ -15,6 +15,27 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [mounted, setMounted] = useState(false);
+  const [transitionReady, setTransitionReady] = useState(false);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('app-theme') as 'dark' | 'light';
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
+    setMounted(true);
+
+    const timer = setTimeout(() => {
+      setTransitionReady(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    localStorage.setItem('app-theme', newTheme);
+  };
 
   const isDark = theme === 'dark';
 
@@ -36,14 +57,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center p-6 font-sans transition-colors duration-700 ease-in-out ${
+    <div className={`min-h-screen flex items-center justify-center p-6 font-sans ${
+      transitionReady ? 'transition-colors duration-700 ease-in-out' : 'transition-none'
+    } ${
+      mounted ? 'opacity-100' : 'opacity-0'
+    } ${
       isDark ? 'bg-gradient-to-br from-[#120507] via-[#1A0A0B] to-[#2D1B1C]' : 'bg-gradient-to-br from-[#FFF0F0] via-[#FFFFFF] to-[#FDF5F5]'
     }`}>
       
       {/* Theme Toggle Top Right */}
       <div className="absolute top-8 right-8 z-50">
         <button 
-          onClick={() => setTheme(isDark ? 'light' : 'dark')}
+          onClick={toggleTheme}
           className={`flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md border transition-all duration-500 shadow-lg hover:scale-105 ${
             isDark 
               ? 'bg-[rgba(255,255,255,0.05)] border-white/10 text-white hover:bg-white/10' 
@@ -165,28 +190,16 @@ export default function LoginPage() {
               {isLoading ? 'Signing in...' : 'Log In'}
             </button>
 
-            {/* Divider */}
-            <div className="relative mt-8 mb-6 flex items-center justify-center">
-              <div className={`absolute w-full h-[1px] transition-colors duration-700 ${isDark ? 'bg-gradient-to-r from-transparent via-white/10 to-transparent' : 'bg-gradient-to-r from-transparent via-[#8E1B3A]/20 to-transparent'}`}></div>
-              <span className={`relative px-4 text-[13px] transition-colors duration-700 ${isDark ? 'bg-[#1E0A0B] text-[#A69697]' : 'bg-[#FEF8F8] text-[#8E1B3A]/60 font-medium'}`}>Or continue with:</span>
+            {/* Redirect link to Register */}
+            <div className="text-center mt-6">
+              <span className={`text-[13px] ${isDark ? 'text-[#A69697]' : 'text-gray-600'}`}>Don't have an account? </span>
+              <Link href="/register" className={`text-[13px] font-bold transition-colors duration-700 ${
+                isDark ? 'text-[#D98F8F] hover:text-white' : 'text-[#8E1B3A] hover:text-[#6D071A]'
+              }`}>
+                Sign Up
+              </Link>
             </div>
 
-            {/* Social Logins */}
-            <div className="flex justify-center gap-4">
-              <button type="button" className={`w-12 h-12 rounded-full border flex items-center justify-center transition-all duration-700 group ${
-                isDark ? 'bg-[rgba(255,255,255,0.03)] border-white/10 hover:bg-white/10' : 'bg-white border-[#8E1B3A]/10 hover:border-[#8E1B3A]/30 shadow-sm'
-              }`}>
-                <span className={`font-bold text-[18px] group-hover:scale-110 transition-transform ${isDark ? 'text-white' : 'text-[#1A0A0B]'}`}>G</span>
-              </button>
-              <button type="button" className={`w-12 h-12 rounded-full border flex items-center justify-center transition-all duration-700 group ${
-                isDark ? 'bg-[rgba(255,255,255,0.03)] border-white/10 hover:bg-white/10' : 'bg-white border-[#8E1B3A]/10 hover:border-[#8E1B3A]/30 shadow-sm'
-              }`}>
-                 <div className="grid grid-cols-2 gap-[2px] group-hover:scale-110 transition-transform">
-                   <div className={`w-2.5 h-2.5 rounded-sm ${isDark ? 'bg-white' : 'bg-[#1A0A0B]'}`}></div><div className={`w-2.5 h-2.5 rounded-sm ${isDark ? 'bg-white' : 'bg-[#1A0A0B]'}`}></div>
-                   <div className={`w-2.5 h-2.5 rounded-sm ${isDark ? 'bg-white' : 'bg-[#1A0A0B]'}`}></div><div className={`w-2.5 h-2.5 rounded-sm ${isDark ? 'bg-white' : 'bg-[#1A0A0B]'}`}></div>
-                 </div>
-              </button>
-            </div>
           </form>
         </div>
 

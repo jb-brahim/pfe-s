@@ -4,8 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import Link from 'next/link';
 import { ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, XAxis, Tooltip } from 'recharts';
-import { CreditCard, Wallet, TrendingUp, Building2, Server, Briefcase, Plus, Check, X, FileText } from 'lucide-react';
-import { analyticsAPI, invoiceAPI } from '@/lib/api';
+import { CreditCard, Wallet, TrendingUp, Building2, Server, Briefcase, Plus, Check, X, FileText, Settings2, Save } from 'lucide-react';
+import { analyticsAPI, invoiceAPI, budgetAPI } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
+import { toast } from 'sonner';
 
 const expenseCategories = [
   { name: 'Software & SaaS', value: 4500, color: '#D98F8F', icon: Server },
@@ -19,16 +21,16 @@ const spendingTrend = [
   { day: 'Thu', amount: 500 }, { day: 'Fri', amount: 200 }, { day: 'Sat', amount: 50 }, { day: 'Sun', amount: 0 }
 ];
 
-const teamClaims = [
-  { id: 1, name: 'Ben Carter', role: 'Engineering', amount: 120.50, item: 'GitHub Copilot Subs', status: 'pending', date: 'Today, 10:42 AM', img: 'https://i.pravatar.cc/150?u=1' },
-  { id: 2, name: 'Eleanor Pena', role: 'Design', amount: 450.00, item: 'Figma Annual', status: 'approved', date: 'Yesterday', img: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' },
-  { id: 3, name: 'Sarah Connor', role: 'Marketing', amount: 85.00, item: 'Facebook Ads', status: 'pending', date: 'Oct 14', img: 'https://i.pravatar.cc/150?u=2' },
-];
+
 
 export default function ExpensesPage() {
   const [stats, setStats] = useState<any>(null);
   const [pendingInvoices, setPendingInvoices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isEditingBudget, setIsEditingBudget] = useState(false);
+  const [editBudgetValue, setEditBudgetValue] = useState('');
+  const [realCategories, setRealCategories] = useState<any[]>([]);
+  const { user: currentUser } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUploadClick = () => {
@@ -40,12 +42,16 @@ export default function ExpensesPage() {
     if (!file) return;
     try {
       await invoiceAPI.uploadFile(file);
-      const [statsRes, invoiceRes] = await Promise.all([
+      const [statsRes, invoiceRes, budgetRes] = await Promise.all([
         analyticsAPI.getDashboardStats(),
         invoiceAPI.getAll('VERIFIED'),
+        budgetAPI.getStatus(),
       ]);
       setStats(statsRes.data);
       setPendingInvoices(invoiceRes.data || []);
+      if (budgetRes.data?.categories) {
+        setRealCategories(budgetRes.data.categories);
+      }
     } catch (err) {
       console.error('Upload error:', err);
     }
@@ -55,12 +61,17 @@ export default function ExpensesPage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [statsRes, invoiceRes] = await Promise.all([
+        const [statsRes, invoiceRes, budgetRes] = await Promise.all([
           analyticsAPI.getDashboardStats(),
           invoiceAPI.getAll('VERIFIED'),
+          budgetAPI.getStatus()
         ]);
         setStats(statsRes.data);
         setPendingInvoices(invoiceRes.data || []);
+        
+        if (budgetRes.data?.categories) {
+          setRealCategories(budgetRes.data.categories);
+        }
       } catch (err) {
         console.error('Expenses fetch error:', err);
       } finally {
@@ -79,26 +90,35 @@ export default function ExpensesPage() {
     item: `Invoice #${inv.invoiceNumber || 'N/A'}`,
     status: 'pending',
     date: new Date(inv.createdAt).toLocaleDateString(),
-    img: `https://i.pravatar.cc/150?u=${index}` // Mock avatar
+    img: `https://ui-avatars.com/api/?name=${encodeURIComponent(inv.companyName || 'Unknown')}&background=8E1B3A&color=fff&rounded=true&bold=true&size=150`
   }));
 
-  const displayClaims = mappedClaims.length > 0 ? mappedClaims : [
-    { id: 1, name: 'Ben Carter', role: 'Engineering', amount: 120.50, item: 'GitHub Copilot Subs', status: 'pending', date: 'Today, 10:42 AM', img: 'https://i.pravatar.cc/150?u=1' },
-    { id: 2, name: 'Eleanor Pena', role: 'Design', amount: 450.00, item: 'Figma Annual', status: 'approved', date: 'Yesterday', img: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' },
-  ];
+  const displayClaims = mappedClaims;
 
-  const totalSpent = stats?.totalAmount || 9700.00;
-  const budget = 12000;
-  const budgetUtil = Math.round((totalSpent / budget) * 100);
+  const totalSpent = stats?.totalAmount || 0;
+  const budget = stats?.budgets?.[0]?.limit || 12000;
+  const budgetUtil = budget > 0 ? Math.round((totalSpent / budget) * 100) : 0;
 
   const formatCurrency = (val: number) => {
-    return val.toLocaleString('fr-TN', { style: 'currency', currency: 'TND' }).replace('TND', '').trim() + ' TND';
+    return new Intl.NumberFormat('fr-TN', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(val) + ' TND';
   };
 
-  const displayCategories = expenseCategories.map(cat => ({
-    ...cat,
-    value: (cat.value / 9700) * totalSpent
-  }));
+  const colors = ['#D98F8F', '#B34E56', '#8E1B3A', '#4CAF50', '#FFC107'];
+  const displayCategories = realCategories.length > 0 
+    ? realCategories.map((cat, idx) => ({
+        name: cat.category,
+        value: cat.spent,
+        count: cat.itemsCount,
+        color: colors[idx % colors.length],
+        icon: FileText
+      })).sort((a, b) => b.value - a.value)
+    : expenseCategories.map(cat => ({
+        ...cat,
+        count: 0,
+        value: 0
+      }));
+
+  const topCategoryName = displayCategories.length > 0 ? displayCategories[0].name : 'None';
 
   const handleApprove = async (id: string) => {
     try {
@@ -115,6 +135,23 @@ export default function ExpensesPage() {
       setPendingInvoices(prev => prev.filter(inv => inv._id !== id));
     } catch (err) {
       console.error('Reject error:', err);
+    }
+  };
+
+  const handleSaveBudget = async () => {
+    const val = parseFloat(editBudgetValue);
+    if (!isNaN(val) && val > 0) {
+      try {
+        const d = new Date();
+        await budgetAPI.setBudget(val, 80, d.getFullYear(), d.getMonth() + 1);
+        setIsEditingBudget(false);
+        // Refresh stats to get the new budget
+        const statsRes = await analyticsAPI.getDashboardStats();
+        setStats(statsRes.data);
+      } catch (err: any) {
+        console.error('Failed to save budget', err);
+        toast.error(err.response?.data?.message || 'Failed to save budget. Please check your permissions.');
+      }
     }
   };
 
@@ -166,14 +203,43 @@ export default function ExpensesPage() {
               <div className="w-20 h-20 relative flex items-center justify-center">
                 <svg className="transform -rotate-90 w-20 h-20">
                   <circle cx="40" cy="40" r="36" stroke="rgba(255,255,255,0.05)" strokeWidth="6" fill="none" />
-                  <circle cx="40" cy="40" r="36" stroke="#4CAF50" strokeWidth="6" fill="none" strokeDasharray="226" strokeDashoffset={226 - (budgetUtil / 100) * 226} className="transition-all duration-1000" strokeLinecap="round" />
+                  <circle cx="40" cy="40" r="36" stroke={budgetUtil > 100 ? "#D98F8F" : budgetUtil > 80 ? "#FFC107" : "#4CAF50"} strokeWidth="6" fill="none" strokeDasharray="226" strokeDashoffset={Math.max(0, 226 - (Math.min(budgetUtil, 100) / 100) * 226)} className="transition-all duration-1000" strokeLinecap="round" />
                 </svg>
-                <span className="absolute text-[16px] font-bold text-[#4CAF50]">{budgetUtil}%</span>
+                <span className={`absolute text-[16px] font-bold ${budgetUtil > 100 ? 'text-[#D98F8F]' : budgetUtil > 80 ? 'text-[#FFC107]' : 'text-[#4CAF50]'}`}>{budgetUtil}%</span>
               </div>
-              <div>
-                <h3 className="text-white font-bold text-[20px]">{formatCurrency(budget)}</h3>
+              <div className="flex-1">
+                {isEditingBudget ? (
+                  <div className="flex items-center gap-2 mb-1">
+                    <input 
+                      type="number" 
+                      value={editBudgetValue}
+                      onChange={(e) => setEditBudgetValue(e.target.value)}
+                      className="bg-white/5 border border-white/10 rounded-[8px] py-1 px-2 text-[14px] text-white outline-none focus:border-[#D98F8F] w-24"
+                    />
+                    <button onClick={handleSaveBudget} className="text-[#4CAF50] hover:text-[#4CAF50]/70 p-1">
+                      <Save size={16} />
+                    </button>
+                    <button onClick={() => setIsEditingBudget(false)} className="text-[#A69697] hover:text-white p-1">
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-white font-bold text-[20px]">{formatCurrency(budget)}</h3>
+                    {currentUser?.role === 'ADMIN' && (
+                      <button 
+                        onClick={() => { setEditBudgetValue(budget.toString()); setIsEditingBudget(true); }}
+                        className="text-[#A69697] hover:text-[#D98F8F] transition-colors"
+                      >
+                        <Settings2 size={14} />
+                      </button>
+                    )}
+                  </div>
+                )}
                 <p className="text-[#A69697] text-[13px]">Total Budget</p>
-                <p className="text-[#4CAF50] text-[12px] font-medium mt-1">Looking good!</p>
+                <p className={`text-[12px] font-medium mt-1 ${budgetUtil > 100 ? 'text-[#D98F8F]' : budgetUtil > 80 ? 'text-[#FFC107]' : 'text-[#4CAF50]'}`}>
+                  {budgetUtil > 100 ? 'Over budget!' : budgetUtil > 80 ? 'Approaching limit' : 'Looking good!'}
+                </p>
               </div>
             </div>
           </div>
@@ -222,7 +288,7 @@ export default function ExpensesPage() {
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <span className="text-[#A69697] text-[12px]">Top Category</span>
-                <span className="text-white font-bold text-[18px] text-center px-4 leading-tight">Software</span>
+                <span className="text-white font-bold text-[18px] text-center px-4 leading-tight">{topCategoryName}</span>
               </div>
             </div>
 
@@ -235,7 +301,9 @@ export default function ExpensesPage() {
                     </div>
                     <div>
                       <p className="text-white font-medium text-[14px]">{cat.name}</p>
-                      <p className="text-[#A69697] text-[12px] group-hover:text-white/70 transition-colors">24 Transactions</p>
+                      <p className="text-[#A69697] text-[12px] group-hover:text-white/70 transition-colors">
+                        {cat.count} {cat.count === 1 ? 'Transaction' : 'Transactions'}
+                      </p>
                     </div>
                   </div>
                   <span className="font-bold text-white">{formatCurrency(cat.value)}</span>

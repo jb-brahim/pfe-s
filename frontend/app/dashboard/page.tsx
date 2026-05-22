@@ -124,7 +124,7 @@ export default function DashboardPage() {
           <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl relative overflow-hidden h-[170px]">
             <div className="p-5 relative z-10">
               <div className="flex items-start justify-between mb-3">
-                <h3 className="text-[#A69697] text-[13px] font-medium">Total Revenue</h3>
+                <h3 className="text-[#A69697] text-[13px] font-medium">{user?.role === 'ADMIN' ? 'Total Revenue' : 'My Total Submissions'}</h3>
                 <div className="flex items-center gap-2">
                   {totalRevenue > 0 && (
                     <div className="bg-[#4CAF50]/10 text-[#4CAF50] text-[11px] px-2 py-0.5 rounded-md font-medium flex items-center border border-[#4CAF50]/20">
@@ -156,11 +156,11 @@ export default function DashboardPage() {
           {/* Outstanding Invoices */}
           <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 flex flex-col justify-between h-[170px]">
             <div className="flex items-start justify-between">
-              <h3 className="text-[#A69697] text-[13px] font-medium">Outstanding Invoices</h3>
+              <h3 className="text-[#A69697] text-[13px] font-medium">{user?.role === 'ADMIN' ? 'Outstanding Invoices' : 'Pending Invoices'}</h3>
               <span className="text-white text-[13px] font-bold">{pendingCount}</span>
             </div>
             <div className="mt-3">
-              <p className="text-white text-[14px] font-medium mb-2">Approval Rate</p>
+              <p className="text-white text-[14px] font-medium mb-2">{user?.role === 'ADMIN' ? 'Approval Rate' : 'My Approval Status'}</p>
               <div className="w-full h-2 bg-black/30 border border-white/5 rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-gradient-to-r from-[#8E1B3A] to-[#D98F8F] rounded-full transition-all duration-1000" 
@@ -177,7 +177,7 @@ export default function DashboardPage() {
           {/* Cash Flow */}
           <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 flex flex-col justify-between h-[170px]">
             <div className="flex items-start justify-between mb-1">
-              <h3 className="text-[#A69697] text-[13px] font-medium">Monthly Volume</h3>
+              <h3 className="text-[#A69697] text-[13px] font-medium">{user?.role === 'ADMIN' ? 'Monthly Volume' : 'My Upload Volume'}</h3>
             </div>
             <div className="h-[90px] w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -243,7 +243,7 @@ export default function DashboardPage() {
           {/* Revenue Analytics */}
           <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl flex flex-col overflow-hidden">
             <div className="flex items-start justify-between p-5">
-              <h3 className="text-white text-[14px] font-medium">Revenue Analytics</h3>
+              <h3 className="text-white text-[14px] font-medium">{user?.role === 'ADMIN' ? 'Revenue Analytics' : 'Submission Analytics'}</h3>
               <div className="flex items-center gap-2">
                 <span className="text-[#A69697] text-[12px]">{new Date().getFullYear()}</span>
               </div>
@@ -262,7 +262,7 @@ export default function DashboardPage() {
                   <YAxis stroke="#A69697" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val: number) => val === 0 ? '0' : `${(val/1000).toFixed(1)}k`} dx={-10} />
                   <Tooltip 
                     contentStyle={{ backgroundColor: '#1A0A0B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '13px' }} 
-                    formatter={(value: number) => [formatCurrency(value), 'Revenue']}
+                    formatter={(value: number) => [formatCurrency(value), user?.role === 'ADMIN' ? 'Revenue' : 'Submitted']}
                   />
                   <Area type="monotone" dataKey="revenue" stroke="#D98F8F" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" />
                 </AreaChart>
@@ -276,7 +276,7 @@ export default function DashboardPage() {
           {/* Recent Transactions */}
           <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 flex flex-col h-full">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-white text-[14px] font-medium">Recent Transactions</h3>
+              <h3 className="text-white text-[14px] font-medium">{user?.role === 'ADMIN' ? 'Recent Transactions' : 'My Recent Uploads'}</h3>
               <Link href="/invoices" className="text-[#D98F8F] text-[12px] hover:text-white transition-colors">
                 View all →
               </Link>
@@ -317,7 +317,7 @@ export default function DashboardPage() {
           {/* Expense Tracking */}
           <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 flex flex-col justify-between">
             <div className="flex items-start justify-between mb-3">
-              <h3 className="text-white text-[14px] font-medium">Monthly Expenses</h3>
+              <h3 className="text-white text-[14px] font-medium">{user?.role === 'ADMIN' ? 'Monthly Expenses' : 'My Monthly Uploads'}</h3>
             </div>
             
             <div className="h-[200px] w-full mb-4">

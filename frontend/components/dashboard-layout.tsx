@@ -19,7 +19,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#1E0A0B]">
+      <div className="flex items-center justify-center min-h-screen bg-[#3C0D0D]">
         <Loader size={32} className="animate-spin text-[#8E1B3A]" />
       </div>
     );
@@ -30,7 +30,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen relative text-[#FFFFFF] font-sans overflow-hidden selection:bg-[#8E1B3A]/30 bg-[#1E0A0B]">
+    <div className="flex min-h-screen relative text-[#FFFFFF] font-sans overflow-hidden selection:bg-[#8E1B3A]/30 bg-[#3C0D0D]">
       {/* Subtle ambient glow — toned down from the AI-ish massive blurs */}
       <div className="absolute top-0 left-0 w-[40%] h-[40%] bg-[#7B112C] blur-[200px] rounded-full opacity-15 pointer-events-none"></div>
       <div className="absolute bottom-0 right-0 w-[30%] h-[30%] bg-[#6D071A] blur-[180px] rounded-full opacity-10 pointer-events-none"></div>

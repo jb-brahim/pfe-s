@@ -195,6 +195,21 @@ export const authAPI = {
     const response = await apiClient.get('/auth/profile');
     return response.data;
   },
+
+  updateProfile: async (name: string, email: string) => {
+    const response = await apiClient.put('/auth/profile', { name, email });
+    return response.data;
+  },
+
+  updatePreferences: async (preferences: any) => {
+    const response = await apiClient.put('/auth/preferences', { preferences });
+    return response.data;
+  },
+
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    const response = await apiClient.put('/auth/change-password', { currentPassword, newPassword });
+    return response.data;
+  },
 };
 
 export const analyticsAPI = {
@@ -358,7 +373,7 @@ export const budgetAPI = {
       const response = await apiClient.post('/budget', { monthlyLimit, alertThreshold, year, month });
       return response.data;
     } catch (error) {
-      return { success: true, data: { monthlyLimit, alertThreshold } };
+      throw error;
     }
   },
 };
@@ -406,13 +421,62 @@ export const userAPI = {
     }
   },
 
-  invite: async (email: string, role: string, fullName: string) => {
+  invite: async (email: string, role: string, fullName: string, password?: string) => {
     try {
-      const response = await apiClient.post('/users', { name: fullName, email, password: 'TempPassword123!', role });
+      const payloadPassword = password || 'TempPassword123!';
+      const response = await apiClient.post('/users', { name: fullName, email, password: payloadPassword, role });
       return { success: true, data: response.data.data || response.data };
     } catch (error) {
-      return { success: true, data: { email, role, fullName } };
+      return { success: false, data: { email, role, fullName } };
     }
+  },
+
+  getStats: async () => {
+    try {
+      const response = await apiClient.get('/users/stats');
+      return response.data;
+    } catch (error) {
+      return { data: [] };
+    }
+  },
+
+  updateRole: async (id: string, role: 'ADMIN' | 'ACCOUNTANT') => {
+    const response = await apiClient.put(`/users/${id}/role`, { role });
+    return response.data;
+  },
+
+  updateLevel: async (id: string, level: number) => {
+    const response = await apiClient.put(`/users/${id}/level`, { level });
+    return response.data;
+  },
+
+  uploadProfileImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append('profileImage', file);
+    const response = await apiClient.post('/users/profile-image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  },
+
+  deleteUser: async (id: string) => {
+    const response = await apiClient.delete(`/users/${id}`);
+    return response.data;
+  },
+
+  updateCompanyDetails: async (companyDetails: any) => {
+    const response = await apiClient.post('/users/company', { companyDetails });
+    return response.data;
+  },
+
+  generateApiKey: async (name?: string) => {
+    const response = await apiClient.post('/users/apikeys', { name });
+    return response.data;
+  },
+
+  updateIntegrations: async (integrations: any) => {
+    const response = await apiClient.post('/users/integrations', { integrations });
+    return response.data;
   },
 };
 
@@ -425,6 +489,46 @@ export const mailAPI = {
       return { data: mockEmails };
     }
   },
+};
+
+export const reportAPI = {
+  getAll: async () => {
+    try {
+      const response = await apiClient.get('/reports');
+      return response.data;
+    } catch (error) {
+      return { data: [] };
+    }
+  },
+
+  generate: async (data: { type: string; dateRange: string; format: string }) => {
+    const response = await apiClient.post('/reports/generate', data);
+    return response.data;
+  },
+
+  delete: async (id: string) => {
+    const response = await apiClient.delete(`/reports/${id}`);
+    return response.data;
+  },
+
+  getSchedules: async () => {
+    try {
+      const response = await apiClient.get('/reports/schedules');
+      return response.data;
+    } catch (error) {
+      return { data: [] };
+    }
+  },
+
+  createSchedule: async (data: { reportType: string; frequency: string; format: string; recipients: string }) => {
+    const response = await apiClient.post('/reports/schedules', data);
+    return response.data;
+  },
+
+  deleteSchedule: async (id: string) => {
+    const response = await apiClient.delete(`/reports/schedules/${id}`);
+    return response.data;
+  }
 };
 
 export default apiClient;

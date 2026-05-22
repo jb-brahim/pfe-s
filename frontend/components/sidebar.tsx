@@ -27,16 +27,22 @@ export function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const navItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
-    { href: '/invoices', label: 'Invoices', icon: FileText },
-    { href: '/expenses', label: 'Expenses', icon: Wallet },
-    { href: '/reports', label: 'Reports', icon: BarChart3 },
-    { href: '/mail', label: 'Mail', icon: Mail },
-    { href: '/suppliers', label: 'Suppliers', icon: Building2 },
-    { href: '/team', label: 'Team', icon: Users },
-    { href: '/settings', label: 'Settings', icon: Settings },
+  const mainItems = [
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid, adminOnly: false },
+    { href: '/invoices', label: 'Invoices', icon: FileText, adminOnly: false },
+    { href: '/expenses', label: 'Expenses', icon: Wallet, adminOnly: false },
+    { href: '/reports', label: 'Reports', icon: BarChart3, adminOnly: true },
+    { href: '/mail', label: 'Mail', icon: Mail, adminOnly: true },
   ];
+
+  const managementItems = [
+    { href: '/suppliers', label: 'Suppliers', icon: Building2, adminOnly: true },
+    { href: '/team', label: 'Team', icon: Users, adminOnly: true },
+    { href: '/settings', label: 'Settings', icon: Settings, adminOnly: false },
+  ];
+
+  const filteredMain = mainItems.filter(i => user?.role === 'ADMIN' || !i.adminOnly);
+  const filteredManagement = managementItems.filter(i => user?.role === 'ADMIN' || !i.adminOnly);
 
   const isActive = (href: string) => pathname === href;
 
@@ -72,7 +78,7 @@ export function Sidebar() {
         {/* Navigation */}
         <nav className="flex-1 space-y-0.5 px-3 overflow-y-auto scrollbar-none">
           <p className="text-[11px] uppercase tracking-widest text-[#A69697]/60 font-semibold px-4 pt-2 pb-3">Main</p>
-          {navItems.slice(0, 5).map(({ href, label, icon: Icon }) => (
+          {filteredMain.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
@@ -88,22 +94,26 @@ export function Sidebar() {
             </Link>
           ))}
 
-          <p className="text-[11px] uppercase tracking-widest text-[#A69697]/60 font-semibold px-4 pt-6 pb-3">Management</p>
-          {navItems.slice(5).map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-150 group ${
-                isActive(href)
-                  ? 'bg-white/[0.08] text-white'
-                  : 'text-[#A69697] hover:text-white hover:bg-white/[0.04]'
-              }`}
-            >
-              <Icon size={18} strokeWidth={1.5} className={isActive(href) ? 'text-[#D98F8F]' : 'text-inherit'} />
-              <span className={`text-[14px] ${isActive(href) ? 'font-medium' : 'font-normal'}`}>{label}</span>
-            </Link>
-          ))}
+          {filteredManagement.length > 0 && (
+            <>
+              <p className="text-[11px] uppercase tracking-widest text-[#A69697]/60 font-semibold px-4 pt-6 pb-3">Management</p>
+              {filteredManagement.map(({ href, label, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-150 group ${
+                    isActive(href)
+                      ? 'bg-white/[0.08] text-white'
+                      : 'text-[#A69697] hover:text-white hover:bg-white/[0.04]'
+                  }`}
+                >
+                  <Icon size={18} strokeWidth={1.5} className={isActive(href) ? 'text-[#D98F8F]' : 'text-inherit'} />
+                  <span className={`text-[14px] ${isActive(href) ? 'font-medium' : 'font-normal'}`}>{label}</span>
+                </Link>
+              ))}
+            </>
+          )}
 
           <div className="pt-4">
             <Link
@@ -154,7 +164,11 @@ export function Sidebar() {
             }`}
           >
             <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-[#8E1B3A] flex items-center justify-center">
-              <span className="text-white text-[12px] font-semibold">{user?.name?.charAt(0)?.toUpperCase() || 'U'}</span>
+              {user?.profileImage ? (
+                <img src={`http://localhost:5000/${user.profileImage}`} alt="User" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-white text-[12px] font-semibold">{user?.name?.charAt(0)?.toUpperCase() || 'U'}</span>
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-medium text-[#FFFFFF] truncate">{user?.name || 'User'}</p>

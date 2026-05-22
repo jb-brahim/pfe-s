@@ -1,6 +1,17 @@
 const Invoice = require('../models/Invoice');
 const Approval = require('../models/Approval');
 const AuditLog = require('../models/AuditLog');
+const { getTeamUserIds } = require('../utils/tenant');
+
+async function isInvoiceInAdminOrganization(invoice, user) {
+  if (user.role === 'ACCOUNTANT') {
+    const userId = invoice.userId._id ? invoice.userId._id.toString() : invoice.userId.toString();
+    return userId === user._id.toString();
+  }
+  const teamUserIds = await getTeamUserIds(user);
+  const invoiceUserId = invoice.userId._id ? invoice.userId._id.toString() : invoice.userId.toString();
+  return teamUserIds.some(id => id.toString() === invoiceUserId);
+}
 
 const processApproval = async (req, res, next) => {
   try {
@@ -18,6 +29,18 @@ const processApproval = async (req, res, next) => {
 
     if (!['APPROVED', 'REJECTED'].includes(decision)) {
       return res.status(400).json({ message: 'Decision must be APPROVED or REJECTED' });
+    }
+
+    const isAuthorized = await isInvoiceInAdminOrganization(invoice, req.user);
+    const isLevel2 = req.user.role === 'ACCOUNTANT' && req.user.approvalLevel >= 2;
+    const canApprove = req.user.role === 'ADMIN' || isLevel2;
+
+    if (!isAuthorized || !canApprove) {
+      return res.status(403).json({ message: 'Not authorized to ' + decision.toLowerCase() + ' this invoice' });
+    }
+
+    if (decision === 'APPROVED' && isLevel2 && invoice.totalAmount > 5000) {
+      return res.status(403).json({ message: 'Level 2 Accountants can only approve invoices up to 5,000 TND' });
     }
 
     await Approval.create({

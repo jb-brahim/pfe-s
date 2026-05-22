@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #121212;
+  --background: #3C0D0D;
   --background-secondary: #1E1E1E;
   --background-tertiary: #3A0A14;
   --foreground: #FFFFFF;
@@ -21,7 +21,7 @@
 
 @layer base {
   html {
-    @apply bg-[#1E0A0B];
+    @apply bg-[#3C0D0D];
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
