@@ -15,19 +15,19 @@ const ConfidenceRing = ({ score }: { score: number }) => {
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (score * circumference);
   const color = score > 0.8 ? '#4CAF50' : score > 0.5 ? '#FFC107' : '#D98F8F';
-  
+
   return (
     <div className="relative flex items-center justify-center w-12 h-12" title={`AI Confidence: ${Math.round(score * 100)}%`}>
       <svg className="transform -rotate-90 w-12 h-12">
         <circle cx="24" cy="24" r="16" stroke="rgba(255,255,255,0.05)" strokeWidth="3" fill="none" />
-        <circle 
-          cx="24" cy="24" r="16" 
-          stroke={color} 
-          strokeWidth="3" 
-          fill="none" 
-          strokeDasharray={circumference} 
-          strokeDashoffset={strokeDashoffset} 
-          className="transition-all duration-1000 ease-out" 
+        <circle
+          cx="24" cy="24" r="16"
+          stroke={color}
+          strokeWidth="3"
+          fill="none"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          className="transition-all duration-1000 ease-out"
           strokeLinecap="round"
         />
       </svg>
@@ -86,12 +86,12 @@ export default function InvoicesPage() {
           };
           setInvoices((prev) => [mappedInvoice, ...prev]);
         } else {
-          setInvoices((prev) => [result.data || { 
-            _id: Date.now().toString(), 
-            status: 'EXTRACTED', 
-            invoiceNumber: 'NEW', 
-            companyName: file.name, 
-            totalAmount: 0, 
+          setInvoices((prev) => [result.data || {
+            _id: Date.now().toString(),
+            status: 'EXTRACTED',
+            invoiceNumber: 'NEW',
+            companyName: file.name,
+            totalAmount: 0,
             taxAmount: 0,
             confidence: 0.92,
             createdAt: new Date().toISOString(),
@@ -132,7 +132,7 @@ export default function InvoicesPage() {
   };
 
   const getStatusStyle = (status: string) => {
-    switch(status) {
+    switch (status) {
       case 'APPROVED':
       case 'VERIFIED':
         return { bg: 'bg-[#4CAF50]/10', text: 'text-[#4CAF50]', border: 'border-[#4CAF50]/30', dot: 'bg-[#4CAF50]' };
@@ -156,217 +156,215 @@ export default function InvoicesPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-8 w-full pb-10 max-w-[1400px] mx-auto">
-        
-        {/* Dynamic Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 relative">
-          <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#B34E56] rounded-full blur-[120px] opacity-20 pointer-events-none"></div>
+      <div className="w-full pb-10 max-w-[1400px] mx-auto flex flex-col gap-6">
+
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
-            <h1 className="text-[36px] font-bold tracking-tight mb-2 flex items-center gap-3">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#FFFFFF] via-[#EBD8D8] to-[#D98F8F]">
-                AI Invoice Center
-              </span>
-              <div className="bg-[#8E1B3A]/30 border border-[#8E1B3A] px-3 py-1 rounded-full flex items-center gap-1.5 shadow-[0_0_15px_rgba(142,27,58,0.4)]">
-                <Sparkles size={14} className="text-[#D98F8F]" />
-                <span className="text-[12px] text-[#D98F8F] font-bold tracking-widest uppercase">Vision Active</span>
-              </div>
-            </h1>
-            <p className="text-[#A69697] text-[16px]">Drop files into the AI vision zone to magically extract and verify data.</p>
+            <h1 className="text-[28px] font-bold text-white tracking-tight">Invoices</h1>
+            <p className="text-[#A69697] text-[14px]">Manage, verify, and track your processed documents.</p>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-[350px_1fr] gap-8 items-start">
+        {/* Action Cards */}
+        <div className="grid md:grid-cols-2 gap-4">
           
-          {/* LEFT COLUMN: AI Vision Scanner */}
-          <div className="flex flex-col gap-6 sticky top-0">
-            {/* Holographic Upload Zone */}
-            <div className="relative group perspective-1000">
-              <div className="absolute inset-0 bg-gradient-to-b from-[#D98F8F]/10 to-transparent rounded-[30px] blur-xl group-hover:blur-2xl transition-all duration-500 opacity-50"></div>
-              
-              <label 
-                htmlFor="file-upload" 
-                className="relative flex flex-col items-center justify-center cursor-pointer border border-white/10 rounded-[30px] p-10 text-center overflow-hidden transition-all duration-500 hover:border-[#D98F8F]/50 bg-[rgba(255,255,255,0.02)] backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:shadow-[0_20px_50px_rgba(142,27,58,0.15)] min-h-[350px]"
-              >
-                {/* Animated Background Grid */}
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity"></div>
-                
-                {isUploading ? (
-                  <div className="text-center w-full z-10 flex flex-col items-center">
-                    <div className="relative w-24 h-24 mb-6">
-                      <div className="absolute inset-0 border-t-2 border-r-2 border-[#D98F8F] rounded-full animate-spin"></div>
-                      <div className="absolute inset-2 border-b-2 border-l-2 border-[#8E1B3A] rounded-full animate-[spin_3s_linear_infinite_reverse]"></div>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-[20px] font-bold text-white">{Math.round(uploadProgress)}%</span>
-                      </div>
-                    </div>
-                    <p className="text-[#D98F8F] text-[15px] font-medium mb-1 animate-pulse tracking-wide">Extracting Data...</p>
-                    <p className="text-[#A69697] text-[12px]">Analyzing layout and fields</p>
-                  </div>
-                ) : (
-                  <div className="z-10 flex flex-col items-center">
-                    <div className="relative w-24 h-24 mb-8 group-hover:scale-110 transition-transform duration-500">
-                      <div className="absolute inset-0 border-2 border-dashed border-[#D98F8F]/30 rounded-2xl animate-[spin_15s_linear_infinite] group-hover:border-[#D98F8F]"></div>
-                      <div className="absolute inset-3 bg-gradient-to-tr from-[#8E1B3A] to-[#D98F8F] rounded-[14px] flex items-center justify-center shadow-[0_0_30px_rgba(217,143,143,0.3)] group-hover:shadow-[0_0_50px_rgba(217,143,143,0.6)]">
-                        <Zap className="text-white w-8 h-8" />
-                      </div>
-                    </div>
-                    <h3 className="text-[#FFFFFF] font-bold text-[22px] mb-2 tracking-tight">AI Dropzone</h3>
-                    <p className="text-[#A69697] text-[14px] mb-6 px-4">Upload invoices here for instant AI extraction.</p>
-                    <div className="bg-white/5 border border-white/10 px-4 py-2 rounded-full text-[12px] text-[#A69697] flex items-center gap-2">
-                      <FileText size={14} /> PDF, JPG, PNG
-                    </div>
-                  </div>
-                )}
-              </label>
+          {/* AI Dropzone Card */}
+          <label 
+            htmlFor="file-upload" 
+            className="group relative flex flex-col sm:flex-row sm:items-center justify-between p-6 bg-[#1E1E1E]/40 border border-white/10 hover:border-[#D98F8F]/40 hover:bg-[#1E1E1E]/60 rounded-[12px] cursor-pointer transition-all overflow-hidden shadow-lg backdrop-blur-md gap-4"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-[#D98F8F]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            
+            <div className="flex items-center gap-5 z-10">
+              <div className="w-12 h-12 rounded-lg bg-[#8E1B3A]/20 border border-[#8E1B3A]/30 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                {isUploading ? <Loader className="animate-spin text-[#D98F8F]" size={24} /> : <Zap className="text-[#D98F8F]" size={24} />}
+              </div>
+              <div>
+                <h3 className="text-white font-bold text-[16px] mb-1">
+                  {isUploading ? `Extracting Data (${Math.round(uploadProgress)}%)` : 'AI Dropzone'}
+                </h3>
+                <p className="text-[#A69697] text-[13px] hidden xl:block">
+                  {isUploading ? 'Analyzing document layout and fields...' : 'Drag & drop PDF, JPG, or PNG files here.'}
+                </p>
+              </div>
+            </div>
+            
+            <div className="z-10 bg-white/5 border border-white/10 px-4 py-2 rounded-md text-[12px] text-white font-medium group-hover:bg-[#8E1B3A] group-hover:border-[#8E1B3A] transition-colors whitespace-nowrap">
+              Browse Files
+            </div>
+            
+            <input
+              id="file-upload"
+              type="file"
+              multiple
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={handleFileUpload}
+              className="hidden"
+              disabled={isUploading}
+            />
+          </label>
+
+          {/* Add Manually Card */}
+          <Link 
+            href="/invoices/manual" 
+            className="group relative flex flex-col sm:flex-row sm:items-center justify-between p-6 bg-[#1E1E1E]/40 border border-white/10 hover:border-white/20 hover:bg-[#1E1E1E]/60 rounded-[12px] transition-all overflow-hidden shadow-lg backdrop-blur-md gap-4"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            
+            <div className="flex items-center gap-5 z-10">
+              <div className="w-12 h-12 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                <Edit className="text-[#A69697] group-hover:text-white transition-colors" size={24} />
+              </div>
+              <div>
+                <h3 className="text-white font-bold text-[16px] mb-1">Add Manually</h3>
+                <p className="text-[#A69697] text-[13px] hidden xl:block">Create an invoice record without AI extraction.</p>
+              </div>
+            </div>
+            
+            <div className="z-10 flex items-center gap-2 text-[#A69697] group-hover:text-white transition-colors">
+              <span className="text-[13px] font-medium whitespace-nowrap">Create New</span>
+              <ChevronRight size={16} />
+            </div>
+          </Link>
+          
+        </div>
+
+        {/* Table Container */}
+        <div className="bg-[#1E1E1E]/40 border border-white/10 rounded-[12px] flex flex-col shadow-2xl overflow-hidden backdrop-blur-md">
+          
+          {/* Table Toolbar */}
+          <div className="p-4 border-b border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/[0.02]">
+            <div className="flex gap-6 overflow-x-auto w-full sm:w-auto scrollbar-none">
+              {statuses.map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setSelectedStatus(status)}
+                  className={`pb-4 -mb-4 text-[13px] font-medium transition-colors border-b-2 whitespace-nowrap ${
+                    selectedStatus === status 
+                      ? 'text-white border-[#D98F8F]' 
+                      : 'text-[#A69697] border-transparent hover:text-white'
+                  }`}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
+
+            <div className="relative w-full sm:w-[280px]">
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <Search size={14} className="text-[#A69697]" />
+              </div>
               <input
-                id="file-upload"
-                type="file"
-                multiple
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={handleFileUpload}
-                className="hidden"
-                disabled={isUploading}
+                type="text"
+                placeholder="Search invoice # or company..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[#1A0A0B]/80 border border-white/10 rounded-[6px] py-1.5 pl-9 pr-3 text-[13px] text-white outline-none focus:border-[#D98F8F]/50 transition-all placeholder:text-[#A69697]"
               />
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Glassmorphic Invoice List */}
-          <div className="flex flex-col gap-6">
-            
-            {/* Top Toolbar */}
-            <div className="bg-[rgba(255,255,255,0.03)] backdrop-blur-[20px] border border-[rgba(255,255,255,0.08)] rounded-[24px] p-2 flex flex-col xl:flex-row xl:items-center justify-between gap-4 shadow-lg relative z-20">
-              
-              <div className="flex gap-1 overflow-x-auto scrollbar-none p-1">
-                {statuses.map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => setSelectedStatus(status)}
-                    className={`px-5 py-2.5 rounded-[16px] text-[13px] font-bold transition-all duration-300 whitespace-nowrap ${
-                      selectedStatus === status
-                        ? 'bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-[#FFFFFF] shadow-[0_5px_15px_rgba(142,27,58,0.4)] translate-y-[-2px]'
-                        : 'text-[#A69697] hover:text-[#FFFFFF] hover:bg-white/5'
-                    }`}
-                  >
-                    {status}
-                  </button>
-                ))}
-              </div>
-
-              <div className="relative px-2 xl:px-0 xl:w-[300px]">
-                <div className="absolute inset-y-0 left-6 xl:left-4 flex items-center pointer-events-none">
-                  <Search size={16} className="text-[#A69697]" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search invoice # or company..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#1A0A0B]/50 border border-white/10 rounded-[16px] py-3 pl-10 pr-4 text-[14px] text-[#FFFFFF] outline-none focus:border-[#D98F8F]/50 focus:bg-[#1E0A0B] transition-all placeholder:text-[#A69697]"
-                />
-              </div>
-            </div>
-
-            {/* Invoices List View (Card based instead of boring table) */}
-            <div className="flex flex-col gap-4">
-              {filteredInvoices.length === 0 ? (
-                <div className="bg-[rgba(255,255,255,0.02)] border border-dashed border-white/10 rounded-[30px] p-16 text-center flex flex-col items-center justify-center">
-                  <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6 border border-white/10 text-[#A69697]">
-                    <Search size={32} />
-                  </div>
-                  <h3 className="text-[#FFFFFF] font-medium text-[20px] mb-2">No invoices found</h3>
-                  <p className="text-[#A69697] text-[15px]">Try adjusting your filters or upload a new document.</p>
-                </div>
-              ) : (
-                filteredInvoices.map((invoice, idx) => {
-                  const style = getStatusStyle(invoice.status);
-                  return (
-                    <Link 
-                      href={`/invoices/${invoice._id}`}
-                      key={invoice._id} 
-                      className={`group relative backdrop-blur-xl border rounded-[24px] p-3 sm:p-4 flex flex-col lg:flex-row lg:items-center gap-3 sm:gap-4 transition-all duration-400 hover:-translate-y-1 overflow-hidden ${
-                        invoice.status === 'FAILED' 
-                          ? 'bg-[#8E1B3A]/10 border-[#FF5252]/30 hover:border-[#FF5252]/60 hover:shadow-[0_15px_40px_rgba(255,82,82,0.15)]' 
-                          : 'bg-[rgba(255,255,255,0.03)] border-[rgba(255,255,255,0.05)] hover:border-[#D98F8F]/40 hover:bg-[rgba(255,255,255,0.05)] hover:shadow-[0_15px_40px_rgba(0,0,0,0.4)]'
-                      }`}
-                      style={{ animationDelay: `${idx * 100}ms` }}
-                    >
-                      {/* Left Accent Bar on Hover */}
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-0 group-hover:h-1/2 bg-gradient-to-b from-[#D98F8F] to-[#8E1B3A] rounded-r-full transition-all duration-500"></div>
-                      
-                      {/* Icon */}
-                      <div className="w-14 h-14 rounded-[16px] bg-[#1A0A0B] border border-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-[#8E1B3A]/20 group-hover:border-[#D98F8F]/30 transition-colors shadow-inner">
-                        <FileText className="text-[#A69697] group-hover:text-[#D98F8F] transition-colors" size={24} />
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse whitespace-nowrap">
+              <thead>
+                <tr className="border-b border-white/10 text-[11px] font-medium text-[#A69697] uppercase tracking-wider bg-white/[0.02]">
+                  <th className="px-6 py-4">Company & Invoice</th>
+                  <th className="px-6 py-4">Date Added</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">AI Match</th>
+                  <th className="px-6 py-4 text-right">Amount</th>
+                  <th className="px-6 py-4 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5 text-[13px]">
+                {filteredInvoices.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-16 text-center text-[#A69697]">
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        <FileText size={32} className="opacity-20" />
+                        <p>No invoices found matching your criteria.</p>
                       </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-1">
-                          <h4 className="text-white font-bold text-[18px] truncate">{invoice.companyName}</h4>
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-widest uppercase border flex items-center gap-1.5 ${style.bg} ${style.text} ${style.border}`}>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredInvoices.map((invoice) => {
+                    const style = getStatusStyle(invoice.status);
+                    return (
+                      <tr 
+                        key={invoice._id} 
+                        className="hover:bg-white/[0.04] transition-colors group cursor-pointer"
+                        onClick={() => router.push(`/invoices/${invoice._id}`)}
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded bg-[#1A0A0B] border border-white/10 flex items-center justify-center shrink-0">
+                              <FileText size={14} className="text-[#A69697]" />
+                            </div>
+                            <div>
+                              <p className="font-bold text-white max-w-[200px] truncate">{invoice.companyName}</p>
+                              <p className="text-[#A69697] text-[12px] font-mono mt-0.5">{invoice.invoiceNumber}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-[#A69697]">
+                          {new Date(invoice.createdAt || new Date()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase border ${style.bg} ${style.text} ${style.border}`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`}></span>
                             {invoice.status}
                           </span>
-                        </div>
-                        <p className="text-[#A69697] text-[14px] flex items-center gap-2">
-                          <span className="font-mono text-[#EBD8D8] bg-white/5 px-2 py-0.5 rounded text-[12px]">{invoice.invoiceNumber}</span>
-                          • Added {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                        </p>
-                      </div>
-
-                      {/* Amount */}
-                      <div className="lg:w-[100px] xl:w-[120px] lg:text-right shrink-0">
-                        <p className="text-[12px] text-[#A69697] mb-1">Total Amount</p>
-                        <p className="text-[22px] font-bold text-white tracking-tight">${invoice.totalAmount?.toLocaleString() || '0'}</p>
-                      </div>
-
-                      {/* AI Match / Error */}
-                      <div className="lg:w-[120px] xl:w-[140px] shrink-0 flex lg:justify-center border-t lg:border-t-0 lg:border-l border-white/5 pt-3 lg:pt-0 lg:pl-4">
-                        {invoice.status === 'FAILED' ? (
-                          <div className="flex items-center gap-2 text-[#FF5252] bg-[#FF5252]/10 px-3 py-2 rounded-xl">
-                            <AlertTriangle size={16} />
-                            <span className="text-[12px] font-bold">Extraction Failed</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          {invoice.status === 'FAILED' ? (
+                            <span className="text-[#FF5252] text-[12px] flex items-center gap-1.5 font-medium"><AlertTriangle size={14}/> Failed</span>
+                          ) : invoice.confidence ? (
+                            <div className="flex items-center gap-3">
+                              <div className="w-20 h-1.5 bg-[#1A0A0B] rounded-full overflow-hidden border border-white/5">
+                                <div 
+                                  className={`h-full rounded-full ${invoice.confidence > 0.8 ? 'bg-[#4CAF50]' : invoice.confidence > 0.5 ? 'bg-[#FFC107]' : 'bg-[#D98F8F]'}`} 
+                                  style={{ width: `${invoice.confidence * 100}%` }}
+                                ></div>
+                              </div>
+                              <span className={`text-[12px] font-medium ${invoice.confidence > 0.8 ? 'text-[#4CAF50]' : invoice.confidence > 0.5 ? 'text-[#FFC107]' : 'text-[#D98F8F]'}`}>{Math.round(invoice.confidence * 100)}%</span>
+                            </div>
+                          ) : (
+                            <span className="text-[#A69697] text-[12px] italic">Not scanned</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <p className="font-bold text-white">${invoice.totalAmount?.toLocaleString() || '0'}</p>
+                          <p className="text-[#A69697] text-[11px] mt-0.5">Tax: ${invoice.taxAmount?.toLocaleString() || '0'}</p>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); router.push(`/invoices/${invoice._id}`); }}
+                              className="p-2 rounded-md hover:bg-white/10 text-[#A69697] hover:text-white transition-colors"
+                              title="Edit"
+                            >
+                              <Edit size={14} />
+                            </button>
+                            <button 
+                              onClick={(e) => handleDelete(e, invoice._id)}
+                              className="p-2 rounded-md hover:bg-[#8E1B3A]/30 text-[#A69697] hover:text-[#D98F8F] transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 size={14} />
+                            </button>
                           </div>
-                        ) : invoice.confidence ? (
-                          <div className="flex items-center gap-3">
-                            <ConfidenceRing score={invoice.confidence} />
-                          </div>
-                        ) : (
-                          <div className="text-[#A69697] text-[13px] italic">Not scanned</div>
-                        )}
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-1.5 lg:pl-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity duration-300 shrink-0 mt-3 lg:mt-0">
-                        <button 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            router.push(`/invoices/${invoice._id}`);
-                          }} 
-                          className="p-2.5 rounded-[12px] bg-[#1A0A0B] border border-white/5 text-[#A69697] hover:border-white/20 hover:text-white transition-all hover:scale-105"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button 
-                          onClick={(e) => handleDelete(e, invoice._id)} 
-                          className="p-2.5 rounded-[12px] bg-[#1A0A0B] border border-white/5 text-[#A69697] hover:border-[#D98F8F]/50 hover:text-[#D98F8F] transition-all hover:scale-105"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                        <div
-                          className="ml-1 p-2.5 rounded-[12px] bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white shadow-[0_0_15px_rgba(142,27,58,0.4)] hover:shadow-[0_0_25px_rgba(217,143,143,0.6)] transition-all hover:scale-105 flex items-center justify-center"
-                        >
-                          <ChevronRight size={18} />
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })
-              )}
-            </div>
-
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
+
       </div>
     </DashboardLayout>
   );

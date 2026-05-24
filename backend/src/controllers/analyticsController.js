@@ -264,10 +264,28 @@ const getSuppliers = async (req, res, next) => {
     const suppliers = await ExtractedData.aggregate([
       { $match: { invoiceId: { $in: invoiceIds } } },
       {
+        $lookup: {
+          from: 'invoices',
+          localField: 'invoiceId',
+          foreignField: '_id',
+          as: 'invoice'
+        }
+      },
+      { $unwind: '$invoice' },
+      { $sort: { "invoice.createdAt": -1 } },
+      {
         $group: {
           _id: { $ifNull: ["$companyName", "Unknown Vendor"] },
           totalSpend: { $sum: "$totalAmount" },
           invoiceCount: { $sum: 1 },
+          recentInvoices: {
+            $push: {
+              id: "$invoice._id",
+              amount: "$totalAmount",
+              date: "$invoice.createdAt",
+              status: "$invoice.status"
+            }
+          }
         }
       },
       {
@@ -275,6 +293,7 @@ const getSuppliers = async (req, res, next) => {
           name: "$_id",
           totalSpend: 1,
           invoiceCount: 1,
+          recentInvoices: { $slice: ["$recentInvoices", 5] },
           _id: 0
         }
       },

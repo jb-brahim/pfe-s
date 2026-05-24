@@ -225,12 +225,7 @@ export default function ReportsPage() {
             </h1>
             <p className="text-[#A69697] text-[16px]">Generate, analyze, and export comprehensive financial and operational insights.</p>
           </div>
-          <button 
-            onClick={() => setShowScheduleModal(true)}
-            className="bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-[#D98F8F] px-6 py-3 rounded-[16px] font-bold shadow-lg hover:bg-[rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(217,143,143,0.2)] transition-all flex items-center gap-2 cursor-pointer"
-          >
-            <RefreshCw size={18} /> Schedule Auto-Report
-          </button>
+
         </div>
 
         {/* Report Generation Engine */}
@@ -238,7 +233,7 @@ export default function ReportsPage() {
           <div className="absolute top-[-50%] right-[-10%] w-[500px] h-[500px] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#8E1B3A]/30 to-transparent blur-[80px] rounded-full pointer-events-none"></div>
           
           <h3 className="text-white text-[20px] font-bold flex items-center gap-2 mb-8 relative z-10">
-            <Sparkles className="text-[#D98F8F]" size={20} /> Report Generation Engine
+            Report Generation Engine
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-20">
@@ -364,61 +359,7 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Real-time Insights Visualizer */}
-        <div className="bg-[rgba(255,255,255,0.03)] backdrop-blur-[10px] border border-white/10 rounded-[30px] p-8 shadow-lg flex flex-col">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div>
-              <h3 className="text-[#FFFFFF] text-[20px] font-bold">Real-time Financial Overview</h3>
-              <p className="text-[#A69697] text-[14px] mt-1">Live tracking of Monthly Budget Limits, Approved Spend, and Pending Pipeline.</p>
-            </div>
-            <div className="flex items-center gap-4 bg-[#3C0D0D] p-1.5 rounded-full border border-white/10">
-              <div className="flex items-center gap-2 px-3">
-                <span className="w-3 h-3 rounded-sm bg-[#D98F8F]"></span>
-                <span className="text-[12px] text-white">Approved Spend</span>
-              </div>
-              <div className="flex items-center gap-2 px-3">
-                <span className="w-3 h-3 rounded-sm bg-[#8E1B3A]"></span>
-                <span className="text-[12px] text-white">Pending pipeline</span>
-              </div>
-              <div className="flex items-center gap-2 px-3 border-l border-white/10">
-                <span className="w-3 h-1 rounded-sm bg-[#4CAF50]"></span>
-                <span className="text-[12px] text-white">Budget limit</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="h-[350px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={monthlyData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorApprovedBar" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#D98F8F" stopOpacity={0.8} />
-                    <stop offset="100%" stopColor="#D98F8F" stopOpacity={0.2} />
-                  </linearGradient>
-                  <linearGradient id="colorPendingArea" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#8E1B3A" stopOpacity={0.5} />
-                    <stop offset="100%" stopColor="#8E1B3A" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="month" stroke="#A69697" fontSize={12} tickLine={false} axisLine={false} dy={10} />
-                <YAxis stroke="#A69697" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${(val/1000).toFixed(0)}k`} dx={-10} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#3C0D0D', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }} 
-                  itemStyle={{ color: '#FFFFFF' }}
-                  formatter={(value: any, name: any) => {
-                    const cleanName = name === 'totalExpenses' ? 'Approved Spend' : name === 'pendingExpenses' ? 'Pending pipeline' : 'Budget limit';
-                    return [`$${value.toLocaleString()}`, cleanName];
-                  }}
-                />
-                
-                <Bar dataKey="totalExpenses" fill="url(#colorApprovedBar)" barSize={20} radius={[4, 4, 0, 0]} />
-                <Area type="monotone" dataKey="pendingExpenses" fill="url(#colorPendingArea)" stroke="#8E1B3A" strokeWidth={3} />
-                <Line type="monotone" dataKey="budgetLimit" stroke="#4CAF50" strokeWidth={3} dot={{ r: 4, fill: '#3C0D0D', stroke: '#4CAF50', strokeWidth: 2 }} />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+
 
         {/* Report schedules section */}
         {schedules.length > 0 && (
@@ -464,16 +405,7 @@ export default function ReportsPage() {
                   </button>
                 ))}
               </div>
-              <div className="relative">
-                <input 
-                  type="text" 
-                  placeholder="Filter Reports..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-[#3C0D0D]/80 border border-white/10 rounded-[12px] py-2 px-4 pr-10 text-[13px] text-white focus:outline-none focus:border-[#D98F8F]/50 w-[200px]"
-                />
-                <Filter className="absolute right-3 top-2.5 text-[#A69697]" size={14} />
-              </div>
+
             </div>
           </div>
 
@@ -484,49 +416,51 @@ export default function ReportsPage() {
               <p className="text-[#A69697] text-[14px] mt-1">Configure parameters above and click generate to create a report.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+            <div className="flex flex-col gap-4">
               {filteredReports.map((report) => {
                 const Icon = iconMap[report.type] || FileText;
                 return (
-                  <div key={report._id} className="group relative bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-white/5 rounded-[24px] p-6 transition-all duration-300 hover:-translate-y-2 hover:bg-[rgba(255,255,255,0.04)] hover:border-[#D98F8F]/30 hover:shadow-[0_20px_40px_rgba(142,27,58,0.2)] flex flex-col justify-between min-h-[250px]">
-                    {/* Top Accent Line */}
-                    <div className="absolute top-0 left-8 w-12 h-1 bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] rounded-b-full scale-0 group-hover:scale-100 transition-transform origin-left duration-300"></div>
+                  <div key={report._id} className="group relative bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-white/5 rounded-[24px] p-5 transition-all duration-300 hover:bg-[rgba(255,255,255,0.04)] hover:border-[#D98F8F]/30 hover:shadow-[0_10px_30px_rgba(142,27,58,0.15)] flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden">
+                    {/* Left Accent Line */}
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#D98F8F] to-[#8E1B3A] scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
                     
-                    <div>
-                      <div className="flex justify-between items-start mb-6">
-                        <div className="w-14 h-14 rounded-[16px] bg-[#3C0D0D] border border-white/10 flex items-center justify-center group-hover:bg-[#8E1B3A]/20 transition-colors shadow-inner">
-                          <Icon size={26} className="text-[#A69697] group-hover:text-[#D98F8F] transition-colors" />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="bg-[#4CAF50]/10 border border-[#4CAF50]/30 text-[#4CAF50] px-2 py-1 rounded-[8px] text-[10px] font-bold uppercase tracking-wider shadow-[0_0_10px_rgba(76,175,80,0.1)]">
-                            {report.status}
-                          </span>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); handleDeleteReport(report._id); }}
-                            className="p-1.5 rounded-lg bg-red-950/20 text-red-400 border border-red-900/30 hover:bg-red-900/40 hover:text-red-200 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
-                            title="Delete Report"
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                        </div>
+                    <div className="flex flex-col md:flex-row md:items-center gap-5 flex-1">
+                      <div className="w-14 h-14 rounded-[16px] shrink-0 bg-[#3C0D0D] border border-white/10 flex items-center justify-center group-hover:bg-[#8E1B3A]/20 transition-colors shadow-inner">
+                        <Icon size={26} className="text-[#A69697] group-hover:text-[#D98F8F] transition-colors" />
                       </div>
-
-                      <h4 className="text-white text-[16px] font-bold mb-2 leading-tight">{report.title}</h4>
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[#A69697] text-[12px] mb-6">
-                        <span>{formatDate(report.createdAt)}</span>
-                        <span className="w-1 h-1 rounded-full bg-white/20"></span>
-                        <span>{report.size}</span>
-                        <span className="w-1 h-1 rounded-full bg-white/20"></span>
-                        <span className="font-mono bg-white/5 px-1.5 rounded text-[10px]">{report.format}</span>
+                      
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-white text-[16px] font-bold mb-1.5 leading-tight truncate">{report.title}</h4>
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[#A69697] text-[13px]">
+                          <span>{formatDate(report.createdAt)}</span>
+                          <span className="w-1 h-1 rounded-full bg-white/20"></span>
+                          <span>{report.size}</span>
+                          <span className="w-1 h-1 rounded-full bg-white/20"></span>
+                          <span className="font-mono bg-white/5 px-2 py-0.5 rounded text-[10px]">{report.format}</span>
+                        </div>
                       </div>
                     </div>
 
-                    <button 
-                      onClick={() => handleDownload(report)}
-                      className="w-full py-3.5 rounded-[14px] bg-[#3C0D0D] border border-white/10 text-[#A69697] font-bold text-[14px] flex items-center justify-center gap-2 group-hover:bg-gradient-to-r group-hover:from-[#D98F8F] group-hover:to-[#8E1B3A] group-hover:text-white group-hover:border-transparent transition-all duration-300 shadow-lg cursor-pointer"
-                    >
-                      <Download size={18} /> Download
-                    </button>
+                    <div className="flex flex-row items-center gap-6 md:w-auto w-full justify-between md:justify-end shrink-0 pl-1">
+
+                      
+                      <div className="flex items-center gap-3">
+                        <button 
+                          onClick={() => handleDownload(report)}
+                          className="px-6 py-2.5 rounded-[12px] bg-[#3C0D0D] border border-white/10 text-[#A69697] font-bold text-[13px] flex items-center justify-center gap-2 group-hover:bg-gradient-to-r group-hover:from-[#D98F8F] group-hover:to-[#8E1B3A] group-hover:text-white group-hover:border-transparent transition-all duration-300 shadow-lg cursor-pointer whitespace-nowrap"
+                        >
+                          <Download size={16} /> Download
+                        </button>
+                        
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleDeleteReport(report._id); }}
+                          className="w-10 h-10 flex items-center justify-center rounded-[12px] bg-red-950/20 text-red-400 border border-red-900/30 hover:bg-red-900/40 hover:text-red-200 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer shrink-0"
+                          title="Delete Report"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 );
               })}

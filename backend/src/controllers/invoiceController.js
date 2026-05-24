@@ -526,8 +526,8 @@ const deleteInvoice = async (req, res, next) => {
       return res.status(403).json({ message: 'Not authorized to delete this invoice' });
     }
 
-    if (invoice.status === 'APPROVED') {
-      return res.status(400).json({ message: 'Cannot delete an approved invoice' });
+    if (invoice.status === 'APPROVED' && req.user.role !== 'ADMIN') {
+      return res.status(400).json({ message: 'Cannot delete an approved invoice unless you are an admin' });
     }
 
     await ExtractedData.deleteMany({ invoiceId: id });

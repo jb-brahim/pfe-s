@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth-context';
 import {
   LayoutGrid,
   FileText,
-  Wallet,
+  ClipboardCheck,
   BarChart3,
   Mail,
   Users,
@@ -30,7 +30,7 @@ export function Sidebar() {
   const mainItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid, adminOnly: false },
     { href: '/invoices', label: 'Invoices', icon: FileText, adminOnly: false },
-    { href: '/expenses', label: 'Expenses', icon: Wallet, adminOnly: false },
+    { href: '/approval', label: 'Approval', icon: ClipboardCheck, adminOnly: true },
     { href: '/reports', label: 'Reports', icon: BarChart3, adminOnly: true },
     { href: '/mail', label: 'Mail', icon: Mail, adminOnly: true },
   ];
@@ -115,19 +115,7 @@ export function Sidebar() {
             </>
           )}
 
-          <div className="pt-4">
-            <Link
-              href="/ai-insights"
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-150 group ${
-                isActive('/ai-insights')
-                  ? 'bg-white/[0.08] text-white'
-                  : 'text-[#A69697] hover:text-white hover:bg-white/[0.04]'
-              }`}
-            >
-              <Zap size={18} strokeWidth={1.5} className={isActive('/ai-insights') ? 'text-[#D98F8F]' : 'text-inherit'} />
-              <span className={`text-[14px] ${isActive('/ai-insights') ? 'font-medium' : 'font-normal'}`}>AI Insights</span>
-            </Link>
-          </div>
+
         </nav>
 
         {/* User Profile Footer */}

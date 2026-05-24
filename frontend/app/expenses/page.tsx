@@ -168,19 +168,6 @@ export default function ExpensesPage() {
             </h1>
             <p className="text-[#A69697] text-[16px]">Track team spending, manage budgets, and approve employee claims.</p>
           </div>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleUpload}
-            className="hidden"
-            accept="image/*,application/pdf"
-          />
-          <button 
-            onClick={handleUploadClick}
-            className="bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white px-6 py-3 rounded-[16px] font-bold shadow-[0_0_20px_rgba(142,27,58,0.4)] hover:shadow-[0_0_30px_rgba(217,143,143,0.5)] transition-all hover:-translate-y-1 flex items-center gap-2"
-          >
-            <Plus size={18} /> New Expense
-          </button>
         </div>
 
         {/* Top KPI Cards */}
@@ -216,24 +203,16 @@ export default function ExpensesPage() {
                       onChange={(e) => setEditBudgetValue(e.target.value)}
                       className="bg-white/5 border border-white/10 rounded-[8px] py-1 px-2 text-[14px] text-white outline-none focus:border-[#D98F8F] w-24"
                     />
-                    <button onClick={handleSaveBudget} className="text-[#4CAF50] hover:text-[#4CAF50]/70 p-1">
-                      <Save size={16} />
+                    <button onClick={handleSaveBudget} className="text-[#4CAF50] hover:text-[#4CAF50]/70 p-1 text-[13px] font-medium">
+                      Save
                     </button>
-                    <button onClick={() => setIsEditingBudget(false)} className="text-[#A69697] hover:text-white p-1">
-                      <X size={16} />
+                    <button onClick={() => setIsEditingBudget(false)} className="text-[#A69697] hover:text-white p-1 text-[13px] font-medium">
+                      Annuler
                     </button>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
                     <h3 className="text-white font-bold text-[20px]">{formatCurrency(budget)}</h3>
-                    {currentUser?.role === 'ADMIN' && (
-                      <button 
-                        onClick={() => { setEditBudgetValue(budget.toString()); setIsEditingBudget(true); }}
-                        className="text-[#A69697] hover:text-[#D98F8F] transition-colors"
-                      >
-                        <Settings2 size={14} />
-                      </button>
-                    )}
                   </div>
                 )}
                 <p className="text-[#A69697] text-[13px]">Total Budget</p>
@@ -244,76 +223,10 @@ export default function ExpensesPage() {
             </div>
           </div>
 
-          <div className="bg-[rgba(255,255,255,0.03)] backdrop-blur-[10px] border border-white/10 rounded-[24px] p-6 shadow-lg flex flex-col justify-between">
-             <div className="flex items-start justify-between">
-              <p className="text-[#A69697] text-[14px]">Weekly Trend</p>
-            </div>
-            <div className="h-[70px] w-full mt-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={spendingTrend}>
-                  <defs>
-                    <linearGradient id="trendColor" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#D98F8F" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="#D98F8F" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <Tooltip contentStyle={{ backgroundColor: '#1A0A0B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} />
-                  <Area type="monotone" dataKey="amount" stroke="#D98F8F" strokeWidth={3} fillOpacity={1} fill="url(#trendColor)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
         </div>
 
-        <div className="grid xl:grid-cols-[1fr_1.5fr] gap-8">
-          
-          {/* Categories Pie Chart */}
-          <div className="bg-[rgba(255,255,255,0.03)] backdrop-blur-[10px] border border-white/10 rounded-[30px] p-8 shadow-lg flex flex-col items-center">
-            <h3 className="text-[#FFFFFF] text-[18px] font-bold w-full mb-6">Spending by Category</h3>
-            
-            <div className="w-[220px] h-[220px] relative mb-8">
-              <div className="absolute inset-0 bg-[#8E1B3A] blur-[60px] opacity-20 rounded-full"></div>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={displayCategories} innerRadius={70} outerRadius={100} paddingAngle={5} dataKey="value" stroke="none">
-                    {displayCategories.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} className="hover:opacity-80 transition-opacity cursor-pointer outline-none" />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#1A0A0B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px' }}
-                    itemStyle={{ color: '#EBD8D8' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-[#A69697] text-[12px]">Top Category</span>
-                <span className="text-white font-bold text-[18px] text-center px-4 leading-tight">{topCategoryName}</span>
-              </div>
-            </div>
-
-            <div className="w-full space-y-3">
-              {displayCategories.map((cat) => (
-                <div key={cat.name} className="flex items-center justify-between p-3 rounded-[16px] bg-white/5 border border-white/5 hover:bg-white/10 transition-colors cursor-pointer group">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-[12px] flex items-center justify-center" style={{ backgroundColor: `${cat.color}20`, color: cat.color }}>
-                      <cat.icon size={18} />
-                    </div>
-                    <div>
-                      <p className="text-white font-medium text-[14px]">{cat.name}</p>
-                      <p className="text-[#A69697] text-[12px] group-hover:text-white/70 transition-colors">
-                        {cat.count} {cat.count === 1 ? 'Transaction' : 'Transactions'}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="font-bold text-white">{formatCurrency(cat.value)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Employee Claims / Receipts Queue */}
-          <div className="bg-[rgba(255,255,255,0.03)] backdrop-blur-[10px] border border-white/10 rounded-[30px] p-8 shadow-lg flex flex-col">
+        {/* Employee Claims / Receipts Queue */}
+        <div className="bg-[rgba(255,255,255,0.03)] backdrop-blur-[10px] border border-white/10 rounded-[30px] p-8 shadow-lg flex flex-col">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-[#FFFFFF] text-[18px] font-bold">Pending Team Claims</h3>
               <Link href="/invoices" className="text-[#D98F8F] text-[13px] font-bold hover:underline">View All History</Link>
@@ -381,24 +294,7 @@ export default function ExpensesPage() {
               ))}
             </div>
 
-            {/* Virtual Corporate Card Visual */}
-            <div className="mt-8 rounded-[24px] bg-gradient-to-tr from-[#1A0A0B] to-[#2D1B1C] border border-white/10 p-6 flex items-center justify-between relative overflow-hidden group cursor-pointer hover:border-[#D98F8F]/30 transition-all">
-              <div className="absolute right-0 top-0 w-64 h-64 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#8E1B3A]/40 to-transparent opacity-50 transform translate-x-1/3 -translate-y-1/3 group-hover:scale-110 transition-transform duration-700"></div>
-              
-              <div className="relative z-10">
-                <p className="text-[#D98F8F] text-[12px] font-bold tracking-widest uppercase mb-1">Active Corporate Card</p>
-                <h4 className="text-white font-bold text-[20px] flex items-center gap-3">
-                  •••• •••• •••• 4209
-                </h4>
-                <p className="text-[#A69697] text-[13px] mt-2">Available Balance: <span className="text-white font-bold">24,500.00 TND</span></p>
-              </div>
-              
-              <div className="relative z-10 w-16 h-12 rounded-[8px] bg-gradient-to-r from-white/10 to-white/5 border border-white/10 flex items-center justify-center backdrop-blur-md">
-                 <CreditCard className="text-[#D98F8F]" size={24} />
-              </div>
-            </div>
 
-          </div>
         </div>
       </div>
     </DashboardLayout>

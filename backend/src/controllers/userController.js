@@ -58,6 +58,26 @@ const createUser = async (req, res, next) => {
       managedBy: req.user._id
     });
 
+    // Send an email with the auto-generated password
+    const { sendMail } = require('../utils/mailer');
+    const emailSubject = 'Welcome to aura Invoice AI - Your Account Details';
+    const emailHtml = `
+      <h3>Welcome to the Team, ${name}!</h3>
+      <p>An administrator has invited you to access the aura Invoice AI platform as a(n) <strong>${role || 'ACCOUNTANT'}</strong>.</p>
+      <p>Here are your login credentials:</p>
+      <ul>
+        <li><strong>Email:</strong> ${email}</li>
+        <li><strong>Password:</strong> ${password}</li>
+      </ul>
+      <p>Please log in and change your password as soon as possible.</p>
+      <br/>
+      <p>Best regards,<br/>The aura Invoice AI Team</p>
+    `;
+    
+    // We run it asynchronously without blocking the response
+    sendMail(email, emailSubject, '', emailHtml).catch(err => console.error(err));
+
+
     res.status(201).json({
       data: {
         _id: user._id,

@@ -422,13 +422,9 @@ export const userAPI = {
   },
 
   invite: async (email: string, role: string, fullName: string, password?: string) => {
-    try {
-      const payloadPassword = password || 'TempPassword123!';
-      const response = await apiClient.post('/users', { name: fullName, email, password: payloadPassword, role });
-      return { success: true, data: response.data.data || response.data };
-    } catch (error) {
-      return { success: false, data: { email, role, fullName } };
-    }
+    const payloadPassword = password || 'TempPassword123!';
+    const response = await apiClient.post('/users', { name: fullName, email, password: payloadPassword, role });
+    return { success: true, data: response.data.data || response.data };
   },
 
   getStats: async () => {

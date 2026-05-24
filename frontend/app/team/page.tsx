@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { useAuth } from '@/lib/auth-context';
-import { userAPI } from '@/lib/api';
+import { userAPI, auditAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { ResponsiveContainer, AreaChart, Area, XAxis, Tooltip } from 'recharts';
 import { Search, Plus, MoreHorizontal, CheckCircle2, Shield, ArrowRight, UserPlus, X, Clock, Activity, Settings2 } from 'lucide-react';
@@ -23,7 +23,7 @@ interface Employee {
   approvalRate: number;
 }
 
-const activityLogs: any[] = [];
+
 
 const performanceData = [
   { month: 'Jan', processed: 0, time: 0 },
@@ -35,11 +35,11 @@ export default function TeamPage() {
   const [employeesList, setEmployeesList] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activityLogs, setActivityLogs] = useState<any[]>([]);
 
   // Invite modal fields
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
-  const [invitePassword, setInvitePassword] = useState('');
   const [inviteRole, setInviteRole] = useState('Analyst');
 
   // Action menu tracking
@@ -48,12 +48,36 @@ export default function TeamPage() {
   const loadEmployees = async () => {
     setIsLoading(true);
     try {
-      const res = await userAPI.getStats();
+      const [res, auditRes] = await Promise.all([
+        userAPI.getStats(),
+        auditAPI.getTrail()
+      ]);
+      
       if (res.data) {
         setEmployeesList(res.data);
       }
+      
+      if (auditRes.data) {
+        const formattedLogs = auditRes.data.slice(0, 50).map((log: any) => ({
+          id: log._id,
+          user: log.userId?.name || log.user || 'System',
+          action: log.action === 'CREATE' || log.action === 'UPLOAD' ? 'uploaded a new invoice' : 
+                 log.action === 'APPROVE' ? 'approved an invoice' : 
+                 log.action === 'REJECT' ? 'rejected an invoice' : 
+                 log.action === 'EXTRACT' ? 'extracted data from an invoice' : 
+                 log.action === 'AI_EXTRACTION' ? 'ran AI data extraction' :
+                 log.action === 'VERIFICATION' ? 'verified invoice data' :
+                 `${log.action.toLowerCase().replace(/_/g, ' ')}`,
+          rawAction: log.action || 'UPDATE',
+          time: new Date(log.createdAt || log.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+          img: log.userId?.profileImage ? `http://localhost:5000/${log.userId.profileImage}` : `https://i.pravatar.cc/150?u=${log.userId?.email || 'user'}`,
+          entityId: log.entityId || log.invoiceId || 'N/A',
+          entityType: log.entityType || 'Invoice'
+        }));
+        setActivityLogs(formattedLogs);
+      }
     } catch (err) {
-      toast.error('Failed to load team directory');
+      toast.error('Failed to load team data');
     } finally {
       setIsLoading(false);
     }
@@ -65,22 +89,31 @@ export default function TeamPage() {
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inviteEmail.trim() || !inviteName.trim() || !invitePassword.trim()) {
-      toast.error('Email, Full Name, and Password are required.');
+    if (!inviteEmail.trim() || !inviteName.trim()) {
+      toast.error('Email and Full Name are required.');
       return;
+    }
+    
+    // Generate a secure random password
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let generatedPassword = '';
+    for (let i = 0; i < 12; i++) {
+      generatedPassword += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     
     // Map UI role to backend DB role enum
     const apiRole: 'ADMIN' | 'ACCOUNTANT' = inviteRole === 'Admin' ? 'ADMIN' : 'ACCOUNTANT';
 
     try {
-      const res = await userAPI.invite(inviteEmail, apiRole, inviteName, invitePassword);
+      const res = await userAPI.invite(inviteEmail, apiRole, inviteName, generatedPassword);
       if (res.success) {
-        toast.success(`Successfully invited ${inviteName}!`);
-        setIsModalOpen(false);
+        toast.success(`Invite sent to ${inviteName}! They will receive an email with their auto-generated password.`);
+        
+        // Log the generated password to the console for demonstration purposes
+        console.log(`[EMAIL SIMULATION] Sent to: ${inviteEmail} | Role: ${inviteRole} | Password: ${generatedPassword}`);
+        
         setInviteEmail('');
         setInviteName('');
-        setInvitePassword('');
         setInviteRole('Analyst');
         loadEmployees();
       } else {
@@ -179,24 +212,65 @@ export default function TeamPage() {
             <h1 className="text-[32px] font-bold tracking-tight mb-1 text-[#FFFFFF]">Team Management</h1>
             <p className="text-[#A69697] text-[15px]">Manage access controls, approval hierarchies, and team performance.</p>
           </div>
-          
-          <div className="flex gap-3">
-            <button className="bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-[#A69697] px-4 py-2.5 rounded-[12px] text-[14px] font-medium hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
-              <Settings2 size={16} /> Manage Roles
-            </button>
-            {currentUser?.role === 'ADMIN' && (
-              <button 
-                onClick={() => setIsModalOpen(true)}
-                className="bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white px-5 py-2.5 rounded-[12px] text-[14px] font-bold shadow-[0_0_15px_rgba(142,27,58,0.4)] hover:shadow-[0_0_25px_rgba(217,143,143,0.5)] transition-all flex items-center gap-2"
-              >
-                <UserPlus size={16} /> Invite Employee
-              </button>
-            )}
-          </div>
         </div>
 
-        {/* TOP ROW: Employee Table & Roles */}
-        <div className="grid lg:grid-cols-[2fr_1fr] gap-6">
+        {/* TOP ROW: Employee Table & Invite Form */}
+        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_350px] gap-6">
+          
+          {/* Invite Employee Form (Always Visible) */}
+          {currentUser?.role === 'ADMIN' && (
+            <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.08)] rounded-[24px] shadow-lg flex flex-col h-fit overflow-hidden relative order-first lg:order-last">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-[#D98F8F] to-transparent"></div>
+              <form onSubmit={handleInvite} className="p-6">
+                <div className="flex items-center mb-6">
+                  <h3 className="text-white text-[18px] font-bold flex items-center gap-2">
+                    <UserPlus size={18} className="text-[#D98F8F]"/> Invite Employee
+                  </h3>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[#A69697] text-[13px] block mb-1">Email Address</label>
+                    <input 
+                      type="email" 
+                      placeholder="e.g. employee@company.com" 
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      className="w-full bg-[#1A0A0B] border border-white/10 rounded-[12px] py-2.5 px-4 text-[13px] text-white outline-none focus:border-[#D98F8F] transition-colors" 
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[#A69697] text-[13px] block mb-1">Full Name</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. Jane Doe" 
+                      value={inviteName}
+                      onChange={(e) => setInviteName(e.target.value)}
+                      className="w-full bg-[#1A0A0B] border border-white/10 rounded-[12px] py-2.5 px-4 text-[13px] text-white outline-none focus:border-[#D98F8F] transition-colors" 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[#A69697] text-[13px] block mb-1">Primary Role</label>
+                    <select 
+                      value={inviteRole}
+                      onChange={(e) => setInviteRole(e.target.value)}
+                      className="w-full bg-[#1A0A0B] border border-white/10 rounded-[12px] py-2.5 px-4 text-[13px] text-white outline-none focus:border-[#D98F8F] transition-colors appearance-none cursor-pointer"
+                    >
+                      <option className="bg-[#1A0A0B]">Analyst</option>
+                      <option className="bg-[#1A0A0B]">Admin</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex gap-3">
+                  <button type="submit" className="w-full py-2.5 rounded-[12px] bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white font-bold text-[13px] shadow-lg hover:shadow-[0_0_15px_rgba(217,143,143,0.4)] transition-all">
+                    Send Invite
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
           
           {/* Employee Directory */}
           <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.08)] rounded-[24px] shadow-lg flex flex-col overflow-hidden">
@@ -332,120 +406,56 @@ export default function TeamPage() {
               </table>
             </div>
           </div>
-
-          {/* Roles & Permissions Reference */}
-          <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.08)] rounded-[24px] shadow-lg p-6 flex flex-col">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-[#FFFFFF] text-[18px] font-bold flex items-center gap-2">
-                <Shield className="text-[#D98F8F]" size={18} /> Roles & Permissions
-              </h3>
-            </div>
-
-            <div className="flex flex-col gap-4 flex-1">
-              {/* Accountant Role Card */}
-              <div className="bg-[#1A0A0B]/50 border border-white/5 rounded-[16px] p-5 hover:border-[#D98F8F]/30 transition-colors">
-                <div className="flex items-center gap-2 mb-4">
-                  {getRoleBadge('ACCOUNTANT')}
-                </div>
-                <ul className="space-y-3">
-                  {['View all invoices & logs', 'Upload and extract invoice details', 'Approve invoices up to 5,000 TND', 'Manage layouts & settings'].map((perm, i) => (
-                    <li key={i} className="flex items-start gap-2 text-[13px] text-[#A69697]">
-                      <CheckCircle2 size={14} className="text-[#4CAF50] mt-0.5 shrink-0" />
-                      <span>{perm}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Admin Role Card */}
-              <div className="bg-[#1A0A0B]/50 border border-[#8E1B3A]/30 rounded-[16px] p-5 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#8E1B3A] rounded-full blur-[50px] opacity-20 pointer-events-none"></div>
-                <div className="flex items-center gap-2 mb-4 relative z-10">
-                  {getRoleBadge('ADMIN')}
-                </div>
-                <ul className="space-y-3 relative z-10">
-                  {['Full administrative system control', 'Invite, delete and edit team members', 'Change platform-wide parameters', 'Unlimited approval thresholds'].map((perm, i) => (
-                    <li key={i} className="flex items-start gap-2 text-[13px] text-white/80">
-                      <CheckCircle2 size={14} className="text-[#D98F8F] mt-0.5 shrink-0" />
-                      <span>{perm}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
           
         </div>
 
-        {/* BOTTOM ROW: Hierarchy, Activity, Performance */}
-        <div className="grid lg:grid-cols-3 gap-6">
+        {/* BOTTOM ROW: Activity */}
+        <div className="w-full mt-2">
           
-          {/* Approval Hierarchy */}
-          <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.08)] rounded-[24px] p-6 shadow-lg">
-            <h3 className="text-[#FFFFFF] text-[16px] font-bold mb-6">Approval Hierarchy</h3>
-            
-            <div className="flex items-center justify-between relative mt-4">
-              {/* Connecting Line */}
-              <div className="absolute top-1/2 left-10 right-10 h-0.5 bg-gradient-to-r from-[#D98F8F]/50 to-[#8E1B3A]/50 -translate-y-1/2 z-0"></div>
-              
-              {/* Level 1 */}
-              {lvl1 && (
-                <div className="relative z-10 flex flex-col items-center gap-2">
-                  <p className="text-[#A69697] text-[11px] uppercase tracking-widest font-bold">Level 1</p>
-                  <div className="bg-[#1A0A0B] border border-white/10 rounded-[12px] p-2.5 flex flex-col items-center shadow-lg hover:border-[#D98F8F]/50 transition-all cursor-pointer">
-                    <img src={lvl1.profileImage ? `http://localhost:5000/${lvl1.profileImage}` : `https://i.pravatar.cc/150?u=${lvl1.name}`} className="w-8 h-8 rounded-full mb-2 object-cover" />
-                    <p className="text-white text-[12px] font-bold">{lvl1.name}</p>
-                    <p className="text-[#4CAF50] text-[10px]">Limit: 500 TND</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Level 2 */}
-              {lvl2 && (
-                <div className="relative z-10 flex flex-col items-center gap-2 mt-8">
-                  <p className="text-[#A69697] text-[11px] uppercase tracking-widest font-bold">Level 2</p>
-                  <div className="bg-[#1A0A0B] border border-[#8E1B3A]/50 rounded-[12px] p-2.5 flex flex-col items-center shadow-[0_0_15px_rgba(142,27,58,0.3)] hover:border-[#D98F8F] transition-all cursor-pointer">
-                    <img src={lvl2.profileImage ? `http://localhost:5000/${lvl2.profileImage}` : `https://i.pravatar.cc/150?u=${lvl2.name}`} className="w-8 h-8 rounded-full mb-2 object-cover" />
-                    <p className="text-white text-[12px] font-bold">{lvl2.name}</p>
-                    <p className="text-[#D98F8F] text-[10px]">Limit: 5,000 TND</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Level 3 */}
-              {lvl3 && (
-                <div className="relative z-10 flex flex-col items-center gap-2">
-                  <p className="text-[#A69697] text-[11px] uppercase tracking-widest font-bold">Level 3</p>
-                  <div className="bg-[#1A0A0B] border border-white/10 rounded-[12px] p-2.5 flex flex-col items-center shadow-lg hover:border-[#D98F8F]/50 transition-all cursor-pointer">
-                    <img src={lvl3.profileImage ? `http://localhost:5000/${lvl3.profileImage}` : `https://i.pravatar.cc/150?u=${lvl3.name}`} className="w-8 h-8 rounded-full mb-2 object-cover" />
-                    <p className="text-white text-[12px] font-bold">{lvl3.name}</p>
-                    <p className="text-[#A69697] text-[10px]">Limit: Unlimited</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
           {/* Recent Activity */}
           <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.08)] rounded-[24px] p-6 shadow-lg">
             <h3 className="text-[#FFFFFF] text-[16px] font-bold mb-6 flex items-center gap-2">
               <Activity className="text-[#D98F8F]" size={16}/> Activity Logs
             </h3>
             
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-5 max-h-[320px] overflow-y-auto pr-4 custom-scrollbar">
               {activityLogs.length === 0 ? (
                 <p className="text-[#A69697] text-[13px] text-center py-4">No recent activity</p>
               ) : (
                 activityLogs.map((log) => (
-                  <div key={log.id} className="flex gap-4 items-start">
-                    <img src={log.img} className="w-8 h-8 rounded-full border border-white/10 shrink-0" />
-                    <div>
-                      <p className="text-[13px] text-white leading-snug">
-                        <span className="font-bold">{log.user}</span> {log.action}
-                      </p>
-                      <p className="text-[11px] text-[#A69697] flex items-center gap-1 mt-1">
-                        <Clock size={10} /> {log.time}
-                      </p>
+                  <div key={log.id} className="flex gap-4 items-center justify-between p-4 rounded-[12px] bg-[#1A0A0B]/30 border border-white/5 hover:border-white/10 transition-colors">
+                    <div className="flex gap-4 items-center">
+                      <img src={log.img} className="w-10 h-10 rounded-full border border-white/10 shrink-0 object-cover" />
+                      <div>
+                        <p className="text-[14px] text-white leading-snug">
+                          <span className="font-bold">{log.user}</span> {log.action}
+                        </p>
+                        <p className="text-[12px] text-[#A69697] flex items-center gap-1 mt-1">
+                          <Clock size={12} /> {log.time}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-8 pr-4 hidden md:flex">
+                      <div className="flex flex-col items-end">
+                        <span className="text-[#A69697] text-[11px] uppercase tracking-wider font-bold">Document ID</span>
+                        <span className="text-white text-[13px] font-mono mt-0.5">#{log.entityId.substring(0, 8).toUpperCase()}</span>
+                      </div>
+                      <div className="flex flex-col items-end w-24">
+                        <span className="text-[#A69697] text-[11px] uppercase tracking-wider font-bold">Type</span>
+                        <span className="text-[#D98F8F] text-[13px] font-medium mt-0.5">{log.entityType}</span>
+                      </div>
+                      <div className="w-24 flex justify-end">
+                        {log.rawAction === 'APPROVE' ? (
+                           <span className="bg-[#4CAF50]/10 text-[#4CAF50] border border-[#4CAF50]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">APPROVED</span>
+                        ) : log.rawAction === 'REJECT' ? (
+                           <span className="bg-[#D98F8F]/10 text-[#D98F8F] border border-[#D98F8F]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">REJECTED</span>
+                        ) : log.rawAction === 'VERIFICATION' ? (
+                           <span className="bg-[#FFC107]/10 text-[#FFC107] border border-[#FFC107]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">VERIFIED</span>
+                        ) : (
+                           <span className="bg-white/5 text-[#A69697] border border-white/10 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">{log.rawAction}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))
@@ -453,113 +463,9 @@ export default function TeamPage() {
             </div>
           </div>
 
-          {/* Performance Widgets */}
-          <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.08)] rounded-[24px] p-6 shadow-lg flex flex-col justify-between relative overflow-hidden">
-            <div className="absolute bottom-0 right-0 w-48 h-48 bg-[#D98F8F] rounded-full blur-[80px] opacity-10 pointer-events-none"></div>
-            
-            <div className="flex items-start justify-between mb-2">
-              <div>
-                <h3 className="text-[#FFFFFF] text-[16px] font-bold">Avg. Approval Time</h3>
-                <p className="text-[#A69697] text-[12px]">Team wide metric</p>
-              </div>
-              <div className="bg-[#4CAF50]/10 text-[#4CAF50] px-2 py-1 rounded-[6px] text-[11px] font-bold">
-                0%
-              </div>
-            </div>
-            
-            <h2 className="text-[36px] font-bold text-white tracking-tight mb-4">
-              0.00 <span className="text-[16px] text-[#A69697] font-normal tracking-normal">hrs</span>
-            </h2>
-
-            <div className="h-[80px] w-full mt-auto">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={performanceData}>
-                  <defs>
-                    <linearGradient id="perfColor" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#D98F8F" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="#D98F8F" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <Tooltip contentStyle={{ backgroundColor: '#1A0A0B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }} />
-                  <Area type="monotone" dataKey="time" stroke="#D98F8F" strokeWidth={3} fillOpacity={1} fill="url(#perfColor)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
         </div>
 
-        {/* Modal Overlay */}
-        {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-[#1A0A0B] border border-white/10 rounded-[24px] w-full max-w-[400px] shadow-[0_20px_60px_rgba(0,0,0,0.6)] relative overflow-hidden">
-              {/* Modal Glow */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-[#D98F8F] to-transparent"></div>
-              
-              <form onSubmit={handleInvite} className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-white text-[20px] font-bold">Invite Employee</h3>
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="text-[#A69697] hover:text-white transition-colors">
-                    <X size={20} />
-                  </button>
-                </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-[#A69697] text-[13px] block mb-1">Email Address</label>
-                    <input 
-                      type="email" 
-                      placeholder="e.g. employee@company.com" 
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-[12px] py-3 px-4 text-[14px] text-white outline-none focus:border-[#D98F8F] transition-colors" 
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[#A69697] text-[13px] block mb-1">Full Name</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. Jane Doe" 
-                      value={inviteName}
-                      onChange={(e) => setInviteName(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-[12px] py-3 px-4 text-[14px] text-white outline-none focus:border-[#D98F8F] transition-colors" 
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[#A69697] text-[13px] block mb-1">Temporary Password</label>
-                    <input 
-                      type="password" 
-                      placeholder="Enter a secure password" 
-                      value={invitePassword}
-                      onChange={(e) => setInvitePassword(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-[12px] py-3 px-4 text-[14px] text-white outline-none focus:border-[#D98F8F] transition-colors" 
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[#A69697] text-[13px] block mb-1">Primary Role</label>
-                    <select 
-                      value={inviteRole}
-                      onChange={(e) => setInviteRole(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-[12px] py-3 px-4 text-[14px] text-white outline-none focus:border-[#D98F8F] transition-colors appearance-none cursor-pointer"
-                    >
-                      <option className="bg-[#1A0A0B]">Analyst</option>
-                      <option className="bg-[#1A0A0B]">Admin</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="mt-8 flex gap-3">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 rounded-[12px] bg-white/5 text-white font-medium hover:bg-white/10 transition-colors">
-                    Cancel
-                  </button>
-                  <button type="submit" className="flex-1 py-3 rounded-[12px] bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white font-bold shadow-lg hover:shadow-[0_0_15px_rgba(217,143,143,0.4)] transition-all">
-                    Send Invite
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
 
       </div>
     </DashboardLayout>

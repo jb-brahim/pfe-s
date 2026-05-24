@@ -25,8 +25,19 @@ const getAllAuditLogs = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 50;
     const skip = (page - 1) * limit;
 
-    const total = await AuditLog.countDocuments();
-    const logs = await AuditLog.find()
+    const { getTeamUserIds } = require('../utils/tenant');
+    const { role, _id: userId } = req.user;
+    let filter = {};
+    
+    if (role === 'ADMIN' || req.user.approvalLevel >= 2) {
+      const teamUserIds = await getTeamUserIds(req.user);
+      filter.userId = { $in: teamUserIds };
+    } else {
+      filter.userId = userId;
+    }
+
+    const total = await AuditLog.countDocuments(filter);
+    const logs = await AuditLog.find(filter)
       .populate('userId', 'name email role')
       .sort({ createdAt: -1 })
       .skip(skip)

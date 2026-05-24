@@ -117,9 +117,9 @@ export default function DashboardPage() {
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-6 w-full pb-10">
-        
+
         {/* ROW 1: KPI Cards */}
-        <div className="grid md:grid-cols-3 gap-5">
+        <div className="grid md:grid-cols-2 gap-5">
           {/* Total Revenue */}
           <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl relative overflow-hidden h-[170px]">
             <div className="p-5 relative z-10">
@@ -162,8 +162,8 @@ export default function DashboardPage() {
             <div className="mt-3">
               <p className="text-white text-[14px] font-medium mb-2">{user?.role === 'ADMIN' ? 'Approval Rate' : 'My Approval Status'}</p>
               <div className="w-full h-2 bg-black/30 border border-white/5 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-[#8E1B3A] to-[#D98F8F] rounded-full transition-all duration-1000" 
+                <div
+                  className="h-full bg-gradient-to-r from-[#8E1B3A] to-[#D98F8F] rounded-full transition-all duration-1000"
                   style={{ width: `${approvalRate}%` }}
                 ></div>
               </div>
@@ -174,24 +174,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Cash Flow */}
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 flex flex-col justify-between h-[170px]">
-            <div className="flex items-start justify-between mb-1">
-              <h3 className="text-[#A69697] text-[13px] font-medium">{user?.role === 'ADMIN' ? 'Monthly Volume' : 'My Upload Volume'}</h3>
-            </div>
-            <div className="h-[90px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={cashFlowData.length > 0 ? cashFlowData : [{ name: '—', value: 0 }]} barSize={10} margin={{ bottom: -10 }}>
-                  <XAxis dataKey="name" stroke="#A69697" fontSize={10} tickLine={false} axisLine={false} dy={5} />
-                  <Bar dataKey="value" radius={[3, 3, 3, 3]}>
-                    {cashFlowData.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={entry.value === Math.max(...cashFlowData.map((d: any) => d.value || 0)) ? '#D98F8F' : '#6D071A'} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
         </div>
 
         {/* ROW 2: AI Processing & Revenue Analytics */}
@@ -199,10 +181,10 @@ export default function DashboardPage() {
           {/* AI Invoice Processing */}
           <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 flex flex-col">
             <div className="flex items-start justify-between mb-4">
-              <h3 className="text-white text-[14px] font-medium">AI Invoice Processing</h3>
+              <h3 className="text-white text-[14px] font-medium">Invoice Processing</h3>
             </div>
-            
-            <div 
+
+            <div
               onClick={() => fileInputRef.current?.click()}
               className={`flex-1 border border-dashed border-white/20 rounded-xl hover:border-[#D98F8F]/50 transition-all cursor-pointer flex flex-col items-center justify-center p-6 text-center group min-h-[140px] ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
             >
@@ -248,7 +230,7 @@ export default function DashboardPage() {
                 <span className="text-[#A69697] text-[12px]">{new Date().getFullYear()}</span>
               </div>
             </div>
-            
+
             <div className="flex-1 w-full h-full min-h-[280px] mt-[-10px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={revenueChartData.length > 0 ? revenueChartData : [{ month: '—', revenue: 0 }]} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
@@ -259,9 +241,9 @@ export default function DashboardPage() {
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="month" stroke="#A69697" fontSize={11} tickLine={false} axisLine={false} dy={10} />
-                  <YAxis stroke="#A69697" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val: number) => val === 0 ? '0' : `${(val/1000).toFixed(1)}k`} dx={-10} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#1A0A0B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '13px' }} 
+                  <YAxis stroke="#A69697" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val: number) => val === 0 ? '0' : `${(val / 1000).toFixed(1)}k`} dx={-10} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#1A0A0B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '13px' }}
                     formatter={(value: number) => [formatCurrency(value), user?.role === 'ADMIN' ? 'Revenue' : 'Submitted']}
                   />
                   <Area type="monotone" dataKey="revenue" stroke="#D98F8F" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" />
@@ -281,7 +263,7 @@ export default function DashboardPage() {
                 View all →
               </Link>
             </div>
-            
+
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
@@ -319,19 +301,19 @@ export default function DashboardPage() {
             <div className="flex items-start justify-between mb-3">
               <h3 className="text-white text-[14px] font-medium">{user?.role === 'ADMIN' ? 'Monthly Expenses' : 'My Monthly Uploads'}</h3>
             </div>
-            
+
             <div className="h-[200px] w-full mb-4">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={expenseTrackingData.length > 0 ? expenseTrackingData : [{ name: '—', approved: 0 }]} barSize={12} margin={{ left: -25, bottom: 0 }}>
                   <XAxis dataKey="name" stroke="#A69697" fontSize={10} tickLine={false} axisLine={false} dy={8} />
-                  <YAxis stroke="#A69697" fontSize={10} tickLine={false} axisLine={false} dx={-5} tickFormatter={(val: number) => val === 0 ? '0' : `${(val/1000).toFixed(0)}k`} />
+                  <YAxis stroke="#A69697" fontSize={10} tickLine={false} axisLine={false} dx={-5} tickFormatter={(val: number) => val === 0 ? '0' : `${(val / 1000).toFixed(0)}k`} />
                   <Tooltip contentStyle={{ backgroundColor: '#1A0A0B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '13px' }} />
                   <Bar dataKey="approved" stackId="a" fill="#D98F8F" radius={[0, 0, 3, 3]} name="Approved" />
                   <Bar dataKey="pending" stackId="a" fill="#8E1B3A" opacity={0.7} radius={[3, 3, 0, 0]} name="Pending" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            
+
             <Link href="/expenses" className="w-full py-3 rounded-xl bg-[#8E1B3A] text-white font-medium text-[14px] hover:bg-[#7B112C] transition-colors text-center block">
               View Expenses
             </Link>

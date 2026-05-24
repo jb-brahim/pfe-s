@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Bell, Search, ChevronDown, Upload, FileText, Users, BarChart3, X } from 'lucide-react';
+import { Bell, Search, FileText, X } from 'lucide-react';
 import { notificationAPI, invoiceAPI } from '@/lib/api';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -11,14 +11,13 @@ export function Navbar() {
   const pathname = usePathname();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showQuickAction, setShowQuickAction] = useState(false);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showSearch, setShowSearch] = useState(false);
   const [searching, setSearching] = useState(false);
   const searchTimeout = useRef<any>(null);
-  const quickActionRef = useRef<HTMLDivElement>(null);
-  const uploadRef = useRef<HTMLInputElement>(null);
+
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -35,16 +34,7 @@ export function Navbar() {
     return () => clearInterval(interval);
   }, []);
 
-  // Close dropdowns on click outside
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (quickActionRef.current && !quickActionRef.current.contains(e.target as Node)) {
-        setShowQuickAction(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
+
 
   // Keyboard shortcut: Ctrl/Cmd + K to focus search
   useEffect(() => {
@@ -56,7 +46,6 @@ export function Navbar() {
       if (e.key === 'Escape') {
         setShowSearch(false);
         setShowNotifications(false);
-        setShowQuickAction(false);
       }
     };
     document.addEventListener('keydown', handleKeyDown);
@@ -88,19 +77,7 @@ export function Navbar() {
     }, 300);
   };
 
-  // Quick upload from navbar
-  const handleQuickUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setShowQuickAction(false);
-      try {
-        await invoiceAPI.uploadFile(e.target.files[0]);
-        router.push('/invoices');
-      } catch (err) {
-        console.error('Upload failed', err);
-      }
-      if (uploadRef.current) uploadRef.current.value = '';
-    }
-  };
+
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -126,12 +103,10 @@ export function Navbar() {
           onFocus={() => searchQuery.length >= 2 && setShowSearch(true)}
           className="flex-1 bg-transparent text-[#FFFFFF] placeholder:text-[#A69697] outline-none text-[14px]"
         />
-        {searchQuery ? (
+        {searchQuery && (
           <button onClick={() => { setSearchQuery(''); setShowSearch(false); setSearchResults([]); }} className="text-[#A69697] hover:text-white">
             <X size={14} />
           </button>
-        ) : (
-          <kbd className="text-[11px] text-[#A69697]/60 bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/[0.06]">⌘K</kbd>
         )}
 
         {/* Search Results Dropdown */}
@@ -172,7 +147,10 @@ export function Navbar() {
       <div className="flex items-center gap-2">
         {/* Theme Toggle */}
         <button
-          onClick={() => document.documentElement.classList.toggle('theme-light')}
+          onClick={() => {
+            const isLight = document.documentElement.classList.toggle('theme-light');
+            localStorage.setItem('app-theme', isLight ? 'light' : 'dark');
+          }}
           className="w-9 h-9 flex items-center justify-center rounded-xl bg-transparent border border-transparent text-[#A69697] hover:text-[#FFFFFF] hover:bg-white/[0.04] transition-colors"
           title="Toggle theme"
         >
@@ -182,7 +160,7 @@ export function Navbar() {
         {/* Notifications */}
         <div className="relative">
           <button
-            onClick={() => { setShowNotifications(!showNotifications); setShowQuickAction(false); }}
+            onClick={() => { setShowNotifications(!showNotifications); }}
             className="w-9 h-9 flex items-center justify-center rounded-xl bg-transparent border border-transparent text-[#A69697] hover:text-[#FFFFFF] hover:bg-white/[0.04] transition-colors relative"
           >
             <Bell className="w-4 h-4" strokeWidth={1.5} />
@@ -223,54 +201,7 @@ export function Navbar() {
           )}
         </div>
 
-        {/* Quick Action Button */}
-        <div className="relative" ref={quickActionRef}>
-          <button
-            onClick={() => { setShowQuickAction(!showQuickAction); setShowNotifications(false); }}
-            className="hidden sm:flex items-center gap-1.5 bg-[#8E1B3A] text-white px-4 py-2 rounded-xl font-medium text-[13px] hover:bg-[#7B112C] transition-colors ml-1"
-          >
-            Quick Action
-            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showQuickAction ? 'rotate-180' : ''}`} strokeWidth={2} />
-          </button>
 
-          {showQuickAction && (
-            <div className="absolute top-12 right-0 w-52 bg-[#1A0A0B] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
-              <div className="p-1.5">
-                <button
-                  onClick={() => uploadRef.current?.click()}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] text-[#A69697] hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left"
-                >
-                  <Upload size={14} className="text-[#D98F8F]" /> Upload Invoice
-                </button>
-                <input type="file" className="hidden" ref={uploadRef} accept=".pdf,.png,.jpg,.jpeg" onChange={handleQuickUpload} />
-
-                <Link
-                  href="/invoices"
-                  onClick={() => setShowQuickAction(false)}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] text-[#A69697] hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                >
-                  <FileText size={14} className="text-[#D98F8F]" /> View Invoices
-                </Link>
-
-                <Link
-                  href="/reports"
-                  onClick={() => setShowQuickAction(false)}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] text-[#A69697] hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                >
-                  <BarChart3 size={14} className="text-[#D98F8F]" /> Generate Report
-                </Link>
-
-                <Link
-                  href="/team"
-                  onClick={() => setShowQuickAction(false)}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] text-[#A69697] hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                >
-                  <Users size={14} className="text-[#D98F8F]" /> Manage Team
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
     </nav>
   );
