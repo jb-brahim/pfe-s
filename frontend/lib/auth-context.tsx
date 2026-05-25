@@ -52,7 +52,7 @@ export interface User {
   name: string;
   email: string;
   profileImage?: string;
-  role: 'ADMIN' | 'ACCOUNTANT';
+  role: 'ADMIN' | 'ACCOUNTANT' | 'SUPER_ADMIN';
   preferences?: Preferences;
   companyDetails?: CompanyDetails;
   apiKeys?: ApiKey[];
@@ -63,8 +63,9 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User | undefined>;
   register: (name: string, email: string, password: string, role: string) => Promise<void>;
+  verifyEmail: (email: string, code: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
   updateUser: (updatedUser: Partial<User>) => void;
@@ -102,6 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (result.data) {
         localStorage.setItem('authToken', result.data.token);
         setUser(result.data);
+        return result.data;
       }
     } catch (error) {
       throw error;
@@ -114,7 +116,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('authToken');
       setUser(null);
       
-      const result = await authAPI.register(name, email, password, role);
+      await authAPI.register(name, email, password, role);
+      // We don't set user/token here anymore because they need to verify email
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const verifyEmail = async (email: string, code: string) => {
+    try {
+      const result = await authAPI.verifyEmail(email, code);
       if (result.data) {
         localStorage.setItem('authToken', result.data.token);
         setUser(result.data);
@@ -140,6 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         login,
         register,
+        verifyEmail,
         logout,
         isAuthenticated: !!user,
         updateUser,

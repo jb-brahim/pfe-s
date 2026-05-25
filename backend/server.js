@@ -17,6 +17,7 @@ const budgetRoutes = require('./src/routes/budgetRoutes');
 const ruleRoutes = require('./src/routes/ruleRoutes');
 const mailRoutes = require('./src/routes/mailRoutes');
 const reportRoutes = require('./src/routes/reportRoutes');
+const superAdminRoutes = require('./src/routes/superAdminRoutes');
 
 // Middlewares
 const { errorHandler } = require('./src/middlewares/errorMiddleware');
@@ -62,6 +63,7 @@ app.use('/api/budget', budgetRoutes);
 app.use('/api/rules', ruleRoutes);
 app.use('/api/mail', mailRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/super-admin', superAdminRoutes);
 
 // Error logic
 app.use((req, res, next) => {

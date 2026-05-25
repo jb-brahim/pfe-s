@@ -320,6 +320,52 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* ROW 4: Pending Field Verifications (Admin Only) */}
+        {user?.role === 'ADMIN' && (
+          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 flex flex-col mt-2">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+                <h3 className="text-white text-[14px] font-medium">Pending Field Verifications</h3>
+              </div>
+              <span className="bg-yellow-500/10 text-yellow-500 text-[11px] font-bold px-2 py-1 rounded-md border border-yellow-500/20">{pendingCount} Action Required</span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="text-[#A69697] text-[12px] uppercase tracking-wider border-b border-white/[0.04]">
+                    <th className="pb-3 font-medium px-2">Uploaded</th>
+                    <th className="pb-3 font-medium px-2">Submitter</th>
+                    <th className="pb-3 font-medium px-2">Amount</th>
+                    <th className="pb-3 font-medium px-2">Status</th>
+                    <th className="pb-3 font-medium px-2 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="text-[14px]">
+                  {loading ? (
+                    <tr><td colSpan={5} className="py-8 text-center text-[#A69697]"><Loader size={20} className="animate-spin inline-block" /></td></tr>
+                  ) : invoices.filter((inv: any) => inv.status === 'SUBMITTED' || inv.status === 'EXTRACTED').length === 0 ? (
+                    <tr><td colSpan={5} className="py-8 text-center text-[#A69697] text-[13px]">No pending field verifications</td></tr>
+                  ) : (
+                    invoices.filter((inv: any) => inv.status === 'SUBMITTED' || inv.status === 'EXTRACTED').slice(0, 5).map((inv: any) => (
+                      <tr key={inv._id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors cursor-pointer group">
+                        <td className="py-4 px-2 text-[#A69697] text-[13px]">{formatDate(inv.createdAt)}</td>
+                        <td className="py-4 px-2 text-white">Delivery User</td>
+                        <td className="py-4 px-2 text-white font-medium">{formatCurrency(inv.totalAmount || 0)}</td>
+                        <td className="py-4 px-2">{getStatusBadge(inv.status)}</td>
+                        <td className="py-4 px-2 text-right">
+                           <Link href={`/invoices/${inv._id}`} className="px-4 py-1.5 rounded-full bg-white/10 text-white text-[12px] font-bold group-hover:bg-[#D98F8F] group-hover:text-[#1A0A0B] transition-all">Review</Link>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
       </div>
     </DashboardLayout>
   );

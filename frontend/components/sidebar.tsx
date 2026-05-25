@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import { Logo } from '@/components/logo';
 import {
   LayoutGrid,
   FileText,
@@ -32,7 +33,6 @@ export function Sidebar() {
     { href: '/invoices', label: 'Invoices', icon: FileText, adminOnly: false },
     { href: '/approval', label: 'Approval', icon: ClipboardCheck, adminOnly: true },
     { href: '/reports', label: 'Reports', icon: BarChart3, adminOnly: true },
-    { href: '/mail', label: 'Mail', icon: Mail, adminOnly: true },
   ];
 
   const managementItems = [
@@ -69,9 +69,7 @@ export function Sidebar() {
       >
         {/* Logo */}
         <div className="pt-8 pb-6 px-7 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#8E1B3A] flex items-center justify-center">
-            <span className="text-white font-semibold text-[14px]">A</span>
-          </div>
+          <Logo size="sm" />
           <h1 className="text-[18px] font-semibold text-[#FFFFFF] tracking-tight">Aura <span className="text-[#A69697] font-normal">Finance</span></h1>
         </div>
 

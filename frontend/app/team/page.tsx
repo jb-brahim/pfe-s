@@ -102,7 +102,7 @@ export default function TeamPage() {
     }
     
     // Map UI role to backend DB role enum
-    const apiRole: 'ADMIN' | 'ACCOUNTANT' = inviteRole === 'Admin' ? 'ADMIN' : 'ACCOUNTANT';
+    const apiRole: 'ADMIN' | 'ACCOUNTANT' | 'DELIVERY' = inviteRole === 'Admin' ? 'ADMIN' : (inviteRole === 'Delivery' ? 'DELIVERY' : 'ACCOUNTANT');
 
     try {
       const res = await userAPI.invite(inviteEmail, apiRole, inviteName, generatedPassword);
@@ -171,6 +171,7 @@ export default function TeamPage() {
     switch(role) {
       case 'ADMIN': return <span className="bg-[#8E1B3A]/30 text-[#D98F8F] border border-[#8E1B3A]/50 px-2.5 py-0.5 rounded-[8px] text-[11px] font-bold tracking-wide">Admin</span>;
       case 'ACCOUNTANT': return <span className="bg-[#FFC107]/10 text-[#FFC107] border border-[#FFC107]/30 px-2.5 py-0.5 rounded-[8px] text-[11px] font-bold tracking-wide">Accountant {level === 2 ? 'L2' : 'L1'}</span>;
+      case 'DELIVERY': return <span className="bg-blue-500/10 text-blue-400 border border-blue-500/30 px-2.5 py-0.5 rounded-[8px] text-[11px] font-bold tracking-wide">Delivery</span>;
       default: return <span className="bg-[#4CAF50]/10 text-[#4CAF50] border border-[#4CAF50]/30 px-2.5 py-0.5 rounded-[8px] text-[11px] font-bold tracking-wide">{role}</span>;
     }
   };
@@ -259,6 +260,7 @@ export default function TeamPage() {
                     >
                       <option className="bg-[#1A0A0B]">Analyst</option>
                       <option className="bg-[#1A0A0B]">Admin</option>
+                      <option className="bg-[#1A0A0B]">Delivery</option>
                     </select>
                   </div>
                 </div>

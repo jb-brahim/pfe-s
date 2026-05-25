@@ -7,9 +7,19 @@ const userSchema = new mongoose.Schema({
   profileImage: { type: String, default: '' },
   role: { 
     type: String, 
-    enum: ['ACCOUNTANT', 'ADMIN'], 
+    enum: ['ACCOUNTANT', 'ADMIN', 'SUPER_ADMIN', 'DELIVERY'], 
     default: 'ACCOUNTANT' 
   },
+  status: {
+    type: String,
+    enum: ['Active', 'Locked', 'Suspended', 'Pending Deletion'],
+    default: 'Active'
+  },
+  isEmailVerified: { type: Boolean, default: false },
+  verificationCode: { type: String },
+  verificationCodeExpires: { type: Date },
+  resetPasswordCode: { type: String },
+  resetPasswordExpires: { type: Date },
   approvalLevel: {
     type: Number,
     default: 1

@@ -191,6 +191,11 @@ export const authAPI = {
     return response.data;
   },
 
+  verifyEmail: async (email: string, code: string) => {
+    const response = await apiClient.post('/auth/verify-email', { email, code });
+    return response.data;
+  },
+
   getProfile: async () => {
     const response = await apiClient.get('/auth/profile');
     return response.data;

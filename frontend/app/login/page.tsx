@@ -35,6 +35,11 @@ export default function LoginPage() {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(newTheme);
     localStorage.setItem('app-theme', newTheme);
+    if (newTheme === 'light') {
+      document.documentElement.classList.add('theme-light');
+    } else {
+      document.documentElement.classList.remove('theme-light');
+    }
   };
 
   const isDark = theme === 'dark';
@@ -45,8 +50,12 @@ export default function LoginPage() {
     setError('');
 
     try {
-      await login(email, password);
-      router.push('/dashboard');
+      const user = await login(email, password);
+      if (user?.role === 'SUPER_ADMIN') {
+        router.push('/super-admin');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err: any) {
       // Extract backend error message if available
       const msg = err?.response?.data?.message || 'Invalid email or password. Please try again.';
@@ -57,7 +66,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center p-6 font-sans ${
+    <div className={`keep-dark min-h-screen flex items-center justify-center p-6 font-sans ${
       transitionReady ? 'transition-colors duration-700 ease-in-out' : 'transition-none'
     } ${
       mounted ? 'opacity-100' : 'opacity-0'

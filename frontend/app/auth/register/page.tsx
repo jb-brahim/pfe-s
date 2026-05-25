@@ -41,9 +41,17 @@ export default function RegisterPage() {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(newTheme);
     localStorage.setItem('app-theme', newTheme);
+    if (newTheme === 'light') {
+      document.documentElement.classList.add('theme-light');
+    } else {
+      document.documentElement.classList.remove('theme-light');
+    }
   };
 
   const isDark = theme === 'dark';
+
+  const [mode, setMode] = useState<'register' | 'verify'>('register');
+  const [verificationCode, setVerificationCode] = useState('');
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,9 +65,8 @@ export default function RegisterPage() {
     setError('');
 
     try {
-      // Registering as ADMIN as allowed by backend public registration rules
       await register(name, email, password, 'ADMIN');
-      router.push('/dashboard');
+      setMode('verify');
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Failed to create account. Please try again.';
       setError(msg);
@@ -68,8 +75,30 @@ export default function RegisterPage() {
     }
   };
 
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    try {
+      // Assuming context has verifyEmail, if not it was added earlier
+      const { authAPI } = await import('@/lib/api');
+      const result = await authAPI.verifyEmail(email, verificationCode);
+      if (result.data) {
+        localStorage.setItem('authToken', result.data.token);
+        // Force reload to dashboard
+        window.location.href = '/dashboard';
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Invalid verification code.';
+      setError(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className={`min-h-screen flex items-center justify-center p-6 font-sans ${
+    <div className={`keep-dark min-h-screen flex items-center justify-center p-6 font-sans ${
       transitionReady ? 'transition-colors duration-700 ease-in-out' : 'transition-none'
     } ${
       mounted ? 'opacity-100' : 'opacity-0'
@@ -112,130 +141,180 @@ export default function RegisterPage() {
         
         {/* Left: Register Form */}
         <div className="w-full md:w-[45%] flex flex-col justify-center relative z-10">
-          <h1 className={`text-[36px] font-medium mb-8 tracking-tight transition-colors duration-700 ${isDark ? 'text-white' : 'text-[#1A0A0B]'}`}>
-            Create Account
-          </h1>
+          
+          {mode === 'register' && (
+            <>
+              <h1 className={`text-[36px] font-medium mb-8 tracking-tight transition-colors duration-700 ${isDark ? 'text-white' : 'text-[#1A0A0B]'}`}>
+                Create Account
+              </h1>
 
-          <form onSubmit={handleRegister} className="space-y-5">
-            
-            {/* Full Name */}
-            <div>
-              <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>Full Name</label>
-              <div className="relative group">
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className={`w-full rounded-[14px] py-4 px-5 text-[15px] outline-none transition-all duration-700 ${
-                    isDark 
-                      ? 'bg-[#1A0A0B]/60 border border-[rgba(255,255,255,0.08)] text-white focus:border-[#D98F8F]/50 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)]'
-                      : 'bg-white border border-[#8E1B3A]/10 text-[#1A0A0B] focus:border-[#8E1B3A]/40 shadow-[inset_0_2px_10px_rgba(142,27,58,0.05)]'
-                  }`}
-                  required
-                />
-                <div className={`absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-full transition-colors duration-700 ${
-                  isDark ? 'bg-[#D98F8F]/10 border border-[#D98F8F]/30 group-focus-within:bg-[#D98F8F]/20' : 'bg-[#8E1B3A]/5 border border-[#8E1B3A]/20 group-focus-within:bg-[#8E1B3A]/10'
-                }`}>
-                  <User size={12} className={isDark ? "text-[#D98F8F]" : "text-[#8E1B3A]"} />
+              <form onSubmit={handleRegister} className="space-y-5">
+                {/* Full Name */}
+                <div>
+                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>Full Name</label>
+                  <div className="relative group">
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className={`w-full rounded-[14px] py-4 px-5 text-[15px] outline-none transition-all duration-700 ${
+                        isDark 
+                          ? 'bg-[#1A0A0B]/60 border border-[rgba(255,255,255,0.08)] text-white focus:border-[#D98F8F]/50 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)]'
+                          : 'bg-white border border-[#8E1B3A]/10 text-[#1A0A0B] focus:border-[#8E1B3A]/40 shadow-[inset_0_2px_10px_rgba(142,27,58,0.05)]'
+                      }`}
+                      required
+                    />
+                    <div className={`absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-full transition-colors duration-700 ${
+                      isDark ? 'bg-[#D98F8F]/10 border border-[#D98F8F]/30 group-focus-within:bg-[#D98F8F]/20' : 'bg-[#8E1B3A]/5 border border-[#8E1B3A]/20 group-focus-within:bg-[#8E1B3A]/10'
+                    }`}>
+                      <User size={12} className={isDark ? "text-[#D98F8F]" : "text-[#8E1B3A]"} />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Email */}
-            <div>
-              <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>Email Address</label>
-              <div className="relative group">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={`w-full rounded-[14px] py-4 px-5 text-[15px] outline-none transition-all duration-700 ${
-                    isDark 
-                      ? 'bg-[#1A0A0B]/60 border border-[rgba(255,255,255,0.08)] text-white focus:border-[#D98F8F]/50 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)]'
-                      : 'bg-white border border-[#8E1B3A]/10 text-[#1A0A0B] focus:border-[#8E1B3A]/40 shadow-[inset_0_2px_10px_rgba(142,27,58,0.05)]'
-                  }`}
-                  required
-                />
-                <div className={`absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-full transition-colors duration-700 ${
-                  isDark ? 'bg-[#D98F8F]/10 border border-[#D98F8F]/30 group-focus-within:bg-[#D98F8F]/20' : 'bg-[#8E1B3A]/5 border border-[#8E1B3A]/20 group-focus-within:bg-[#8E1B3A]/10'
-                }`}>
-                  <Shield size={12} className={isDark ? "text-[#D98F8F]" : "text-[#8E1B3A]"} />
+                {/* Email */}
+                <div>
+                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>Email Address</label>
+                  <div className="relative group">
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className={`w-full rounded-[14px] py-4 px-5 text-[15px] outline-none transition-all duration-700 ${
+                        isDark 
+                          ? 'bg-[#1A0A0B]/60 border border-[rgba(255,255,255,0.08)] text-white focus:border-[#D98F8F]/50 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)]'
+                          : 'bg-white border border-[#8E1B3A]/10 text-[#1A0A0B] focus:border-[#8E1B3A]/40 shadow-[inset_0_2px_10px_rgba(142,27,58,0.05)]'
+                      }`}
+                      required
+                    />
+                    <div className={`absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-full transition-colors duration-700 ${
+                      isDark ? 'bg-[#D98F8F]/10 border border-[#D98F8F]/30 group-focus-within:bg-[#D98F8F]/20' : 'bg-[#8E1B3A]/5 border border-[#8E1B3A]/20 group-focus-within:bg-[#8E1B3A]/10'
+                    }`}>
+                      <Shield size={12} className={isDark ? "text-[#D98F8F]" : "text-[#8E1B3A]"} />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Password */}
-            <div>
-              <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>Password</label>
-              <div className="relative group">
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={`w-full rounded-[14px] py-4 px-5 text-[15px] outline-none transition-all duration-700 ${
-                    isDark 
-                      ? 'bg-[#1A0A0B]/60 border border-[rgba(255,255,255,0.08)] text-white focus:border-[#D98F8F]/50 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)]'
-                      : 'bg-white border border-[#8E1B3A]/10 text-[#1A0A0B] focus:border-[#8E1B3A]/40 shadow-[inset_0_2px_10px_rgba(142,27,58,0.05)]'
-                  }`}
-                  required
-                />
-                <div className={`absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-full border transition-colors duration-700 ${
-                  isDark ? 'border-white/10 group-focus-within:border-white/30' : 'border-[#8E1B3A]/20 group-focus-within:border-[#8E1B3A]/50'
-                }`}>
-                  <Lock size={12} className={isDark ? "text-[#A69697] group-focus-within:text-white" : "text-[#8E1B3A]/60 group-focus-within:text-[#8E1B3A]"} />
+                {/* Password */}
+                <div>
+                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>Password</label>
+                  <div className="relative group">
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className={`w-full rounded-[14px] py-4 px-5 text-[15px] outline-none transition-all duration-700 ${
+                        isDark 
+                          ? 'bg-[#1A0A0B]/60 border border-[rgba(255,255,255,0.08)] text-white focus:border-[#D98F8F]/50 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)]'
+                          : 'bg-white border border-[#8E1B3A]/10 text-[#1A0A0B] focus:border-[#8E1B3A]/40 shadow-[inset_0_2px_10px_rgba(142,27,58,0.05)]'
+                      }`}
+                      required
+                    />
+                    <div className={`absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-full border transition-colors duration-700 ${
+                      isDark ? 'border-white/10 group-focus-within:border-white/30' : 'border-[#8E1B3A]/20 group-focus-within:border-[#8E1B3A]/50'
+                    }`}>
+                      <Lock size={12} className={isDark ? "text-[#A69697] group-focus-within:text-white" : "text-[#8E1B3A]/60 group-focus-within:text-[#8E1B3A]"} />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Confirm Password */}
-            <div>
-              <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>Confirm Password</label>
-              <div className="relative group">
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={`w-full rounded-[14px] py-4 px-5 text-[15px] outline-none transition-all duration-700 ${
-                    isDark 
-                      ? 'bg-[#1A0A0B]/60 border border-[rgba(255,255,255,0.08)] text-white focus:border-[#D98F8F]/50 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)]'
-                      : 'bg-white border border-[#8E1B3A]/10 text-[#1A0A0B] focus:border-[#8E1B3A]/40 shadow-[inset_0_2px_10px_rgba(142,27,58,0.05)]'
-                  }`}
-                  required
-                />
-                <div className={`absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-full border transition-colors duration-700 ${
-                  isDark ? 'border-white/10 group-focus-within:border-white/30' : 'border-[#8E1B3A]/20 group-focus-within:border-[#8E1B3A]/50'
-                }`}>
-                  <Lock size={12} className={isDark ? "text-[#A69697] group-focus-within:text-white" : "text-[#8E1B3A]/60 group-focus-within:text-[#8E1B3A]"} />
+                {/* Confirm Password */}
+                <div>
+                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>Confirm Password</label>
+                  <div className="relative group">
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className={`w-full rounded-[14px] py-4 px-5 text-[15px] outline-none transition-all duration-700 ${
+                        isDark 
+                          ? 'bg-[#1A0A0B]/60 border border-[rgba(255,255,255,0.08)] text-white focus:border-[#D98F8F]/50 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)]'
+                          : 'bg-white border border-[#8E1B3A]/10 text-[#1A0A0B] focus:border-[#8E1B3A]/40 shadow-[inset_0_2px_10px_rgba(142,27,58,0.05)]'
+                      }`}
+                      required
+                    />
+                    <div className={`absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-full border transition-colors duration-700 ${
+                      isDark ? 'border-white/10 group-focus-within:border-white/30' : 'border-[#8E1B3A]/20 group-focus-within:border-[#8E1B3A]/50'
+                    }`}>
+                      <Lock size={12} className={isDark ? "text-[#A69697] group-focus-within:text-white" : "text-[#8E1B3A]/60 group-focus-within:text-[#8E1B3A]"} />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            {error && <div className="text-[#FF5C77] text-[13px] text-center">{error}</div>}
+                {error && <div className="text-[#FF5C77] text-[13px] text-center">{error}</div>}
 
-            {/* Register Button */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={`w-full mt-4 py-4 rounded-full font-bold text-[16px] transition-all duration-700 flex items-center justify-center gap-2 hover:-translate-y-0.5 ${
-                isDark
-                  ? 'bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white shadow-[0_10px_25px_rgba(142,27,58,0.4)] hover:shadow-[0_15px_35px_rgba(217,143,143,0.5)]'
-                  : 'bg-gradient-to-r from-[#8E1B3A] to-[#6D071A] text-white shadow-[0_10px_25px_rgba(142,27,58,0.2)] hover:shadow-[0_15px_35px_rgba(142,27,58,0.4)]'
-              }`}
-            >
-              {isLoading && <Loader size={18} className="animate-spin" />}
-              {isLoading ? 'Creating account...' : 'Sign Up'}
-            </button>
+                {/* Register Button */}
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className={`w-full mt-4 py-4 rounded-full font-bold text-[16px] transition-all duration-700 flex items-center justify-center gap-2 hover:-translate-y-0.5 ${
+                    isDark
+                      ? 'bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white shadow-[0_10px_25px_rgba(142,27,58,0.4)] hover:shadow-[0_15px_35px_rgba(217,143,143,0.5)]'
+                      : 'bg-gradient-to-r from-[#8E1B3A] to-[#6D071A] text-white shadow-[0_10px_25px_rgba(142,27,58,0.2)] hover:shadow-[0_15px_35px_rgba(142,27,58,0.4)]'
+                  }`}
+                >
+                  {isLoading && <Loader size={18} className="animate-spin" />}
+                  {isLoading ? 'Creating account...' : 'Sign Up'}
+                </button>
 
-            {/* Redirect link to Login */}
-            <div className="text-center mt-6">
-              <span className={`text-[13px] ${isDark ? 'text-[#A69697]' : 'text-gray-600'}`}>Already have an account? </span>
-              <Link href="/auth/login" className={`text-[13px] font-bold transition-colors duration-700 ${
-                isDark ? 'text-[#D98F8F] hover:text-white' : 'text-[#8E1B3A] hover:text-[#6D071A]'
-              }`}>
-                Log In
-              </Link>
-            </div>
-          </form>
+                {/* Redirect link to Login */}
+                <div className="text-center mt-6">
+                  <span className={`text-[13px] ${isDark ? 'text-[#A69697]' : 'text-gray-600'}`}>Already have an account? </span>
+                  <Link href="/auth/login" className={`text-[13px] font-bold transition-colors duration-700 ${
+                    isDark ? 'text-[#D98F8F] hover:text-white' : 'text-[#8E1B3A] hover:text-[#6D071A]'
+                  }`}>
+                    Log In
+                  </Link>
+                </div>
+              </form>
+            </>
+          )}
+
+          {mode === 'verify' && (
+            <>
+              <h1 className={`text-[36px] font-medium mb-4 tracking-tight transition-colors duration-700 ${isDark ? 'text-white' : 'text-[#1A0A0B]'}`}>
+                Verify Email
+              </h1>
+              <p className={`text-[14px] mb-8 ${isDark ? 'text-[#A69697]' : 'text-gray-600'}`}>
+                We've sent a 6-digit verification code to <strong>{email}</strong>. Enter it below to unlock your account.
+              </p>
+
+              <form onSubmit={handleVerify} className="space-y-6">
+                <div>
+                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>6-Digit Code</label>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="000000"
+                    className={`w-full rounded-[14px] py-4 px-5 text-[20px] tracking-[0.5em] text-center font-mono outline-none transition-all duration-700 ${
+                      isDark 
+                        ? 'bg-[#1A0A0B]/60 border border-[rgba(255,255,255,0.08)] text-white focus:border-[#D98F8F]/50 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)]'
+                        : 'bg-white border border-[#8E1B3A]/10 text-[#1A0A0B] focus:border-[#8E1B3A]/40 shadow-[inset_0_2px_10px_rgba(142,27,58,0.05)]'
+                    }`}
+                    required
+                  />
+                </div>
+
+                {error && <div className="text-[#FF5C77] text-[13px] text-center">{error}</div>}
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className={`w-full mt-4 py-4 rounded-full font-bold text-[16px] transition-all duration-700 flex items-center justify-center gap-2 hover:-translate-y-0.5 ${
+                    isDark
+                      ? 'bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white shadow-[0_10px_25px_rgba(142,27,58,0.4)]'
+                      : 'bg-gradient-to-r from-[#8E1B3A] to-[#6D071A] text-white shadow-[0_10px_25px_rgba(142,27,58,0.2)]'
+                  }`}
+                >
+                  {isLoading && <Loader size={18} className="animate-spin" />}
+                  {isLoading ? 'Verifying...' : 'Verify Email'}
+                </button>
+              </form>
+            </>
+          )}
+
         </div>
 
         {/* Right: Abstract 3D Security/Analytics Visual */}
