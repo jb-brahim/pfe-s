@@ -60,7 +60,7 @@ const registerUser = async (req, res, next) => {
       passwordHash,
       role: role || (creator ? 'ACCOUNTANT' : 'ADMIN'),
       managedBy: creator ? creator._id : null,
-      isEmailVerified: false,
+      isEmailVerified: creator ? true : false,
       verificationCode,
       verificationCodeExpires
     });

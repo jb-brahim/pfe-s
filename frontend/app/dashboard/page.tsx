@@ -59,7 +59,7 @@ export default function DashboardPage() {
   const totalRevenue = dashboardStats?.totalAmount || 0;
   const totalInvoices = invoices.length;
   const approvedCount = invoices.filter((inv: any) => inv.status === 'APPROVED').length;
-  const pendingCount = invoices.filter((inv: any) => inv.status === 'SUBMITTED' || inv.status === 'EXTRACTED').length;
+  const pendingCount = invoices.filter((inv: any) => ['SUBMITTED', 'EXTRACTED', 'VERIFIED'].includes(inv.status)).length;
   const outstandingTotal = invoices
     .filter((inv: any) => inv.status !== 'APPROVED' && inv.status !== 'REJECTED')
     .reduce((sum: number, inv: any) => sum + (inv.totalAmount || 0), 0);
@@ -320,13 +320,13 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ROW 4: Pending Field Verifications (Admin Only) */}
+        {/* ROW 4: Action Required (Admin Only) */}
         {user?.role === 'ADMIN' && (
           <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 flex flex-col mt-2">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
-                <h3 className="text-white text-[14px] font-medium">Pending Field Verifications</h3>
+                <h3 className="text-white text-[14px] font-medium">Pending Approvals & Verifications</h3>
               </div>
               <span className="bg-yellow-500/10 text-yellow-500 text-[11px] font-bold px-2 py-1 rounded-md border border-yellow-500/20">{pendingCount} Action Required</span>
             </div>
@@ -336,7 +336,7 @@ export default function DashboardPage() {
                 <thead>
                   <tr className="text-[#A69697] text-[12px] uppercase tracking-wider border-b border-white/[0.04]">
                     <th className="pb-3 font-medium px-2">Uploaded</th>
-                    <th className="pb-3 font-medium px-2">Submitter</th>
+                    <th className="pb-3 font-medium px-2">Company</th>
                     <th className="pb-3 font-medium px-2">Amount</th>
                     <th className="pb-3 font-medium px-2">Status</th>
                     <th className="pb-3 font-medium px-2 text-right">Action</th>
@@ -345,13 +345,13 @@ export default function DashboardPage() {
                 <tbody className="text-[14px]">
                   {loading ? (
                     <tr><td colSpan={5} className="py-8 text-center text-[#A69697]"><Loader size={20} className="animate-spin inline-block" /></td></tr>
-                  ) : invoices.filter((inv: any) => inv.status === 'SUBMITTED' || inv.status === 'EXTRACTED').length === 0 ? (
-                    <tr><td colSpan={5} className="py-8 text-center text-[#A69697] text-[13px]">No pending field verifications</td></tr>
+                  ) : invoices.filter((inv: any) => ['SUBMITTED', 'EXTRACTED', 'VERIFIED'].includes(inv.status)).length === 0 ? (
+                    <tr><td colSpan={5} className="py-8 text-center text-[#A69697] text-[13px]">No pending actions required</td></tr>
                   ) : (
-                    invoices.filter((inv: any) => inv.status === 'SUBMITTED' || inv.status === 'EXTRACTED').slice(0, 5).map((inv: any) => (
+                    invoices.filter((inv: any) => ['SUBMITTED', 'EXTRACTED', 'VERIFIED'].includes(inv.status)).slice(0, 5).map((inv: any) => (
                       <tr key={inv._id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors cursor-pointer group">
                         <td className="py-4 px-2 text-[#A69697] text-[13px]">{formatDate(inv.createdAt)}</td>
-                        <td className="py-4 px-2 text-white">Delivery User</td>
+                        <td className="py-4 px-2 text-white">{inv.companyName || 'Unknown Vendor'}</td>
                         <td className="py-4 px-2 text-white font-medium">{formatCurrency(inv.totalAmount || 0)}</td>
                         <td className="py-4 px-2">{getStatusBadge(inv.status)}</td>
                         <td className="py-4 px-2 text-right">

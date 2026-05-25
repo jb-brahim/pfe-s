@@ -1,8 +1,9 @@
 'use client';
 
-import { FileText, Clock, CheckCircle2, XCircle, Search, Filter } from 'lucide-react';
+import { FileText, Clock, CheckCircle2, XCircle, Search, Filter, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { invoiceAPI } from '@/lib/api';
+import { toast } from 'sonner';
 
 export default function DeliveryHistoryPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -24,6 +25,17 @@ export default function DeliveryHistoryPage() {
   useEffect(() => {
     fetchInvoices();
   }, []);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this invoice?')) return;
+    try {
+      await invoiceAPI.delete(id);
+      toast.success('Invoice deleted successfully');
+      fetchInvoices();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to delete invoice');
+    }
+  };
 
   const getStatusUI = (status: string) => {
     if (status === 'APPROVED') return 'approved';
@@ -116,8 +128,8 @@ export default function DeliveryHistoryPage() {
                 </div>
 
                 {/* Extra details row */}
-                {(amount || item.companyName) && (
-                  <div className="pt-3 mt-1 border-t border-white/5 flex justify-between items-center">
+                <div className="pt-3 mt-1 border-t border-white/5 flex justify-between items-center">
+                  <div className="flex flex-col gap-1">
                     {amount && (
                       <div className="text-[13px] text-[#A69697]">
                         Total: <span className="text-white font-medium">{amount}</span>
@@ -129,7 +141,16 @@ export default function DeliveryHistoryPage() {
                       </div>
                     )}
                   </div>
-                )}
+                  
+                  {/* Delete Button */}
+                  <button 
+                    onClick={() => handleDelete(item._id)}
+                    className="w-8 h-8 rounded-full bg-red-500/10 text-red-400 hover:bg-red-500/20 flex items-center justify-center transition-colors"
+                    title="Delete Upload"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
                 
               </div>
             );

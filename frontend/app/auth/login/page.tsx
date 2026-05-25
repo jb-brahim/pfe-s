@@ -63,6 +63,8 @@ export default function LoginPage() {
       const user = await login(email, password);
       if (user?.role === 'SUPER_ADMIN') {
         router.push('/super-admin');
+      } else if (user?.role === 'DELIVERY') {
+        router.push('/delivery');
       } else {
         router.push('/dashboard');
       }

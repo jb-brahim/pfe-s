@@ -52,7 +52,7 @@ export interface User {
   name: string;
   email: string;
   profileImage?: string;
-  role: 'ADMIN' | 'ACCOUNTANT' | 'SUPER_ADMIN';
+  role: 'ADMIN' | 'ACCOUNTANT' | 'SUPER_ADMIN' | 'DELIVERY';
   preferences?: Preferences;
   companyDetails?: CompanyDetails;
   apiKeys?: ApiKey[];

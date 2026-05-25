@@ -55,7 +55,8 @@ const createUser = async (req, res, next) => {
       email,
       passwordHash,
       role: role || 'ACCOUNTANT',
-      managedBy: req.user._id
+      managedBy: req.user._id,
+      isEmailVerified: true
     });
 
     // Send an email with the auto-generated password

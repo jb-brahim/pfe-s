@@ -34,14 +34,12 @@ export default function ManualInvoicePage() {
 
     setIsSubmitting(true);
     try {
-      // In a real app, you'd send this to an API endpoint designed for manual entries.
-      // We will mock a successful creation by sending a request to the backend or just faking success.
-      await new Promise(resolve => setTimeout(resolve, 800)); 
-      
+      await invoiceAPI.createManual(formData);
       toast.success('Invoice created successfully!');
-      router.push('/invoices');
-    } catch (error) {
-      toast.error('Failed to create invoice.');
+      router.back();
+    } catch (error: any) {
+      const msg = error.response?.data?.message || 'Failed to create invoice.';
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }

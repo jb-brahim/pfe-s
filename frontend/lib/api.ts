@@ -249,11 +249,11 @@ export const analyticsAPI = {
 
 export const invoiceAPI = {
   uploadFile: async (file: File) => {
-    try {
       const formData = new FormData();
       formData.append('invoiceFile', file);
       const response = await apiClient.post('/invoices/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 60000, // Increased timeout to 60 seconds for AI processing
       });
       const resData = response.data.data || response.data;
       const ext = resData.extractedData || {};
@@ -266,16 +266,14 @@ export const invoiceAPI = {
         confidence: ext.confidenceScores?.overall || 0.92,
       };
       return { data: mapped };
+  },
+
+  createManual: async (data: any) => {
+    try {
+      const response = await apiClient.post('/invoices/manual', data);
+      return { data: response.data };
     } catch (error) {
-      return {
-        data: {
-          _id: Date.now().toString(),
-          invoiceNumber: 'INV-' + Date.now(),
-          status: 'EXTRACTED',
-          extractedData: { matriculeFiscal: 'TN123456789', tvaAmount: 500 },
-          confidence: 0.92,
-        },
-      };
+      throw error;
     }
   },
 
