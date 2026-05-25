@@ -6,20 +6,9 @@ import { Download } from 'lucide-react';
 
 
 export default function AnalyticsPage() {
-  const topSuppliers = [
-    { name: 'Techcorp Solutions', amount: 12500, invoices: 24 },
-    { name: 'Office Supplies Co', amount: 8900, invoices: 18 },
-    { name: 'Finance Services LLC', amount: 7200, invoices: 14 },
-    { name: 'Digital Solutions Inc', amount: 5600, invoices: 11 },
-    { name: 'Business Consulting', amount: 4300, invoices: 8 },
-  ];
+  const topSuppliers: any[] = [];
 
-  const accountantLeaderboard = [
-    { name: 'Eleanor Pena', submissions: 125, approvalRate: 94, avgTime: '1.2h' },
-    { name: 'Ben Carter', submissions: 98, approvalRate: 91, avgTime: '1.5h' },
-    { name: 'Jane Doe', submissions: 87, approvalRate: 96, avgTime: '1.1h' },
-    { name: 'Admin User', submissions: 156, approvalRate: 98, avgTime: '0.9h' },
-  ];
+  const accountantLeaderboard: any[] = [];
 
   const handleExport = () => {
     alert('CSV export functionality would be implemented here');
@@ -136,10 +125,10 @@ export default function AnalyticsPage() {
         {/* Key Metrics */}
         <div className="grid md:grid-cols-4 gap-6">
           {[
-            { label: 'Total Revenue Processed', value: '$125,430', change: '+18.2%' },
-            { label: 'Avg Invoice Value', value: '$1,245', change: '+5.3%' },
-            { label: 'Processing Efficiency', value: '94.2%', change: '+2.1%' },
-            { label: 'Monthly Growth', value: '+12.8%', change: 'vs last month' },
+            { label: 'Total Revenue Processed', value: '$0', change: '0%' },
+            { label: 'Avg Invoice Value', value: '$0', change: '0%' },
+            { label: 'Processing Efficiency', value: '0%', change: '0%' },
+            { label: 'Monthly Growth', value: '0%', change: 'vs last month' },
           ].map((metric, idx) => (
             <div key={idx} className="glass-card p-6">
               <p className="text-white/60 text-sm font-medium mb-2">{metric.label}</p>
