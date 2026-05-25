@@ -294,7 +294,7 @@ export const invoiceAPI = {
       }));
       return { data: mapped };
     } catch (error) {
-      return { data: mockInvoices };
+      return { data: [] };
     }
   },
 
@@ -317,7 +317,7 @@ export const invoiceAPI = {
       };
       return { data: mapped };
     } catch (error) {
-      return { data: mockInvoices[0] };
+      throw error;
     }
   },
 
@@ -326,7 +326,7 @@ export const invoiceAPI = {
       const response = await apiClient.put(`/invoices/${id}/extracted`, data);
       return { data: response.data.extractedData || response.data };
     } catch (error) {
-      return { data: { ...mockInvoices[0], ...data } };
+      throw error;
     }
   },
 
@@ -367,7 +367,7 @@ export const budgetAPI = {
       const response = await apiClient.get(`/budget/status?${params}`);
       return response.data;
     } catch (error) {
-      return { data: mockBudgetStatus };
+      return { data: { budget: { monthlyLimit: 0 }, currentSpending: 0, remaining: 0, percentage: 0 } };
     }
   },
 
@@ -387,7 +387,7 @@ export const auditAPI = {
       const response = await apiClient.get('/audit');
       return { data: response.data.logs || response.data };
     } catch (error) {
-      return { data: mockAuditLog };
+      return { data: [] };
     }
   },
 };
@@ -398,7 +398,7 @@ export const notificationAPI = {
       const response = await apiClient.get('/notifications');
       return { data: response.data.notifications || response.data };
     } catch (error) {
-      return { data: mockNotifications };
+      return { data: [] };
     }
   },
 };
@@ -420,7 +420,7 @@ export const userAPI = {
       const response = await apiClient.get('/users');
       return response.data;
     } catch (error) {
-      return { data: mockUsers };
+      return { data: [] };
     }
   },
 
@@ -485,7 +485,7 @@ export const mailAPI = {
       const response = await apiClient.get('/mail');
       return response.data;
     } catch (error) {
-      return { data: mockEmails };
+      return { data: [] };
     }
   },
 };

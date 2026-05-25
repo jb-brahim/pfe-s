@@ -16,11 +16,7 @@ export default function LandingPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const mockChartData = [
-    { name: 'Jan', val: 4000 }, { name: 'Feb', val: 3000 }, { name: 'Mar', val: 2000 },
-    { name: 'Apr', val: 2780 }, { name: 'May', val: 1890 }, { name: 'Jun', val: 2390 },
-    { name: 'Jul', val: 3490 }, { name: 'Aug', val: 4000 }
-  ];
+  const mockChartData: any[] = [];
 
   return (
     <div className="min-h-screen bg-[#1A0A0B] text-white selection:bg-[#D98F8F]/30 overflow-x-hidden font-sans pb-20">

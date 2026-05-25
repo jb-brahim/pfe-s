@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
-import { invoiceAPI, mockInvoices, workflowAPI } from '@/lib/api';
+import { invoiceAPI, workflowAPI } from '@/lib/api';
 import {
   ChevronRight, Check, X, MessageSquare, ClipboardCheck,
   FileText, Building2, AlertTriangle, Clock, Shield,
@@ -36,7 +36,7 @@ export default function ApprovalPage() {
   useEffect(() => {
     const fetchInvoices = async () => {
       const result = await invoiceAPI.getAll('SUBMITTED');
-      const invoicesData = (result.data || mockInvoices).map((inv: any) => ({
+      const invoicesData = (result.data || []).map((inv: any) => ({
         ...inv,
         accountantName: inv.accountantName || 'Eleanor Pena',
         validationStatus: (inv.confidence || 0) > 0.85,

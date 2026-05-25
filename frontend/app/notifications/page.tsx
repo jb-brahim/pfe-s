@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
-import { notificationAPI, mockNotifications } from '@/lib/api';
+import { notificationAPI } from '@/lib/api';
 import { AlertCircle, Info, AlertTriangle, Check } from 'lucide-react';
 
 interface Notification {
@@ -15,16 +15,16 @@ interface Notification {
 }
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filter, setFilter] = useState<'ALL' | 'HIGH' | 'MEDIUM' | 'LOW'>('ALL');
 
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
         const result = await notificationAPI.getAll();
-        setNotifications(result.data || mockNotifications);
+        setNotifications(result.data || []);
       } catch {
-        setNotifications(mockNotifications);
+        setNotifications([]);
       }
     };
 

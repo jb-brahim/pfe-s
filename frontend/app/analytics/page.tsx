@@ -3,7 +3,7 @@
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Download } from 'lucide-react';
-import { mockAnalyticsData } from '@/lib/api';
+
 
 export default function AnalyticsPage() {
   const topSuppliers = [
@@ -47,7 +47,7 @@ export default function AnalyticsPage() {
         <div className="glass-card p-6">
           <h2 className="text-lg font-bold text-white mb-4">Spending & Invoice Volume Trend</h2>
           <ResponsiveContainer width="100%" height={350}>
-            <LineChart data={mockAnalyticsData}>
+            <LineChart data={[]}>
               <defs>
                 <linearGradient id="colorSpending" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#8E1B3A" stopOpacity={1} />

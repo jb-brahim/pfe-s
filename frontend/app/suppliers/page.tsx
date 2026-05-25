@@ -62,10 +62,10 @@ export default function SuppliersPage() {
       setLoading(true);
       try {
         const res = await analyticsAPI.getSuppliers();
-        setSuppliers(res.data && res.data.length > 0 ? res.data : mockSuppliers);
+        setSuppliers(res.data || []);
       } catch (err) {
         console.error(err);
-        setSuppliers(mockSuppliers);
+        setSuppliers([]);
       } finally {
         setLoading(false);
       }
@@ -133,119 +133,131 @@ export default function SuppliersPage() {
 
         {/* Suppliers List */}
         <div className="flex flex-col gap-3 mt-4">
-          {filteredSuppliers.map((supplier) => {
-            const isExpanded = expandedId === supplier.id;
-            
-            return (
-              <div 
-                key={supplier.id} 
-                className={`group relative backdrop-blur-xl border rounded-[24px] transition-all duration-400 overflow-hidden ${
-                  isExpanded 
-                    ? 'bg-[rgba(255,255,255,0.05)] border-[#D98F8F]/40 shadow-[0_20px_50px_rgba(0,0,0,0.5)]' 
-                    : 'bg-[rgba(255,255,255,0.02)] border-[rgba(255,255,255,0.05)] hover:border-[#D98F8F]/20 hover:bg-[rgba(255,255,255,0.04)] hover:shadow-[0_15px_40px_rgba(0,0,0,0.4)]'
-                }`}
-              >
-                {/* Accent Line */}
-                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-[#D98F8F] to-[#8E1B3A] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-
-                {/* Main Card Header */}
+          {filteredSuppliers.length === 0 && !loading ? (
+            <div className="flex flex-col items-center justify-center p-12 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[24px] text-center">
+              <div className="w-16 h-16 rounded-full bg-[#1A0A0B] flex items-center justify-center text-[#A69697] mb-4 shadow-inner">
+                <Building2 size={32} />
+              </div>
+              <h3 className="text-white text-[18px] font-bold mb-2">No suppliers found</h3>
+              <p className="text-[#A69697] text-[14px] max-w-[400px]">
+                You haven't uploaded any invoices yet, or no suppliers match your search. Upload an invoice to automatically build your supplier directory.
+              </p>
+            </div>
+          ) : (
+            filteredSuppliers.map((supplier) => {
+              const isExpanded = expandedId === supplier.id;
+              
+              return (
                 <div 
-                  className="p-5 md:p-6 flex flex-col md:flex-row md:items-center gap-5 cursor-pointer pl-6 md:pl-8"
-                  onClick={() => setExpandedId(isExpanded ? null : supplier.id)}
-                >
-                  {/* Avatar/Icon */}
-                  <div className="w-14 h-14 rounded-[16px] bg-[#1A0A0B] border border-white/5 flex items-center justify-center flex-shrink-0 text-[#A69697] group-hover:text-[#D98F8F] group-hover:border-[#D98F8F]/30 transition-all shadow-inner">
-                    <Building2 size={24} />
-                  </div>
-
-                  {/* Supplier Info */}
-                  <div className="flex-1 min-w-0">
-                    <h2 className="text-white text-[18px] font-bold truncate mb-1">{supplier.name}</h2>
-                    <p className="text-[#A69697] text-[13px]">{supplier.category}</p>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="flex items-center gap-8 md:pr-4">
-                    <div className="text-right hidden sm:block w-[140px]">
-                      <p className="text-[#A69697] text-[11px] uppercase tracking-wider mb-1 font-bold">Total Spent</p>
-                      <p className="text-white text-[18px] font-bold tracking-tight">{supplier.totalSpend.toLocaleString()} TND</p>
-                    </div>
-                    <div className="text-right hidden sm:block w-[80px]">
-                      <p className="text-[#A69697] text-[11px] uppercase tracking-wider mb-1 font-bold">Invoices</p>
-                      <p className="text-white text-[18px] font-bold tracking-tight">{supplier.invoiceCount}</p>
-                    </div>
-                    <div className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all ${
-                      isExpanded ? 'bg-white/10 border-white/20 text-white' : 'bg-[#1A0A0B] border-white/5 text-[#A69697] group-hover:border-white/20 group-hover:text-white'
-                    }`}>
-                      {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Expanded Section */}
-                <div 
-                  className={`transition-all duration-500 ease-in-out ${
-                    isExpanded ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'
+                  key={supplier.id} 
+                  className={`group relative backdrop-blur-xl border rounded-[24px] transition-all duration-400 overflow-hidden ${
+                    isExpanded 
+                      ? 'bg-[rgba(255,255,255,0.05)] border-[#D98F8F]/40 shadow-[0_20px_50px_rgba(0,0,0,0.5)]' 
+                      : 'bg-[rgba(255,255,255,0.02)] border-[rgba(255,255,255,0.05)] hover:border-[#D98F8F]/20 hover:bg-[rgba(255,255,255,0.04)] hover:shadow-[0_15px_40px_rgba(0,0,0,0.4)]'
                   }`}
                 >
-                  <div className="p-6 md:p-8 pt-0 pl-6 md:pl-8 border-t border-white/5">
-                    <div className="flex items-center justify-between mb-4 mt-2">
-                      <h4 className="text-white text-[15px] font-semibold flex items-center gap-2">
-                        Recent Invoices
-                      </h4>
-                      <button className="text-[#A69697] hover:text-white text-[13px] transition-colors flex items-center gap-1 font-medium">
-                        View all invoices <ArrowUpRight size={14} />
-                      </button>
+                  {/* Accent Line */}
+                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-[#D98F8F] to-[#8E1B3A] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+
+                  {/* Main Card Header */}
+                  <div 
+                    className="p-5 md:p-6 flex flex-col md:flex-row md:items-center gap-5 cursor-pointer pl-6 md:pl-8"
+                    onClick={() => setExpandedId(isExpanded ? null : supplier.id)}
+                  >
+                    {/* Avatar/Icon */}
+                    <div className="w-14 h-14 rounded-[16px] bg-[#1A0A0B] border border-white/5 flex items-center justify-center flex-shrink-0 text-[#A69697] group-hover:text-[#D98F8F] group-hover:border-[#D98F8F]/30 transition-all shadow-inner">
+                      <Building2 size={24} />
                     </div>
 
-                    <div className="flex flex-col gap-3">
-                      {supplier.recentInvoices && supplier.recentInvoices.length > 0 ? (
-                        supplier.recentInvoices.map((inv: any) => (
-                          <Link 
-                            href={`/invoices/${inv.id}`}
-                            key={inv.id} 
-                            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-[16px] bg-[#1A0A0B]/40 border border-white/5 hover:border-white/10 hover:bg-[#1A0A0B]/80 transition-all group"
-                          >
-                            <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 rounded-[12px] bg-white/5 flex items-center justify-center text-[#A69697] group-hover:text-[#D98F8F] transition-colors">
-                                <FileText size={16} />
-                              </div>
-                              <div>
-                                <p className="text-white font-bold text-[14px]">{inv.id.substring(0, 8).toUpperCase()}</p>
-                                <p className="text-[#A69697] text-[12px]">{new Date(inv.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center gap-6 mt-3 sm:mt-0">
-                              <p className="text-white font-bold text-[15px]">{inv.amount.toLocaleString()} TND</p>
-                              <div className="w-24 flex justify-end">
-                                {getStatusBadge(inv.status)}
-                              </div>
-                              <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[#A69697] group-hover:bg-[#D98F8F] group-hover:text-[#1A0A0B] transition-all">
-                                <ArrowUpRight size={14} />
-                              </div>
-                            </div>
-                          </Link>
-                        ))
-                      ) : (
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-[#1A0A0B]/20 rounded-[12px] border border-white/5">
-                          <div>
-                            <p className="text-white text-[14px] font-medium mb-1">No invoices found</p>
-                            <p className="text-[#A69697] text-[13px]">This supplier hasn't billed you recently. When they do, invoices will appear here.</p>
-                          </div>
-                          <Link href="/invoices/manual" className="mt-4 sm:mt-0 px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-[13px] font-medium rounded-lg border border-white/10 transition-colors">
-                            Add manual invoice
-                          </Link>
-                        </div>
-                      )}
+                    {/* Supplier Info */}
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-white text-[18px] font-bold truncate mb-1">{supplier.name}</h2>
+                      <p className="text-[#A69697] text-[13px]">{supplier.category}</p>
                     </div>
 
+                    {/* Stats */}
+                    <div className="flex items-center gap-8 md:pr-4">
+                      <div className="text-right hidden sm:block w-[140px]">
+                        <p className="text-[#A69697] text-[11px] uppercase tracking-wider mb-1 font-bold">Total Spent</p>
+                        <p className="text-white text-[18px] font-bold tracking-tight">{supplier.totalSpend.toLocaleString()} TND</p>
+                      </div>
+                      <div className="text-right hidden sm:block w-[80px]">
+                        <p className="text-[#A69697] text-[11px] uppercase tracking-wider mb-1 font-bold">Invoices</p>
+                        <p className="text-white text-[18px] font-bold tracking-tight">{supplier.invoiceCount}</p>
+                      </div>
+                      <div className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all ${
+                        isExpanded ? 'bg-white/10 border-white/20 text-white' : 'bg-[#1A0A0B] border-white/5 text-[#A69697] group-hover:border-white/20 group-hover:text-white'
+                      }`}>
+                        {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-              </div>
-            );
-          })}
+                  {/* Expanded Section */}
+                  <div 
+                    className={`transition-all duration-500 ease-in-out ${
+                      isExpanded ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'
+                    }`}
+                  >
+                    <div className="p-6 md:p-8 pt-0 pl-6 md:pl-8 border-t border-white/5">
+                      <div className="flex items-center justify-between mb-4 mt-2">
+                        <h4 className="text-white text-[15px] font-semibold flex items-center gap-2">
+                          Recent Invoices
+                        </h4>
+                        <button className="text-[#A69697] hover:text-white text-[13px] transition-colors flex items-center gap-1 font-medium">
+                          View all invoices <ArrowUpRight size={14} />
+                        </button>
+                      </div>
+
+                      <div className="flex flex-col gap-3">
+                        {supplier.recentInvoices && supplier.recentInvoices.length > 0 ? (
+                          supplier.recentInvoices.map((inv: any) => (
+                            <Link 
+                              href={`/invoices/${inv.id}`}
+                              key={inv.id} 
+                              className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-[16px] bg-[#1A0A0B]/40 border border-white/5 hover:border-white/10 hover:bg-[#1A0A0B]/80 transition-all group"
+                            >
+                              <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-[12px] bg-white/5 flex items-center justify-center text-[#A69697] group-hover:text-[#D98F8F] transition-colors">
+                                  <FileText size={16} />
+                                </div>
+                                <div>
+                                  <p className="text-white font-bold text-[14px]">{inv.id.substring(0, 8).toUpperCase()}</p>
+                                  <p className="text-[#A69697] text-[12px]">{new Date(inv.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center gap-6 mt-3 sm:mt-0">
+                                <p className="text-white font-bold text-[15px]">{inv.amount.toLocaleString()} TND</p>
+                                <div className="w-24 flex justify-end">
+                                  {getStatusBadge(inv.status)}
+                                </div>
+                                <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[#A69697] group-hover:bg-[#D98F8F] group-hover:text-[#1A0A0B] transition-all">
+                                  <ArrowUpRight size={14} />
+                                </div>
+                              </div>
+                            </Link>
+                          ))
+                        ) : (
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-[#1A0A0B]/20 rounded-[12px] border border-white/5">
+                            <div>
+                              <p className="text-white text-[14px] font-medium mb-1">No invoices found</p>
+                              <p className="text-[#A69697] text-[13px]">This supplier hasn't billed you recently. When they do, invoices will appear here.</p>
+                            </div>
+                            <Link href="/invoices/manual" className="mt-4 sm:mt-0 px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-[13px] font-medium rounded-lg border border-white/10 transition-colors">
+                              Add manual invoice
+                            </Link>
+                          </div>
+                        )}
+                      </div>
+
+                    </div>
+                  </div>
+
+                </div>
+              );
+            })
+          )}
         </div>
 
       </div>

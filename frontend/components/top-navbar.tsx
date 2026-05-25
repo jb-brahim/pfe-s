@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Search, Bell, Upload, CommandIcon } from 'lucide-react';
-import { notificationAPI, mockNotifications } from '@/lib/api';
+import { notificationAPI } from '@/lib/api';
 
 export function TopNavbar() {
   const router = useRouter();
@@ -19,7 +19,7 @@ export function TopNavbar() {
         const result = await notificationAPI.getAll();
         setUnreadCount(result.data?.length || 0);
       } catch {
-        setUnreadCount(mockNotifications.length);
+        setUnreadCount(0);
       }
     };
 

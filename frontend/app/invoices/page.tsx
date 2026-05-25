@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
-import { invoiceAPI, mockInvoices } from '@/lib/api';
+import { invoiceAPI } from '@/lib/api';
 import { Upload, Loader, Eye, Edit, Trash2, Search, FileText, Zap, Sparkles, CheckCircle2, ChevronRight, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -37,7 +37,7 @@ const ConfidenceRing = ({ score }: { score: number }) => {
 };
 
 export default function InvoicesPage() {
-  const [invoices, setInvoices] = useState(mockInvoices);
+  const [invoices, setInvoices] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedStatus, setSelectedStatus] = useState<InvoiceStatus>('ALL');
@@ -50,7 +50,7 @@ export default function InvoicesPage() {
     const fetchInvoices = async () => {
       const status = selectedStatus === 'ALL' ? undefined : selectedStatus;
       const result = await invoiceAPI.getAll(status, searchQuery);
-      setInvoices(result.data || mockInvoices);
+      setInvoices(result.data || []);
     };
 
     fetchInvoices();

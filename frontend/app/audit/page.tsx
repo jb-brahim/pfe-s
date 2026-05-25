@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
-import { auditAPI, mockAuditLog } from '@/lib/api';
+import { auditAPI } from '@/lib/api';
 import { Download, Filter } from 'lucide-react';
 
 interface AuditEntry {
@@ -14,7 +14,7 @@ interface AuditEntry {
 }
 
 export default function AuditPage() {
-  const [auditLog, setAuditLog] = useState<AuditEntry[]>(mockAuditLog);
+  const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
@@ -23,9 +23,9 @@ export default function AuditPage() {
     const fetchAuditLog = async () => {
       try {
         const result = await auditAPI.getTrail();
-        setAuditLog(result.data || mockAuditLog);
+        setAuditLog(result.data || []);
       } catch {
-        setAuditLog(mockAuditLog);
+        setAuditLog([]);
       }
     };
 

@@ -2,19 +2,19 @@
 
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
-import { budgetAPI, mockBudgetStatus, mockCategoryBreakdown } from '@/lib/api';
+import { budgetAPI } from '@/lib/api';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { AlertTriangle, Save } from 'lucide-react';
 
 export default function BudgetPage() {
-  const [budget, setBudget] = useState(mockBudgetStatus);
-  const [monthlyLimit, setMonthlyLimit] = useState(mockBudgetStatus.budget.monthlyLimit);
+  const [budget, setBudget] = useState<any>({ budget: { monthlyLimit: 0 }, currentSpending: 0, remaining: 0, percentage: 0 });
+  const [monthlyLimit, setMonthlyLimit] = useState(0);
   const [alertThreshold, setAlertThreshold] = useState(80);
   const [isSaving, setIsSaving] = useState(false);
 
   const COLORS = ['#8E1B3A', '#B76E79', '#D4969F', '#A0A0A0', '#6D071A'];
 
-  const categoryData = mockCategoryBreakdown.map((cat) => ({
+  const categoryData = ([] as any[]).map((cat) => ({
     ...cat,
     displayAmount: cat.amount.replace('$', ''),
   }));
