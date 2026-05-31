@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { invoiceAPI, workflowAPI } from '@/lib/api';
 import {
-  ChevronRight, Check, X, MessageSquare, ClipboardCheck,
-  FileText, Building2, AlertTriangle, Clock, Shield,
-  TrendingUp, User, Sparkles
+  Check, X, ClipboardCheck, FileText, AlertTriangle,
+  Search, Shield, User, Clock, Sparkles
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ApprovalInvoice {
   _id: string;
@@ -27,327 +27,458 @@ const formatCurrency = (val: number) =>
 
 export default function ApprovalPage() {
   const [invoices, setInvoices] = useState<ApprovalInvoice[]>([]);
-  const [selectedInvoice, setSelectedInvoice] = useState<ApprovalInvoice | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  
+  // Drawer State
+  const [drawerInvoice, setDrawerInvoice] = useState<ApprovalInvoice | null>(null);
+  const [drawerComment, setDrawerComment] = useState('');
+  
+  // Rejection Modal State
+  const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
-  const [comment, setComment] = useState('');
+  const [rejectingInvoiceIds, setRejectingInvoiceIds] = useState<string[]>([]);
+  
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showRejectInput, setShowRejectInput] = useState(false);
 
   useEffect(() => {
     const fetchInvoices = async () => {
-      const result = await invoiceAPI.getAll('SUBMITTED');
+      const result = await invoiceAPI.getAll('VERIFIED');
       const invoicesData = (result.data || []).map((inv: any) => ({
         ...inv,
         accountantName: inv.accountantName || 'Eleanor Pena',
         validationStatus: (inv.confidence || 0) > 0.85,
       }));
       setInvoices(invoicesData);
-      if (invoicesData.length > 0) setSelectedInvoice(invoicesData[0]);
     };
     fetchInvoices();
   }, []);
 
-  const handleApprove = async () => {
-    if (!selectedInvoice) return;
+  const handleToggleSelect = (id: string) => {
+    const newSet = new Set(selectedIds);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    setSelectedIds(newSet);
+  };
+
+  const handleToggleAll = () => {
+    if (selectedIds.size === filteredInvoices.length && filteredInvoices.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredInvoices.map(inv => inv._id)));
+    }
+  };
+
+  const handleApprove = async (ids: string[], comment: string = 'Approved via bulk action') => {
+    if (ids.length === 0) return;
     setIsProcessing(true);
     try {
-      await workflowAPI.approve(selectedInvoice._id, 'APPROVED', comment);
-      const remaining = invoices.filter((inv) => inv._id !== selectedInvoice._id);
-      setInvoices(remaining);
-      setSelectedInvoice(remaining[0] || null);
-      setComment('');
-      setShowRejectInput(false);
+      const promises = ids.map(id => workflowAPI.approve(id, 'APPROVED', comment));
+      await Promise.all(promises);
+      toast.success(`Successfully approved ${ids.length} invoice(s)`);
+      
+      setInvoices(invoices.filter(inv => !ids.includes(inv._id)));
+      if (drawerInvoice && ids.includes(drawerInvoice._id)) {
+        setDrawerInvoice(null);
+      }
+      setSelectedIds(new Set());
+    } catch (error) {
+      toast.error('Failed to approve some invoices');
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleReject = async () => {
-    if (!selectedInvoice || !rejectionReason.trim()) return;
+  const openRejectModal = (ids: string[]) => {
+    if (ids.length === 0) return;
+    setRejectingInvoiceIds(ids);
+    setRejectionReason('');
+    setShowRejectModal(true);
+  };
+
+  const handleRejectConfirm = async () => {
+    if (!rejectionReason.trim() || rejectingInvoiceIds.length === 0) return;
     setIsProcessing(true);
     try {
-      await workflowAPI.approve(selectedInvoice._id, 'REJECTED', rejectionReason);
-      const remaining = invoices.filter((inv) => inv._id !== selectedInvoice._id);
-      setInvoices(remaining);
-      setSelectedInvoice(remaining[0] || null);
-      setRejectionReason('');
-      setShowRejectInput(false);
+      const promises = rejectingInvoiceIds.map(id => workflowAPI.approve(id, 'REJECTED', rejectionReason));
+      await Promise.all(promises);
+      toast.success(`Successfully rejected ${rejectingInvoiceIds.length} invoice(s)`);
+      
+      setInvoices(invoices.filter(inv => !rejectingInvoiceIds.includes(inv._id)));
+      if (drawerInvoice && rejectingInvoiceIds.includes(drawerInvoice._id)) {
+        setDrawerInvoice(null);
+      }
+      setSelectedIds(new Set());
+      setShowRejectModal(false);
+    } catch (error) {
+      toast.error('Failed to reject some invoices');
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const lifecycleSteps = [
-    { label: 'Draft', status: 'complete' },
-    { label: 'Extracted', status: 'complete' },
-    { label: 'Verified', status: 'complete' },
-    { label: 'Submitted', status: 'active' },
-    { label: 'Approved', status: 'pending' },
-  ];
-
-  const confidence = selectedInvoice?.confidence ?? 0;
-  const confidencePct = Math.round(confidence * 100);
+  const filteredInvoices = invoices.filter((inv) => {
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      return inv.invoiceNumber?.toLowerCase().includes(query) || inv.companyName?.toLowerCase().includes(query);
+    }
+    return true;
+  });
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-8 w-full pb-10 max-w-[1400px] mx-auto">
+      <div className="flex flex-col gap-6 w-full pb-10 max-w-[1400px] mx-auto px-4 sm:px-6">
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 relative">
-          <div className="absolute -top-20 -left-20 w-72 h-72 bg-[#8E1B3A] rounded-full blur-[130px] opacity-15 pointer-events-none" />
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-[#8E1B3A]/30 border border-[#8E1B3A]/50 flex items-center justify-center">
-                <ClipboardCheck size={20} className="text-[#D98F8F]" />
-              </div>
-              <h1 className="text-[36px] font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[#FFFFFF] via-[#EBD8D8] to-[#D98F8F]">
+            <div className="flex items-center gap-3 mb-1.5">
+              <ClipboardCheck size={28} className="text-[#D98F8F]" />
+              <h1 className="text-[28px] font-bold tracking-tight text-white">
                 Approval Workflows
               </h1>
             </div>
-            <p className="text-[#A69697] text-[16px]">Review, validate and approve submitted invoices with full audit trail.</p>
-          </div>
-
-          {/* Stats bar */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-2.5 text-center">
-              <p className="text-[11px] text-[#A69697] uppercase tracking-widest">Pending</p>
-              <p className="text-[22px] font-bold text-[#FFC107]">{invoices.length}</p>
-            </div>
-            <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-2.5 text-center">
-              <p className="text-[11px] text-[#A69697] uppercase tracking-widest">Selected</p>
-              <p className="text-[22px] font-bold text-white">{selectedInvoice ? '1' : '—'}</p>
-            </div>
+            <p className="text-[#A69697] text-[15px]">Review and approve submitted invoices in bulk with full audit trail.</p>
           </div>
         </div>
 
-        {invoices.length === 0 ? (
-          /* Empty State */
-          <div className="bg-white/[0.02] border border-dashed border-white/10 rounded-[30px] p-20 text-center flex flex-col items-center justify-center">
-            <div className="w-16 h-16 rounded-full bg-[#4CAF50]/10 border border-[#4CAF50]/30 flex items-center justify-center mb-5">
-              <Check size={28} className="text-[#4CAF50]" />
-            </div>
-            <h3 className="text-white text-[20px] font-semibold mb-2">All caught up!</h3>
-            <p className="text-[#A69697] text-[15px]">No invoices are currently pending approval.</p>
-          </div>
-        ) : (
-          <div className="grid lg:grid-cols-[340px_1fr] gap-6 items-start">
-
-            {/* LEFT: Queue List */}
-            <div className="bg-white/[0.03] border border-white/[0.06] rounded-[24px] overflow-hidden sticky top-0">
-              <div className="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between">
-                <div>
-                  <h2 className="text-white text-[15px] font-semibold">Review Queue</h2>
-                  <p className="text-[#A69697] text-[12px] mt-0.5">{invoices.length} invoices pending</p>
-                </div>
-                <span className="bg-[#FFC107]/10 text-[#FFC107] border border-[#FFC107]/30 px-2.5 py-1 rounded-full text-[11px] font-bold">
-                  {invoices.length} PENDING
-                </span>
+        {/* Table Container */}
+        <div className="bg-[#1E1E1E]/40 border border-white/10 rounded-[12px] flex flex-col shadow-2xl overflow-hidden backdrop-blur-md relative">
+          
+          {/* Table Toolbar */}
+          <div className="p-4 border-b border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/[0.02]">
+            <div className="relative w-full sm:w-[320px]">
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <Search size={14} className="text-[#A69697]" />
               </div>
-              <div className="divide-y divide-white/[0.04] max-h-[500px] overflow-y-auto">
-                {invoices.map((invoice) => {
-                  const isSelected = selectedInvoice?._id === invoice._id;
-                  return (
-                    <button
-                      key={invoice._id}
-                      onClick={() => { setSelectedInvoice(invoice); setShowRejectInput(false); setComment(''); setRejectionReason(''); }}
-                      className={`w-full px-5 py-4 text-left transition-all duration-200 flex items-center justify-between gap-3 ${
-                        isSelected
-                          ? 'bg-[#8E1B3A]/15 border-l-[3px] border-[#D98F8F]'
-                          : 'hover:bg-white/[0.03] border-l-[3px] border-transparent'
+              <input
+                type="text"
+                placeholder="Search invoice # or company..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[#1A0A0B]/80 border border-white/10 rounded-[8px] py-2 pl-9 pr-3 text-[13px] text-white outline-none focus:border-[#D98F8F]/50 transition-all placeholder:text-[#A69697]"
+              />
+            </div>
+
+            {/* Bulk Actions */}
+            <div className={`flex items-center gap-3 transition-opacity duration-300 ${selectedIds.size > 0 ? 'opacity-100 pointer-events-auto' : 'opacity-50 pointer-events-none'}`}>
+              <span className="text-[13px] font-medium text-white mr-2">{selectedIds.size} selected</span>
+              <button
+                onClick={() => handleApprove(Array.from(selectedIds))}
+                disabled={isProcessing || selectedIds.size === 0}
+                className="flex items-center gap-2 px-4 py-2 rounded-[8px] bg-[#4CAF50]/15 hover:bg-[#4CAF50]/25 text-[#4CAF50] border border-[#4CAF50]/30 font-semibold text-[13px] transition-all disabled:opacity-50"
+              >
+                <Check size={16} strokeWidth={2.5} />
+                Approve
+              </button>
+              <button
+                onClick={() => openRejectModal(Array.from(selectedIds))}
+                disabled={isProcessing || selectedIds.size === 0}
+                className="flex items-center gap-2 px-4 py-2 rounded-[8px] bg-[#8E1B3A]/20 hover:bg-[#8E1B3A]/30 text-[#D98F8F] border border-[#8E1B3A]/40 font-semibold text-[13px] transition-all disabled:opacity-50"
+              >
+                <X size={16} strokeWidth={2.5} />
+                Reject
+              </button>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse whitespace-nowrap">
+              <thead>
+                <tr className="border-b border-white/10 text-[11px] font-medium text-[#A69697] uppercase tracking-wider bg-white/[0.02]">
+                  <th className="px-5 py-4 w-[40px]">
+                    <div 
+                      onClick={handleToggleAll}
+                      className={`w-4 h-4 rounded-[4px] border flex items-center justify-center cursor-pointer transition-colors ${
+                        filteredInvoices.length > 0 && selectedIds.size === filteredInvoices.length
+                          ? 'bg-[#D98F8F] border-[#D98F8F]' 
+                          : 'bg-black/20 border-white/20 hover:border-white/40'
                       }`}
                     >
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className={`w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-[#8E1B3A]/30' : 'bg-white/[0.04]'}`}>
-                          <FileText size={16} className={isSelected ? 'text-[#D98F8F]' : 'text-[#A69697]'} />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-white text-[13px] font-medium truncate">{invoice.companyName}</p>
-                          <p className="text-[#A69697] text-[11px]">{invoice.invoiceNumber}</p>
-                          <p className="text-[#D98F8F] text-[12px] font-semibold mt-0.5">{formatCurrency(invoice.totalAmount)}</p>
-                        </div>
+                      {filteredInvoices.length > 0 && selectedIds.size === filteredInvoices.length && <Check size={12} className="text-[#3C0D0D]" strokeWidth={3} />}
+                    </div>
+                  </th>
+                  <th className="px-4 py-4">Company & Invoice</th>
+                  <th className="px-4 py-4">Submitted By</th>
+                  <th className="px-4 py-4">AI Match</th>
+                  <th className="px-4 py-4 text-right">Amount</th>
+                  <th className="px-4 py-4 text-center">Quick Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5 text-[13px]">
+                {filteredInvoices.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-20 text-center text-[#A69697]">
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        <ClipboardCheck size={40} className="opacity-20" />
+                        <p className="text-[15px]">No invoices pending approval.</p>
                       </div>
-                      <ChevronRight size={16} className={isSelected ? 'text-[#D98F8F]' : 'text-[#A69697]/40'} />
-                    </button>
-                  );
-                })}
-              </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredInvoices.map((invoice) => {
+                    const isSelected = selectedIds.has(invoice._id);
+                    const confidencePct = Math.round((invoice.confidence || 0) * 100);
+                    
+                    return (
+                      <tr 
+                        key={invoice._id} 
+                        className={`transition-colors group hover:bg-white/[0.04] ${isSelected ? 'bg-white/[0.02]' : ''}`}
+                      >
+                        <td className="px-5 py-4">
+                          <div 
+                            onClick={() => handleToggleSelect(invoice._id)}
+                            className={`w-4 h-4 rounded-[4px] border flex items-center justify-center cursor-pointer transition-colors ${
+                              isSelected
+                                ? 'bg-[#D98F8F] border-[#D98F8F]' 
+                                : 'bg-black/20 border-white/20 hover:border-white/40'
+                            }`}
+                          >
+                            {isSelected && <Check size={12} className="text-[#3C0D0D]" strokeWidth={3} />}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-3">
+                            <div 
+                              className="w-8 h-8 rounded-[6px] bg-[#1A0A0B] border border-white/10 flex items-center justify-center shrink-0 cursor-pointer hover:bg-white/5" 
+                              onClick={() => { setDrawerInvoice(invoice); setDrawerComment(''); }}
+                            >
+                              <FileText size={14} className="text-[#A69697]" />
+                            </div>
+                            <div className="cursor-pointer" onClick={() => { setDrawerInvoice(invoice); setDrawerComment(''); }}>
+                              <p className="font-bold text-white max-w-[200px] truncate hover:underline">{invoice.companyName}</p>
+                              <p className="text-[#A69697] text-[11px] font-mono mt-0.5">{invoice.invoiceNumber}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          <p className="text-white font-medium">{invoice.accountantName}</p>
+                          <p className="text-[#A69697] text-[11px] mt-0.5">
+                            {new Date(invoice.createdAt || new Date()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </p>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-20 h-1.5 bg-[#1A0A0B] rounded-full overflow-hidden border border-white/5">
+                              <div 
+                                className={`h-full rounded-full ${confidencePct > 80 ? 'bg-[#4CAF50]' : confidencePct > 50 ? 'bg-[#FFC107]' : 'bg-[#D98F8F]'}`} 
+                                style={{ width: `${confidencePct}%` }}
+                              ></div>
+                            </div>
+                            <span className={`text-[12px] font-medium ${confidencePct > 80 ? 'text-[#4CAF50]' : confidencePct > 50 ? 'text-[#FFC107]' : 'text-[#D98F8F]'}`}>
+                              {confidencePct}%
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-right">
+                          <p className="font-bold text-white tracking-tight">{formatCurrency(invoice.totalAmount)}</p>
+                          {invoice.taxAmount != null && (
+                            <p className="text-[#A69697] text-[11px] mt-0.5">Tax: {formatCurrency(invoice.taxAmount)}</p>
+                          )}
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center justify-center gap-2">
+                            <button 
+                              onClick={() => handleApprove([invoice._id])}
+                              disabled={isProcessing}
+                              className="px-3 py-1.5 rounded-[6px] bg-[#4CAF50]/10 hover:bg-[#4CAF50]/20 text-[#4CAF50] border border-[#4CAF50]/30 font-medium text-[12px] transition-all disabled:opacity-50"
+                            >
+                              Approve
+                            </button>
+                            <button 
+                              onClick={() => openRejectModal([invoice._id])}
+                              disabled={isProcessing}
+                              className="px-3 py-1.5 rounded-[6px] bg-white/[0.03] hover:bg-[#8E1B3A]/15 text-[#A69697] hover:text-[#D98F8F] border border-white/10 hover:border-[#8E1B3A]/30 font-medium text-[12px] transition-all disabled:opacity-50"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Slide-over Drawer */}
+      {drawerInvoice && (
+        <div className="fixed inset-0 z-40 flex justify-end bg-black/40 backdrop-blur-sm transition-opacity">
+          <div className="fixed inset-0 z-30" onClick={() => setDrawerInvoice(null)}></div>
+          <div className="relative z-50 w-full max-w-[440px] bg-[#1E1E1E] border-l border-white/10 shadow-2xl h-full flex flex-col animate-in slide-in-from-right duration-300">
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between p-5 border-b border-white/10 bg-white/[0.02]">
+              <h2 className="text-white text-[18px] font-bold">Invoice Details</h2>
+              <button 
+                onClick={() => setDrawerInvoice(null)}
+                className="p-2 rounded-full hover:bg-white/10 text-[#A69697] hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
             </div>
 
-            {/* RIGHT: Detail Panel */}
-            {selectedInvoice && (
-              <div className="flex flex-col gap-5">
+            {/* Drawer Content */}
+            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+              
+              {/* Header Info */}
+              <div>
+                <span className="bg-[#FFC107]/10 text-[#FFC107] border border-[#FFC107]/20 px-2 py-0.5 rounded-[4px] text-[10px] font-bold tracking-wide uppercase mb-3 inline-block">
+                  Awaiting Review
+                </span>
+                <h3 className="text-white text-[22px] font-bold">{drawerInvoice.companyName}</h3>
+                <p className="text-[#A69697] text-[13px] font-mono mt-1">Ref: {drawerInvoice.invoiceNumber}</p>
+              </div>
 
-                {/* Invoice Header Card */}
-                <div className="bg-white/[0.03] border border-white/[0.06] rounded-[24px] p-6 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-48 h-48 bg-[#8E1B3A] rounded-full blur-[80px] opacity-10 pointer-events-none" />
-                  <div className="relative z-10 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="bg-[#FFC107]/10 text-[#FFC107] border border-[#FFC107]/30 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-widest uppercase">Awaiting Review</span>
-                      </div>
-                      <h3 className="text-white text-[24px] font-bold mt-2">{selectedInvoice.companyName}</h3>
-                      <p className="text-[#A69697] text-[13px]">{selectedInvoice.invoiceNumber}</p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-[#A69697] text-[12px] mb-1">Total Amount</p>
-                      <p className="text-[32px] font-bold text-white tracking-tight">{formatCurrency(selectedInvoice.totalAmount)}</p>
-                      {selectedInvoice.taxAmount != null && (
-                        <p className="text-[#A69697] text-[12px]">Tax: {formatCurrency(selectedInvoice.taxAmount)}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Meta row */}
-                  <div className="relative z-10 mt-5 pt-5 border-t border-white/[0.06] grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    <div className="flex items-center gap-2">
-                      <User size={14} className="text-[#A69697]" />
-                      <div>
-                        <p className="text-[10px] text-[#A69697] uppercase tracking-wider">Accountant</p>
-                        <p className="text-white text-[13px] font-medium">{selectedInvoice.accountantName}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock size={14} className="text-[#A69697]" />
-                      <div>
-                        <p className="text-[10px] text-[#A69697] uppercase tracking-wider">Submitted</p>
-                        <p className="text-white text-[13px] font-medium">
-                          {selectedInvoice.createdAt ? new Date(selectedInvoice.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Today'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Sparkles size={14} className="text-[#A69697]" />
-                      <div>
-                        <p className="text-[10px] text-[#A69697] uppercase tracking-wider">AI Confidence</p>
-                        <p className={`text-[13px] font-bold ${confidencePct >= 85 ? 'text-[#4CAF50]' : confidencePct >= 60 ? 'text-[#FFC107]' : 'text-[#D98F8F]'}`}>
-                          {confidencePct > 0 ? `${confidencePct}%` : 'N/A'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+              {/* Amounts */}
+              <div className="bg-white/[0.02] border border-white/[0.04] rounded-[12px] p-4 flex justify-between items-center">
+                <div>
+                  <p className="text-[#A69697] text-[12px]">Total Amount</p>
+                  <p className="text-[24px] font-bold text-white tracking-tight">{formatCurrency(drawerInvoice.totalAmount)}</p>
                 </div>
-
-                <div className="grid sm:grid-cols-2 gap-5">
-                  {/* Lifecycle Stepper */}
-                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-[24px] p-6">
-                    <h3 className="text-white text-[14px] font-semibold mb-5 flex items-center gap-2">
-                      <TrendingUp size={16} className="text-[#D98F8F]" /> Document Lifecycle
-                    </h3>
-                    <div className="space-y-3">
-                      {lifecycleSteps.map((step, idx) => (
-                        <div key={idx} className="flex items-center gap-3">
-                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 ${
-                            step.status === 'complete'
-                              ? 'bg-[#4CAF50]/20 text-[#4CAF50] border border-[#4CAF50]/40'
-                              : step.status === 'active'
-                              ? 'bg-[#FFC107]/20 text-[#FFC107] border border-[#FFC107]/40'
-                              : 'bg-white/5 text-white/30 border border-white/10'
-                          }`}>
-                            {step.status === 'complete' ? <Check size={12} strokeWidth={3} /> : idx + 1}
-                          </div>
-                          {idx < lifecycleSteps.length - 1 && (
-                            <div className={`w-px h-3 ml-3.5 ${step.status === 'complete' ? 'bg-[#4CAF50]/30' : 'bg-white/10'}`} />
-                          )}
-                          <span className={`text-[13px] font-medium ${step.status === 'pending' ? 'text-white/30' : step.status === 'active' ? 'text-[#FFC107]' : 'text-white'}`}>
-                            {step.label}
-                          </span>
-                          {step.status === 'active' && (
-                            <span className="ml-auto text-[10px] bg-[#FFC107]/10 text-[#FFC107] border border-[#FFC107]/30 px-2 py-0.5 rounded-full font-bold">CURRENT</span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Validation Checklist */}
-                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-[24px] p-6">
-                    <h3 className="text-white text-[14px] font-semibold mb-5 flex items-center gap-2">
-                      <Shield size={16} className="text-[#D98F8F]" /> Validation Checklist
-                    </h3>
-                    <div className="space-y-3">
-                      {[
-                        { label: 'TVA calculation verified', pass: true },
-                        { label: `AI confidence score (${confidencePct > 0 ? confidencePct + '%' : 'N/A'})`, pass: confidencePct >= 85 || confidencePct === 0 },
-                        { label: 'No duplicate detected', pass: true },
-                        { label: 'Supplier data matched', pass: selectedInvoice.validationStatus ?? true },
-                      ].map((item, i) => (
-                        <div key={i} className="flex items-center gap-3 p-3 rounded-[12px] bg-white/[0.02] border border-white/[0.04]">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${item.pass ? 'bg-[#4CAF50]/15 border border-[#4CAF50]/30' : 'bg-[#D98F8F]/15 border border-[#D98F8F]/30'}`}>
-                            {item.pass
-                              ? <Check size={12} className="text-[#4CAF50]" strokeWidth={3} />
-                              : <X size={12} className="text-[#D98F8F]" strokeWidth={3} />}
-                          </div>
-                          <span className={`text-[13px] ${item.pass ? 'text-white' : 'text-[#A69697]'}`}>{item.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Comment Box */}
-                <div className="bg-white/[0.03] border border-white/[0.06] rounded-[24px] p-6">
-                  <label className="flex items-center gap-2 text-white text-[13px] font-semibold mb-3">
-                    <MessageSquare size={14} className="text-[#D98F8F]" /> Add a Comment <span className="text-[#A69697] font-normal">(optional)</span>
-                  </label>
-                  <textarea
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    className="w-full h-[80px] resize-none bg-black/20 border border-white/10 rounded-[12px] px-4 py-3 text-[13px] text-white placeholder:text-[#A69697]/60 outline-none focus:border-[#D98F8F]/40 transition-colors"
-                    placeholder="Add any notes for this approval..."
-                  />
-                </div>
-
-                {/* Rejection Reason — shown only when rejecting */}
-                {showRejectInput && (
-                  <div className="bg-[#D98F8F]/5 border border-[#D98F8F]/30 rounded-[24px] p-6">
-                    <label className="flex items-center gap-2 text-[#D98F8F] text-[13px] font-semibold mb-3">
-                      <AlertTriangle size={14} /> Rejection Reason <span className="text-[#A69697] font-normal">(required)</span>
-                    </label>
-                    <textarea
-                      value={rejectionReason}
-                      onChange={(e) => setRejectionReason(e.target.value)}
-                      className="w-full h-[80px] resize-none bg-black/20 border border-[#D98F8F]/20 rounded-[12px] px-4 py-3 text-[13px] text-white placeholder:text-[#A69697]/60 outline-none focus:border-[#D98F8F]/50 transition-colors"
-                      placeholder="Explain why this invoice is being rejected..."
-                    />
+                {drawerInvoice.taxAmount != null && (
+                  <div className="text-right">
+                    <p className="text-[#A69697] text-[12px]">Tax Included</p>
+                    <p className="text-[14px] font-medium text-white">{formatCurrency(drawerInvoice.taxAmount)}</p>
                   </div>
                 )}
-
-                {/* Action Buttons */}
-                <div className="flex gap-3">
-                  <button
-                    onClick={handleApprove}
-                    disabled={isProcessing}
-                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-[16px] bg-gradient-to-r from-[#4CAF50]/20 to-[#4CAF50]/10 text-[#4CAF50] border border-[#4CAF50]/40 hover:from-[#4CAF50]/30 hover:to-[#4CAF50]/20 hover:border-[#4CAF50]/60 transition-all font-semibold text-[14px] shadow-[0_0_20px_rgba(76,175,80,0.1)] hover:shadow-[0_0_30px_rgba(76,175,80,0.2)] disabled:opacity-50"
-                  >
-                    <Check size={18} strokeWidth={2.5} />
-                    {isProcessing ? 'Processing…' : 'Approve Invoice'}
-                  </button>
-
-                  {showRejectInput ? (
-                    <button
-                      onClick={handleReject}
-                      disabled={isProcessing || !rejectionReason.trim()}
-                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-[16px] bg-[#8E1B3A]/20 text-[#D98F8F] border border-[#8E1B3A]/50 hover:bg-[#8E1B3A]/30 hover:border-[#D98F8F]/60 transition-all font-semibold text-[14px] disabled:opacity-40"
-                    >
-                      <X size={18} strokeWidth={2.5} />
-                      Confirm Rejection
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setShowRejectInput(true)}
-                      className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-[16px] bg-white/[0.03] text-[#A69697] border border-white/[0.06] hover:text-[#D98F8F] hover:border-[#D98F8F]/30 hover:bg-[#8E1B3A]/10 transition-all font-semibold text-[14px]"
-                    >
-                      <X size={18} strokeWidth={2.5} />
-                      Reject
-                    </button>
-                  )}
-                </div>
-
               </div>
-            )}
+
+              {/* Meta Stats */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white/[0.02] border border-white/[0.04] rounded-[12px] p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <User size={14} className="text-[#A69697]" />
+                    <p className="text-[11px] text-[#A69697] uppercase tracking-wider font-semibold">Accountant</p>
+                  </div>
+                  <p className="text-white text-[13px] font-medium">{drawerInvoice.accountantName}</p>
+                </div>
+                <div className="bg-white/[0.02] border border-white/[0.04] rounded-[12px] p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock size={14} className="text-[#A69697]" />
+                    <p className="text-[11px] text-[#A69697] uppercase tracking-wider font-semibold">Submitted</p>
+                  </div>
+                  <p className="text-white text-[13px] font-medium">
+                    {drawerInvoice.createdAt ? new Date(drawerInvoice.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Today'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Validation Checklist */}
+              <div>
+                <h3 className="text-white text-[14px] font-semibold mb-3 flex items-center gap-2">
+                  <Shield size={16} className="text-[#D98F8F]" /> Validation Checklist
+                </h3>
+                <div className="space-y-2">
+                  {[
+                    { label: 'TVA calculation verified', pass: true },
+                    { label: `AI confidence score (${Math.round((drawerInvoice.confidence || 0) * 100)}%)`, pass: (drawerInvoice.confidence || 0) >= 0.85 },
+                    { label: 'No duplicate detected', pass: true },
+                    { label: 'Supplier data matched', pass: drawerInvoice.validationStatus ?? true },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 p-2.5 rounded-[8px] bg-white/[0.01] border border-white/[0.04]">
+                      <div className={`w-5 h-5 rounded-[4px] flex items-center justify-center shrink-0 ${item.pass ? 'bg-[#4CAF50]/15' : 'bg-[#D98F8F]/15'}`}>
+                        {item.pass
+                          ? <Check size={12} className="text-[#4CAF50]" strokeWidth={3} />
+                          : <X size={12} className="text-[#D98F8F]" strokeWidth={3} />}
+                      </div>
+                      <span className={`text-[12px] ${item.pass ? 'text-white' : 'text-[#A69697]'}`}>{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Notes Box */}
+              <div className="flex flex-col flex-1">
+                <label className="text-[13px] font-semibold text-white mb-2 flex items-center justify-between">
+                  Manager Notes 
+                  <span className="text-[#A69697] font-normal text-[11px] uppercase tracking-wider">Required for Rejection</span>
+                </label>
+                <textarea
+                  value={drawerComment}
+                  onChange={(e) => setDrawerComment(e.target.value)}
+                  className="w-full flex-1 min-h-[100px] resize-none bg-[#1A0A0B]/80 border border-white/10 rounded-[8px] px-3.5 py-3 text-[13px] text-white placeholder:text-[#A69697]/50 outline-none focus:border-[#D98F8F]/50 transition-colors"
+                  placeholder="Type any comments or rejection reasons here..."
+                />
+              </div>
+
+            </div>
+
+            {/* Drawer Footer / Actions */}
+            <div className="p-5 border-t border-white/10 bg-white/[0.02] flex gap-3">
+              <button
+                onClick={() => {
+                  if (!drawerComment.trim()) {
+                    setRejectionReason('');
+                    setRejectingInvoiceIds([drawerInvoice._id]);
+                    setShowRejectModal(true);
+                  } else {
+                    setRejectingInvoiceIds([drawerInvoice._id]);
+                    setRejectionReason(drawerComment);
+                    handleRejectConfirm();
+                  }
+                }}
+                disabled={isProcessing}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[8px] bg-white/[0.03] hover:bg-[#8E1B3A]/20 text-[#A69697] hover:text-[#D98F8F] border border-white/[0.06] hover:border-[#8E1B3A]/30 font-semibold text-[13px] transition-all disabled:opacity-50"
+              >
+                <X size={16} strokeWidth={2.5} />
+                Reject
+              </button>
+              <button
+                onClick={() => handleApprove([drawerInvoice._id], drawerComment || 'Approved via detail view')}
+                disabled={isProcessing}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[8px] bg-[#4CAF50]/15 hover:bg-[#4CAF50]/25 text-[#4CAF50] border border-[#4CAF50]/30 font-semibold text-[13px] transition-all disabled:opacity-50"
+              >
+                <Check size={16} strokeWidth={2.5} />
+                Approve
+              </button>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Bulk Rejection Modal (Kept for bulk actions) */}
+      {showRejectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#1E1E1E] border border-white/10 p-6 rounded-[16px] shadow-2xl max-w-md w-full animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-[#8E1B3A]/20 flex items-center justify-center shrink-0">
+                <AlertTriangle size={20} className="text-[#D98F8F]" />
+              </div>
+              <div>
+                <h3 className="text-white text-[18px] font-bold">Reject Invoice{rejectingInvoiceIds.length > 1 ? 's' : ''}</h3>
+                <p className="text-[#A69697] text-[13px]">Please provide a reason for rejection.</p>
+              </div>
+            </div>
+            
+            <textarea
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              className="w-full h-[100px] resize-none bg-black/30 border border-white/10 rounded-[8px] px-4 py-3 text-[14px] text-white placeholder:text-[#A69697]/50 outline-none focus:border-[#D98F8F]/50 transition-colors mt-2"
+              placeholder="Reason for rejection (required)..."
+            />
+            
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowRejectModal(false)}
+                className="flex-1 py-2.5 rounded-[8px] bg-white/[0.05] hover:bg-white/[0.1] text-white font-semibold text-[13px] transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRejectConfirm}
+                disabled={isProcessing || !rejectionReason.trim()}
+                className="flex-1 py-2.5 rounded-[8px] bg-[#8E1B3A]/80 hover:bg-[#8E1B3A] text-white font-semibold text-[13px] transition-all disabled:opacity-50"
+              >
+                {isProcessing ? 'Processing...' : `Reject ${rejectingInvoiceIds.length} Invoice${rejectingInvoiceIds.length > 1 ? 's' : ''}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

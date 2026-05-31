@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://pfe-s.onrender.com/api';
 
 // Create axios instance with token attachment
 const apiClient: AxiosInstance = axios.create({
@@ -249,23 +249,23 @@ export const analyticsAPI = {
 
 export const invoiceAPI = {
   uploadFile: async (file: File) => {
-      const formData = new FormData();
-      formData.append('invoiceFile', file);
-      const response = await apiClient.post('/invoices/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 60000, // Increased timeout to 60 seconds for AI processing
-      });
-      const resData = response.data.data || response.data;
-      const ext = resData.extractedData || {};
-      const mapped = {
-        ...resData,
-        invoiceNumber: ext.invoiceNumber || 'NEW',
-        companyName: ext.companyName || file.name,
-        totalAmount: ext.totalAmount || 0,
-        taxAmount: ext.tvaAmount || 0,
-        confidence: ext.confidenceScores?.overall || 0.92,
-      };
-      return { data: mapped };
+    const formData = new FormData();
+    formData.append('invoiceFile', file);
+    const response = await apiClient.post('/invoices/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 60000, // Increased timeout to 60 seconds for AI processing
+    });
+    const resData = response.data.data || response.data;
+    const ext = resData.extractedData || {};
+    const mapped = {
+      ...resData,
+      invoiceNumber: ext.invoiceNumber || 'NEW',
+      companyName: ext.companyName || file.name,
+      totalAmount: ext.totalAmount || 0,
+      taxAmount: ext.tvaAmount || 0,
+      confidence: ext.confidenceScores?.overall || 0.92,
+    };
+    return { data: mapped };
   },
 
   createManual: async (data: any) => {

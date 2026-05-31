@@ -44,7 +44,7 @@ const extractInvoiceData = async (filePath) => {
     console.log(`   📄 File type: ${mimeType}, Size: ${(fileBuffer.length / 1024).toFixed(1)} KB`);
 
     // Use Gemini Flash Latest (confirmed working in your environment)
-    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const prompt = `You are an expert invoice data extractor. Extract the following fields from the invoice image and return them as a valid JSON object.
     

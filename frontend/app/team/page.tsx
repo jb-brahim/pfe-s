@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth-context';
 import { userAPI, auditAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { ResponsiveContainer, AreaChart, Area, XAxis, Tooltip } from 'recharts';
-import { Search, Plus, MoreHorizontal, CheckCircle2, Shield, ArrowRight, UserPlus, X, Clock, Activity, Settings2 } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, CheckCircle2, Shield, ArrowRight, UserPlus, X, Clock, Activity, Settings2, User } from 'lucide-react';
 
 interface Employee {
   userId: string;
@@ -52,25 +52,25 @@ export default function TeamPage() {
         userAPI.getStats(),
         auditAPI.getTrail()
       ]);
-      
+
       if (res.data) {
         setEmployeesList(res.data);
       }
-      
+
       if (auditRes.data) {
         const formattedLogs = auditRes.data.slice(0, 50).map((log: any) => ({
           id: log._id,
           user: log.userId?.name || log.user || 'System',
-          action: log.action === 'CREATE' || log.action === 'UPLOAD' ? 'uploaded a new invoice' : 
-                 log.action === 'APPROVE' ? 'approved an invoice' : 
-                 log.action === 'REJECT' ? 'rejected an invoice' : 
-                 log.action === 'EXTRACT' ? 'extracted data from an invoice' : 
-                 log.action === 'AI_EXTRACTION' ? 'ran AI data extraction' :
-                 log.action === 'VERIFICATION' ? 'verified invoice data' :
-                 `${log.action.toLowerCase().replace(/_/g, ' ')}`,
+          action: log.action === 'CREATE' || log.action === 'UPLOAD' ? 'uploaded a new invoice' :
+            log.action === 'APPROVE' ? 'approved an invoice' :
+              log.action === 'REJECT' ? 'rejected an invoice' :
+                log.action === 'EXTRACT' ? 'extracted data from an invoice' :
+                  log.action === 'AI_EXTRACTION' ? 'ran AI data extraction' :
+                    log.action === 'VERIFICATION' ? 'verified invoice data' :
+                      `${log.action.toLowerCase().replace(/_/g, ' ')}`,
           rawAction: log.action || 'UPDATE',
           time: new Date(log.createdAt || log.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-          img: log.userId?.profileImage ? `http://localhost:5000/${log.userId.profileImage}` : `https://i.pravatar.cc/150?u=${log.userId?.email || 'user'}`,
+          profileImage: log.userId?.profileImage ? `http://localhost:5000/${log.userId.profileImage}` : null,
           entityId: log.entityId || log.invoiceId || 'N/A',
           entityType: log.entityType || 'Invoice'
         }));
@@ -93,14 +93,14 @@ export default function TeamPage() {
       toast.error('Email and Full Name are required.');
       return;
     }
-    
+
     // Generate a secure random password
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
     let generatedPassword = '';
     for (let i = 0; i < 12; i++) {
       generatedPassword += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    
+
     // Map UI role to backend DB role enum
     const apiRole: 'ADMIN' | 'ACCOUNTANT' | 'DELIVERY' = inviteRole === 'Admin' ? 'ADMIN' : (inviteRole === 'Delivery' ? 'DELIVERY' : 'ACCOUNTANT');
 
@@ -108,10 +108,10 @@ export default function TeamPage() {
       const res = await userAPI.invite(inviteEmail, apiRole, inviteName, generatedPassword);
       if (res.success) {
         toast.success(`Invite sent to ${inviteName}! They will receive an email with their auto-generated password.`);
-        
+
         // Log the generated password to the console for demonstration purposes
         console.log(`[EMAIL SIMULATION] Sent to: ${inviteEmail} | Role: ${inviteRole} | Password: ${generatedPassword}`);
-        
+
         setInviteEmail('');
         setInviteName('');
         setInviteRole('Analyst');
@@ -168,7 +168,7 @@ export default function TeamPage() {
   };
 
   const getRoleBadge = (role: string, level?: number) => {
-    switch(role) {
+    switch (role) {
       case 'ADMIN': return <span className="bg-[#8E1B3A]/30 text-[#D98F8F] border border-[#8E1B3A]/50 px-2.5 py-0.5 rounded-[8px] text-[11px] font-bold tracking-wide">Admin</span>;
       case 'ACCOUNTANT': return <span className="bg-[#FFC107]/10 text-[#FFC107] border border-[#FFC107]/30 px-2.5 py-0.5 rounded-[8px] text-[11px] font-bold tracking-wide">Accountant {level === 2 ? 'L2' : 'L1'}</span>;
       case 'DELIVERY': return <span className="bg-blue-500/10 text-blue-400 border border-blue-500/30 px-2.5 py-0.5 rounded-[8px] text-[11px] font-bold tracking-wide">Delivery</span>;
@@ -190,7 +190,7 @@ export default function TeamPage() {
   };
 
   // Filtered employees by search
-  const filteredEmployees = employeesList.filter(emp => 
+  const filteredEmployees = employeesList.filter(emp =>
     emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     emp.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -206,7 +206,7 @@ export default function TeamPage() {
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-6 w-full pb-10 max-w-[1600px] mx-auto relative">
-        
+
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
@@ -217,7 +217,7 @@ export default function TeamPage() {
 
         {/* TOP ROW: Employee Table & Invite Form */}
         <div className="flex flex-col lg:grid lg:grid-cols-[1fr_350px] gap-6">
-          
+
           {/* Invite Employee Form (Always Visible) */}
           {currentUser?.role === 'ADMIN' && (
             <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.08)] rounded-[24px] shadow-lg flex flex-col h-fit overflow-hidden relative order-first lg:order-last">
@@ -225,35 +225,35 @@ export default function TeamPage() {
               <form onSubmit={handleInvite} className="p-6">
                 <div className="flex items-center mb-6">
                   <h3 className="text-white text-[18px] font-bold flex items-center gap-2">
-                    <UserPlus size={18} className="text-[#D98F8F]"/> Invite Employee
+                    <UserPlus size={18} className="text-[#D98F8F]" /> Invite Employee
                   </h3>
                 </div>
 
                 <div className="space-y-4">
                   <div>
                     <label className="text-[#A69697] text-[13px] block mb-1">Email Address</label>
-                    <input 
-                      type="email" 
-                      placeholder="e.g. employee@company.com" 
+                    <input
+                      type="email"
+                      placeholder="e.g. employee@company.com"
                       value={inviteEmail}
                       onChange={(e) => setInviteEmail(e.target.value)}
-                      className="w-full bg-[#1A0A0B] border border-white/10 rounded-[12px] py-2.5 px-4 text-[13px] text-white outline-none focus:border-[#D98F8F] transition-colors" 
+                      className="w-full bg-[#1A0A0B] border border-white/10 rounded-[12px] py-2.5 px-4 text-[13px] text-white outline-none focus:border-[#D98F8F] transition-colors"
                     />
                   </div>
                   <div>
                     <label className="text-[#A69697] text-[13px] block mb-1">Full Name</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. Jane Doe" 
+                    <input
+                      type="text"
+                      placeholder="e.g. Jane Doe"
                       value={inviteName}
                       onChange={(e) => setInviteName(e.target.value)}
-                      className="w-full bg-[#1A0A0B] border border-white/10 rounded-[12px] py-2.5 px-4 text-[13px] text-white outline-none focus:border-[#D98F8F] transition-colors" 
+                      className="w-full bg-[#1A0A0B] border border-white/10 rounded-[12px] py-2.5 px-4 text-[13px] text-white outline-none focus:border-[#D98F8F] transition-colors"
                     />
                   </div>
 
                   <div>
                     <label className="text-[#A69697] text-[13px] block mb-1">Primary Role</label>
-                    <select 
+                    <select
                       value={inviteRole}
                       onChange={(e) => setInviteRole(e.target.value)}
                       className="w-full bg-[#1A0A0B] border border-white/10 rounded-[12px] py-2.5 px-4 text-[13px] text-white outline-none focus:border-[#D98F8F] transition-colors appearance-none cursor-pointer"
@@ -273,7 +273,7 @@ export default function TeamPage() {
               </form>
             </div>
           )}
-          
+
           {/* Employee Directory */}
           <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.08)] rounded-[24px] shadow-lg flex flex-col overflow-hidden">
             <div className="p-6 border-b border-white/5 flex items-center justify-between">
@@ -289,7 +289,7 @@ export default function TeamPage() {
                 />
               </div>
             </div>
-            
+
             <div className="overflow-x-auto flex-1">
               <table className="w-full text-left border-collapse">
                 <thead>
@@ -322,11 +322,13 @@ export default function TeamPage() {
                       <tr key={emp.userId} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-3">
-                            <img 
-                              src={emp.profileImage ? `http://localhost:5000/${emp.profileImage}` : `https://i.pravatar.cc/150?u=${emp.email}`} 
-                              alt={emp.name} 
-                              className="w-10 h-10 rounded-full border border-white/10 object-cover" 
-                            />
+                            {emp.profileImage ? (
+                              <img src={`http://localhost:5000/${emp.profileImage}`} alt={emp.name} className="w-10 h-10 rounded-full border border-white/10 object-cover" />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-[#A69697] shrink-0">
+                                <User size={18} />
+                              </div>
+                            )}
                             <div>
                               <p className="font-bold text-[14px] text-white">{emp.name}</p>
                               <p className="text-[#A69697] text-[12px]">{getTitle(emp.name, emp.role)}</p>
@@ -343,19 +345,19 @@ export default function TeamPage() {
                         </td>
                         <td className="py-4 px-6 relative">
                           <div className="flex items-center justify-end">
-                            <button 
+                            <button
                               onClick={() => setActionMenuUserId(actionMenuUserId === emp.userId ? null : emp.userId)}
                               className="text-[#A69697] hover:text-[#D98F8F] p-2 transition-colors"
                             >
                               <MoreHorizontal size={18} />
                             </button>
-                            
+
                             {actionMenuUserId === emp.userId && (
                               <div className="absolute right-6 top-12 bg-[#1A0A0B] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-30 w-44">
                                 <div className="p-1">
                                   {currentUser?.role === 'ADMIN' && emp.userId !== currentUser?._id && (
                                     <>
-                                      <button 
+                                      <button
                                         onClick={() => {
                                           handleRoleToggle(emp.userId, emp.role);
                                           setActionMenuUserId(null);
@@ -365,7 +367,7 @@ export default function TeamPage() {
                                         Change to {emp.role === 'ADMIN' ? 'Accountant' : 'Admin'}
                                       </button>
                                       {emp.role === 'ACCOUNTANT' && (
-                                        <button 
+                                        <button
                                           onClick={() => {
                                             handleLevelToggle(emp.userId, emp.approvalLevel || 1);
                                             setActionMenuUserId(null);
@@ -375,7 +377,7 @@ export default function TeamPage() {
                                           {(emp.approvalLevel || 1) === 1 ? 'Promote to Level 2' : 'Demote to Level 1'}
                                         </button>
                                       )}
-                                      <button 
+                                      <button
                                         onClick={() => {
                                           handleDelete(emp.userId, emp.name);
                                           setActionMenuUserId(null);
@@ -408,18 +410,18 @@ export default function TeamPage() {
               </table>
             </div>
           </div>
-          
+
         </div>
 
         {/* BOTTOM ROW: Activity */}
         <div className="w-full mt-2">
-          
+
           {/* Recent Activity */}
           <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.08)] rounded-[24px] p-6 shadow-lg">
             <h3 className="text-[#FFFFFF] text-[16px] font-bold mb-6 flex items-center gap-2">
-              <Activity className="text-[#D98F8F]" size={16}/> Activity Logs
+              <Activity className="text-[#D98F8F]" size={16} /> Activity Logs
             </h3>
-            
+
             <div className="flex flex-col gap-5 max-h-[320px] overflow-y-auto pr-4 custom-scrollbar">
               {activityLogs.length === 0 ? (
                 <p className="text-[#A69697] text-[13px] text-center py-4">No recent activity</p>
@@ -427,7 +429,13 @@ export default function TeamPage() {
                 activityLogs.map((log) => (
                   <div key={log.id} className="flex gap-4 items-center justify-between p-4 rounded-[12px] bg-[#1A0A0B]/30 border border-white/5 hover:border-white/10 transition-colors">
                     <div className="flex gap-4 items-center">
-                      <img src={log.img} className="w-10 h-10 rounded-full border border-white/10 shrink-0 object-cover" />
+                      {log.profileImage ? (
+                        <img src={log.profileImage} className="w-10 h-10 rounded-full border border-white/10 shrink-0 object-cover" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-[#A69697] shrink-0">
+                          <User size={18} />
+                        </div>
+                      )}
                       <div>
                         <p className="text-[14px] text-white leading-snug">
                           <span className="font-bold">{log.user}</span> {log.action}
@@ -437,7 +445,7 @@ export default function TeamPage() {
                         </p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-8 pr-4 hidden md:flex">
                       <div className="flex flex-col items-end">
                         <span className="text-[#A69697] text-[11px] uppercase tracking-wider font-bold">Document ID</span>
@@ -449,13 +457,13 @@ export default function TeamPage() {
                       </div>
                       <div className="w-24 flex justify-end">
                         {log.rawAction === 'APPROVE' ? (
-                           <span className="bg-[#4CAF50]/10 text-[#4CAF50] border border-[#4CAF50]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">APPROVED</span>
+                          <span className="bg-[#4CAF50]/10 text-[#4CAF50] border border-[#4CAF50]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">APPROVED</span>
                         ) : log.rawAction === 'REJECT' ? (
-                           <span className="bg-[#D98F8F]/10 text-[#D98F8F] border border-[#D98F8F]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">REJECTED</span>
+                          <span className="bg-[#D98F8F]/10 text-[#D98F8F] border border-[#D98F8F]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">REJECTED</span>
                         ) : log.rawAction === 'VERIFICATION' ? (
-                           <span className="bg-[#FFC107]/10 text-[#FFC107] border border-[#FFC107]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">VERIFIED</span>
+                          <span className="bg-[#FFC107]/10 text-[#FFC107] border border-[#FFC107]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">VERIFIED</span>
                         ) : (
-                           <span className="bg-white/5 text-[#A69697] border border-white/10 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">{log.rawAction}</span>
+                          <span className="bg-white/5 text-[#A69697] border border-white/10 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">{log.rawAction}</span>
                         )}
                       </div>
                     </div>

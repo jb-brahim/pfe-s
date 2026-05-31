@@ -5,12 +5,12 @@ import { DashboardLayout } from '@/components/dashboard-layout';
 import { useAuth } from '@/lib/auth-context';
 import { authAPI, userAPI } from '@/lib/api';
 import { toast } from 'sonner';
-import { User as UserIcon, Lock, Bell, Palette, Building, CreditCard, Key, Link as LinkIcon, Save, Copy, CheckCircle2, ChevronRight, Network, X } from 'lucide-react';
+import { User as UserIcon, Lock, Bell, Key, Link as LinkIcon, Save, CheckCircle2, ChevronRight, Network, X, Copy } from 'lucide-react';
 
 export default function SettingsPage() {
   const { user, updateUser } = useAuth();
   const [theme, setTheme] = useState('dark');
-  const [activeTab, setActiveTab] = useState<'general' | 'security' | 'notifications' | 'integrations' | 'billing'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'security' | 'notifications' | 'integrations'>('general');
   const profileInputRef = useRef<HTMLInputElement>(null);
 
   // Profile fields state
@@ -22,7 +22,7 @@ export default function SettingsPage() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
-
+  const [passwordUpdated, setPasswordUpdated] = useState(false);
   // Integrations & Company
   const [ttnAccountId, setTtnAccountId] = useState('');
   const [ttnIntegrationKey, setTtnIntegrationKey] = useState('');
@@ -114,6 +114,13 @@ export default function SettingsPage() {
     handlePreferenceToggle('darkMode', isDark);
   };
 
+  useEffect(() => {
+    if (passwordUpdated) {
+      const timer = setTimeout(() => setPasswordUpdated(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [passwordUpdated]);
+
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentPassword || !newPassword) {
@@ -124,6 +131,7 @@ export default function SettingsPage() {
     try {
       await authAPI.changePassword(currentPassword, newPassword);
       toast.success('Password updated successfully!');
+      setPasswordUpdated(true);
       setCurrentPassword('');
       setNewPassword('');
     } catch (err: any) {
@@ -209,7 +217,7 @@ export default function SettingsPage() {
         {/* Header */}
         <div className="mb-2">
           <h1 className="text-[32px] font-bold tracking-tight mb-1 text-[#FFFFFF]">Platform Settings</h1>
-          <p className="text-[#A69697] text-[15px]">Manage your profile, security, integrations, and billing preferences.</p>
+          <p className="text-[#A69697] text-[15px]">Manage your profile, security, and integrations preferences.</p>
         </div>
 
         {/* TAB NAVIGATION & CONTENT */}
@@ -223,8 +231,7 @@ export default function SettingsPage() {
                 { id: 'security', label: 'Security', icon: <Lock size={16} /> },
                 { id: 'notifications', label: 'Notifications', icon: <Bell size={16} /> },
                 ...(user?.role === 'ADMIN' ? [
-                  { id: 'integrations', label: 'Integrations', icon: <Network size={16} /> },
-                  { id: 'billing', label: 'Billing', icon: <CreditCard size={16} /> }
+                  { id: 'integrations', label: 'Integrations', icon: <Network size={16} /> }
                 ] : [])
               ].map((tab) => (
                 <button
@@ -259,11 +266,17 @@ export default function SettingsPage() {
                       className="relative cursor-pointer group"
                       onClick={() => profileInputRef.current?.click()}
                     >
-                      <img 
-                        src={user?.profileImage ? `http://localhost:5000/${user.profileImage}` : `https://i.pravatar.cc/150?u=${user?.email}`} 
-                        alt="Profile" 
-                        className="w-20 h-20 rounded-full border-2 border-[#D98F8F]/50 shadow-[0_0_15px_rgba(217,143,143,0.2)] object-cover group-hover:opacity-70 transition-opacity" 
-                      />
+                      {user?.profileImage ? (
+                        <img 
+                          src={`http://localhost:5000/${user.profileImage}`} 
+                          alt="Profile" 
+                          className="w-20 h-20 rounded-full border-2 border-[#D98F8F]/50 shadow-[0_0_15px_rgba(217,143,143,0.2)] object-cover group-hover:opacity-70 transition-opacity" 
+                        />
+                      ) : (
+                        <div className="w-20 h-20 rounded-full border-2 border-[#D98F8F]/50 shadow-[0_0_15px_rgba(217,143,143,0.2)] bg-[#1A0A0B] flex items-center justify-center group-hover:opacity-70 transition-opacity text-[#A69697]">
+                          <UserIcon size={32} />
+                        </div>
+                      )}
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <span className="text-white text-[11px] font-bold bg-black/50 px-3 py-1 rounded-full">Edit</span>
                       </div>
@@ -308,6 +321,11 @@ export default function SettingsPage() {
             {activeTab === 'security' && (
               <div className="flex flex-col gap-6">
                 <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-[rgba(255,255,255,0.05)] rounded-[24px] p-6 shadow-lg">
+                  {passwordUpdated && (
+                    <div className="mb-4 p-3 bg-[#4CAF50]/20 border border-[#4CAF50]/50 rounded-[12px] text-[#4CAF50] font-medium">
+                      Password has been updated successfully.
+                    </div>
+                  )}
                   <h3 className="text-[#FFFFFF] text-[16px] font-bold mb-6">Security & Authentication</h3>
 
 
@@ -406,63 +424,6 @@ export default function SettingsPage() {
                 </div>
 
 
-              </div>
-            )}
-
-
-            {/* BILLING TAB */}
-            {activeTab === 'billing' && user?.role === 'ADMIN' && (
-              <div className="flex flex-col gap-6">
-                <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-[rgba(255,255,255,0.05)] rounded-[24px] p-8 shadow-lg relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#D98F8F] to-[#8E1B3A] rounded-full blur-[80px] opacity-10 pointer-events-none"></div>
-                  
-                  <div className="flex justify-between items-start mb-10">
-                    <div>
-                      <h3 className="text-[#FFFFFF] text-[18px] font-bold mb-1">Current Plan: {user?.billing?.plan || 'Pro Quarterly'}</h3>
-                      <p className="text-[#A69697] text-[13px]">Your plan auto-renews on {user?.billing?.renewalDate ? new Date(user.billing.renewalDate).toLocaleDateString() : 'Nov 1, 2026'}</p>
-                    </div>
-                    <button className="bg-white/10 text-white px-4 py-2 rounded-[10px] text-[12px] font-bold hover:bg-white/20 transition-colors">
-                      Upgrade Plan
-                    </button>
-                  </div>
-
-                  <div className="grid sm:grid-cols-2 gap-8 mb-8">
-                    <div>
-                      <div className="flex justify-between text-[13px] mb-2 font-medium">
-                        <span className="text-white">AI Vision Scans Usage</span>
-                        <span className="text-white">{user?.billing?.aiScansUsed || 0} / {user?.billing?.aiScansLimit || 5000}</span>
-                      </div>
-                      <div className="w-full h-2 bg-[#1A0A0B] rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] rounded-full"
-                          style={{ width: `${Math.min(100, ((user?.billing?.aiScansUsed || 0) / (user?.billing?.aiScansLimit || 5000)) * 100)}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="flex justify-between text-[13px] mb-2 font-medium">
-                        <span className="text-white">Cloud Data Storage</span>
-                        <span className="text-white">{user?.billing?.storageUsedGB || 0}GB / {user?.billing?.storageLimitGB || 50}GB</span>
-                      </div>
-                      <div className="w-full h-2 bg-[#1A0A0B] rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] rounded-full"
-                          style={{ width: `${Math.min(100, ((user?.billing?.storageUsedGB || 0) / (user?.billing?.storageLimitGB || 50)) * 100)}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-6 border-t border-white/5 flex gap-4">
-                    <button className="text-[#D98F8F] text-[13px] font-bold hover:text-white transition-colors">
-                      View Past Invoices
-                    </button>
-                    <button className="text-[#D98F8F] text-[13px] font-bold hover:text-white transition-colors">
-                      Update Payment Method
-                    </button>
-                  </div>
-                </div>
               </div>
             )}
 
