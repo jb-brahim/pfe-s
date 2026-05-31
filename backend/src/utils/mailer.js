@@ -1,34 +1,34 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 const sendMail = async (to, subject, text, html) => {
   try {
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.warn('[MAILER] SMTP_USER or SMTP_PASS not set in .env. Skipping email dispatch.');
-      return { success: false, error: 'SMTP credentials missing' };
+    if (!process.env.RESEND_API_KEY) {
+      console.warn('[MAILER] RESEND_API_KEY not set in environment. Skipping email dispatch.');
+      return { success: false, error: 'RESEND_API_KEY missing' };
     }
 
-    console.log(`[MAILER] Attempting to send email to: ${to} using SMTP_USER: ${process.env.SMTP_USER}`);
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS, // This must be a Google App Password
-      },
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    console.log(`[MAILER] Attempting to send email to: ${to} using Resend HTTP API...`);
+    
+    // IMPORTANT: When using Resend without a verified custom domain, 
+    // the 'from' address MUST be 'onboarding@resend.dev'.
+    const { data, error } = await resend.emails.send({
+      from: 'aura Invoice AI <onboarding@resend.dev>',
+      to: [to],
+      subject: subject,
+      html: html || `<p>${text}</p>`,
     });
 
-    console.log(`[MAILER] Transport created, sending mail...`);
-    const info = await transporter.sendMail({
-      from: `"aura Invoice AI" <${process.env.SMTP_USER}>`,
-      to,
-      subject,
-      text,
-      html,
-    });
+    if (error) {
+      console.error('[MAILER] Resend API Error:', error);
+      return { success: false, error: error.message };
+    }
 
-    console.log(`[MAILER] Email sent successfully to ${to}: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
+    console.log(`[MAILER] Email sent successfully to ${to} via Resend. ID: ${data.id}`);
+    return { success: true, messageId: data.id };
   } catch (error) {
-    console.error('[MAILER] Error sending email:', error);
+    console.error('[MAILER] Unexpected error sending email:', error);
     return { success: false, error: error.message };
   }
 };
