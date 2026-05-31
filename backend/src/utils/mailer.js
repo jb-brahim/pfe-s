@@ -7,6 +7,7 @@ const sendMail = async (to, subject, text, html) => {
       return { success: false, error: 'SMTP credentials missing' };
     }
 
+    console.log(`[MAILER] Attempting to send email to: ${to} using SMTP_USER: ${process.env.SMTP_USER}`);
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -15,6 +16,7 @@ const sendMail = async (to, subject, text, html) => {
       },
     });
 
+    console.log(`[MAILER] Transport created, sending mail...`);
     const info = await transporter.sendMail({
       from: `"aura Invoice AI" <${process.env.SMTP_USER}>`,
       to,
