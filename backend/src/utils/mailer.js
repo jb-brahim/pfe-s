@@ -1,32 +1,41 @@
-const { Resend } = require('resend');
-
 const sendMail = async (to, subject, text, html) => {
   try {
-    if (!process.env.RESEND_API_KEY) {
-      console.warn('[MAILER] RESEND_API_KEY not set in environment. Skipping email dispatch.');
-      return { success: false, error: 'RESEND_API_KEY missing' };
+    if (!process.env.BREVO_API_KEY || !process.env.SMTP_USER) {
+      console.warn('[MAILER] BREVO_API_KEY or SMTP_USER not set in environment. Skipping email dispatch.');
+      return { success: false, error: 'Credentials missing' };
     }
 
-    const resend = new Resend(process.env.RESEND_API_KEY);
-
-    console.log(`[MAILER] Attempting to send email to: ${to} using Resend HTTP API...`);
+    console.log(`[MAILER] Attempting to send email to: ${to} using Brevo HTTP API...`);
     
-    // IMPORTANT: When using Resend without a verified custom domain, 
-    // the 'from' address MUST be 'onboarding@resend.dev'.
-    const { data, error } = await resend.emails.send({
-      from: 'aura Invoice AI <onboarding@resend.dev>',
-      to: [to],
-      subject: subject,
-      html: html || `<p>${text}</p>`,
+    // We use the built-in fetch API to bypass Render's SMTP block (Port 443)
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': process.env.BREVO_API_KEY,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        sender: {
+          name: 'aura Invoice AI',
+          email: process.env.SMTP_USER // This MUST be your verified Gmail address in Brevo
+        },
+        to: [{ email: to }],
+        subject: subject,
+        htmlContent: html || `<p>${text}</p>`,
+        textContent: text
+      })
     });
 
-    if (error) {
-      console.error('[MAILER] Resend API Error:', error);
-      return { success: false, error: error.message };
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('[MAILER] Brevo API Error:', errorData);
+      return { success: false, error: errorData };
     }
 
-    console.log(`[MAILER] Email sent successfully to ${to} via Resend. ID: ${data.id}`);
-    return { success: true, messageId: data.id };
+    const data = await response.json();
+    console.log(`[MAILER] Email sent successfully to ${to} via Brevo. Message ID: ${data.messageId}`);
+    return { success: true, messageId: data.messageId };
   } catch (error) {
     console.error('[MAILER] Unexpected error sending email:', error);
     return { success: false, error: error.message };
