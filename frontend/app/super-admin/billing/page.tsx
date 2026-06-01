@@ -32,9 +32,9 @@ export default function BillingPage() {
   }
 
   const metrics = [
-    { label: 'Monthly Recurring Revenue', value: `$${stats?.mrr || 0}`, trend: '+0.0%' },
+    { label: 'Monthly Recurring Revenue', value: `${stats?.mrr || 0} TND`, trend: '+0.0%' },
     { label: 'Active Subscriptions', value: stats?.activeSubscriptions || 0, trend: '+0' },
-    { label: 'Avg Revenue Per User', value: `$${stats?.avgRevenuePerUser || 0}`, trend: '+$0.00' },
+    { label: 'Avg Revenue Per User', value: `${stats?.avgRevenuePerUser || 0} TND`, trend: '+0.00 TND' },
   ];
 
   const total = stats?.activeSubscriptions || 1; // prevent div by zero
@@ -72,7 +72,7 @@ export default function BillingPage() {
         <div className="space-y-6 max-w-2xl">
           <div>
             <div className="flex justify-between text-[12px] mb-2">
-              <span className="text-white font-medium">Enterprise ($299/mo)</span>
+              <span className="text-white font-medium">Enterprise (299 TND/mo)</span>
               <span className="text-[#A69697]">{stats?.distribution?.Enterprise || 0} organizations</span>
             </div>
             <div className="h-2 w-full rounded-full bg-white/5">
@@ -81,7 +81,7 @@ export default function BillingPage() {
           </div>
           <div>
             <div className="flex justify-between text-[12px] mb-2">
-              <span className="text-white font-medium">Pro ($99/mo)</span>
+              <span className="text-white font-medium">Pro (99 TND/mo)</span>
               <span className="text-[#A69697]">{stats?.distribution?.Pro || 0} organizations</span>
             </div>
             <div className="h-2 w-full rounded-full bg-white/5">

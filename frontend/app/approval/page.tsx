@@ -8,6 +8,7 @@ import {
   Search, Shield, User, Clock, Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useLanguage } from '@/lib/i18n-context';
 
 interface ApprovalInvoice {
   _id: string;
@@ -26,6 +27,7 @@ const formatCurrency = (val: number) =>
   new Intl.NumberFormat('fr-TN', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(val) + ' TND';
 
 export default function ApprovalPage() {
+  const { t } = useLanguage();
   const [invoices, setInvoices] = useState<ApprovalInvoice[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -75,7 +77,7 @@ export default function ApprovalPage() {
     try {
       const promises = ids.map(id => workflowAPI.approve(id, 'APPROVED', comment));
       await Promise.all(promises);
-      toast.success(`Successfully approved ${ids.length} invoice(s)`);
+      toast.success(`${t('approval.toast.approve_success')} ${ids.length} ${t('approval.toast.invoices_count')}`);
       
       setInvoices(invoices.filter(inv => !ids.includes(inv._id)));
       if (drawerInvoice && ids.includes(drawerInvoice._id)) {
@@ -83,7 +85,7 @@ export default function ApprovalPage() {
       }
       setSelectedIds(new Set());
     } catch (error) {
-      toast.error('Failed to approve some invoices');
+      toast.error(t('approval.toast.approve_failed'));
     } finally {
       setIsProcessing(false);
     }
@@ -102,7 +104,7 @@ export default function ApprovalPage() {
     try {
       const promises = rejectingInvoiceIds.map(id => workflowAPI.approve(id, 'REJECTED', rejectionReason));
       await Promise.all(promises);
-      toast.success(`Successfully rejected ${rejectingInvoiceIds.length} invoice(s)`);
+      toast.success(`${t('approval.toast.reject_success')} ${rejectingInvoiceIds.length} ${t('approval.toast.invoices_count')}`);
       
       setInvoices(invoices.filter(inv => !rejectingInvoiceIds.includes(inv._id)));
       if (drawerInvoice && rejectingInvoiceIds.includes(drawerInvoice._id)) {
@@ -111,7 +113,7 @@ export default function ApprovalPage() {
       setSelectedIds(new Set());
       setShowRejectModal(false);
     } catch (error) {
-      toast.error('Failed to reject some invoices');
+      toast.error(t('approval.toast.reject_failed'));
     } finally {
       setIsProcessing(false);
     }
@@ -135,10 +137,10 @@ export default function ApprovalPage() {
             <div className="flex items-center gap-3 mb-1.5">
               <ClipboardCheck size={28} className="text-[#D98F8F]" />
               <h1 className="text-[28px] font-bold tracking-tight text-white">
-                Approval Workflows
+                {t('approval.title')}
               </h1>
             </div>
-            <p className="text-[#A69697] text-[15px]">Review and approve submitted invoices in bulk with full audit trail.</p>
+            <p className="text-[#A69697] text-[15px]">{t('approval.subtitle')}</p>
           </div>
         </div>
 
@@ -153,7 +155,7 @@ export default function ApprovalPage() {
               </div>
               <input
                 type="text"
-                placeholder="Search invoice # or company..."
+                placeholder={t('approval.search_placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-[#1A0A0B]/80 border border-white/10 rounded-[8px] py-2 pl-9 pr-3 text-[13px] text-white outline-none focus:border-[#D98F8F]/50 transition-all placeholder:text-[#A69697]"
@@ -162,14 +164,14 @@ export default function ApprovalPage() {
 
             {/* Bulk Actions */}
             <div className={`flex items-center gap-3 transition-opacity duration-300 ${selectedIds.size > 0 ? 'opacity-100 pointer-events-auto' : 'opacity-50 pointer-events-none'}`}>
-              <span className="text-[13px] font-medium text-white mr-2">{selectedIds.size} selected</span>
+              <span className="text-[13px] font-medium text-white mr-2">{selectedIds.size} {t('approval.selected')}</span>
               <button
                 onClick={() => handleApprove(Array.from(selectedIds))}
                 disabled={isProcessing || selectedIds.size === 0}
                 className="flex items-center gap-2 px-4 py-2 rounded-[8px] bg-[#4CAF50]/15 hover:bg-[#4CAF50]/25 text-[#4CAF50] border border-[#4CAF50]/30 font-semibold text-[13px] transition-all disabled:opacity-50"
               >
                 <Check size={16} strokeWidth={2.5} />
-                Approve
+                {t('approval.approve')}
               </button>
               <button
                 onClick={() => openRejectModal(Array.from(selectedIds))}
@@ -177,7 +179,7 @@ export default function ApprovalPage() {
                 className="flex items-center gap-2 px-4 py-2 rounded-[8px] bg-[#8E1B3A]/20 hover:bg-[#8E1B3A]/30 text-[#D98F8F] border border-[#8E1B3A]/40 font-semibold text-[13px] transition-all disabled:opacity-50"
               >
                 <X size={16} strokeWidth={2.5} />
-                Reject
+                {t('approval.reject')}
               </button>
             </div>
           </div>
@@ -199,11 +201,11 @@ export default function ApprovalPage() {
                       {filteredInvoices.length > 0 && selectedIds.size === filteredInvoices.length && <Check size={12} className="text-[#3C0D0D]" strokeWidth={3} />}
                     </div>
                   </th>
-                  <th className="px-4 py-4">Company & Invoice</th>
-                  <th className="px-4 py-4">Submitted By</th>
-                  <th className="px-4 py-4">AI Match</th>
-                  <th className="px-4 py-4 text-right">Amount</th>
-                  <th className="px-4 py-4 text-center">Quick Actions</th>
+                  <th className="px-4 py-4">{t('approval.table.company_invoice')}</th>
+                  <th className="px-4 py-4">{t('approval.table.submitted_by')}</th>
+                  <th className="px-4 py-4">{t('approval.table.ai_match')}</th>
+                  <th className="px-4 py-4 text-right">{t('approval.table.amount')}</th>
+                  <th className="px-4 py-4 text-center">{t('approval.table.quick_actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 text-[13px]">
@@ -212,7 +214,7 @@ export default function ApprovalPage() {
                     <td colSpan={6} className="px-6 py-20 text-center text-[#A69697]">
                       <div className="flex flex-col items-center justify-center gap-3">
                         <ClipboardCheck size={40} className="opacity-20" />
-                        <p className="text-[15px]">No invoices pending approval.</p>
+                        <p className="text-[15px]">{t('approval.no_invoices')}</p>
                       </div>
                     </td>
                   </tr>
@@ -284,14 +286,14 @@ export default function ApprovalPage() {
                               disabled={isProcessing}
                               className="px-3 py-1.5 rounded-[6px] bg-[#4CAF50]/10 hover:bg-[#4CAF50]/20 text-[#4CAF50] border border-[#4CAF50]/30 font-medium text-[12px] transition-all disabled:opacity-50"
                             >
-                              Approve
+                              {t('approval.approve')}
                             </button>
                             <button 
                               onClick={() => openRejectModal([invoice._id])}
                               disabled={isProcessing}
                               className="px-3 py-1.5 rounded-[6px] bg-white/[0.03] hover:bg-[#8E1B3A]/15 text-[#A69697] hover:text-[#D98F8F] border border-white/10 hover:border-[#8E1B3A]/30 font-medium text-[12px] transition-all disabled:opacity-50"
                             >
-                              Reject
+                              {t('approval.reject')}
                             </button>
                           </div>
                         </td>
@@ -312,7 +314,7 @@ export default function ApprovalPage() {
           <div className="relative z-50 w-full max-w-[440px] bg-[#1E1E1E] border-l border-white/10 shadow-2xl h-full flex flex-col animate-in slide-in-from-right duration-300">
             {/* Drawer Header */}
             <div className="flex items-center justify-between p-5 border-b border-white/10 bg-white/[0.02]">
-              <h2 className="text-white text-[18px] font-bold">Invoice Details</h2>
+              <h2 className="text-white text-[18px] font-bold">{t('approval.drawer.title')}</h2>
               <button 
                 onClick={() => setDrawerInvoice(null)}
                 className="p-2 rounded-full hover:bg-white/10 text-[#A69697] hover:text-white transition-colors"
@@ -327,21 +329,21 @@ export default function ApprovalPage() {
               {/* Header Info */}
               <div>
                 <span className="bg-[#FFC107]/10 text-[#FFC107] border border-[#FFC107]/20 px-2 py-0.5 rounded-[4px] text-[10px] font-bold tracking-wide uppercase mb-3 inline-block">
-                  Awaiting Review
+                  {t('approval.drawer.awaiting_review')}
                 </span>
                 <h3 className="text-white text-[22px] font-bold">{drawerInvoice.companyName}</h3>
-                <p className="text-[#A69697] text-[13px] font-mono mt-1">Ref: {drawerInvoice.invoiceNumber}</p>
+                <p className="text-[#A69697] text-[13px] font-mono mt-1">{t('approval.drawer.ref')}: {drawerInvoice.invoiceNumber}</p>
               </div>
 
               {/* Amounts */}
               <div className="bg-white/[0.02] border border-white/[0.04] rounded-[12px] p-4 flex justify-between items-center">
                 <div>
-                  <p className="text-[#A69697] text-[12px]">Total Amount</p>
+                  <p className="text-[#A69697] text-[12px]">{t('approval.drawer.total_amount')}</p>
                   <p className="text-[24px] font-bold text-white tracking-tight">{formatCurrency(drawerInvoice.totalAmount)}</p>
                 </div>
                 {drawerInvoice.taxAmount != null && (
                   <div className="text-right">
-                    <p className="text-[#A69697] text-[12px]">Tax Included</p>
+                    <p className="text-[#A69697] text-[12px]">{t('approval.drawer.tax_included')}</p>
                     <p className="text-[14px] font-medium text-white">{formatCurrency(drawerInvoice.taxAmount)}</p>
                   </div>
                 )}
@@ -352,14 +354,14 @@ export default function ApprovalPage() {
                 <div className="bg-white/[0.02] border border-white/[0.04] rounded-[12px] p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <User size={14} className="text-[#A69697]" />
-                    <p className="text-[11px] text-[#A69697] uppercase tracking-wider font-semibold">Accountant</p>
+                    <p className="text-[11px] text-[#A69697] uppercase tracking-wider font-semibold">{t('approval.drawer.accountant')}</p>
                   </div>
                   <p className="text-white text-[13px] font-medium">{drawerInvoice.accountantName}</p>
                 </div>
                 <div className="bg-white/[0.02] border border-white/[0.04] rounded-[12px] p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Clock size={14} className="text-[#A69697]" />
-                    <p className="text-[11px] text-[#A69697] uppercase tracking-wider font-semibold">Submitted</p>
+                    <p className="text-[11px] text-[#A69697] uppercase tracking-wider font-semibold">{t('approval.drawer.submitted')}</p>
                   </div>
                   <p className="text-white text-[13px] font-medium">
                     {drawerInvoice.createdAt ? new Date(drawerInvoice.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Today'}
@@ -370,14 +372,14 @@ export default function ApprovalPage() {
               {/* Validation Checklist */}
               <div>
                 <h3 className="text-white text-[14px] font-semibold mb-3 flex items-center gap-2">
-                  <Shield size={16} className="text-[#D98F8F]" /> Validation Checklist
+                  <Shield size={16} className="text-[#D98F8F]" /> {t('approval.drawer.validation_checklist')}
                 </h3>
                 <div className="space-y-2">
                   {[
-                    { label: 'TVA calculation verified', pass: true },
-                    { label: `AI confidence score (${Math.round((drawerInvoice.confidence || 0) * 100)}%)`, pass: (drawerInvoice.confidence || 0) >= 0.85 },
-                    { label: 'No duplicate detected', pass: true },
-                    { label: 'Supplier data matched', pass: drawerInvoice.validationStatus ?? true },
+                    { label: t('approval.drawer.tva_verified'), pass: true },
+                    { label: `${t('approval.drawer.ai_score')} (${Math.round((drawerInvoice.confidence || 0) * 100)}%)`, pass: (drawerInvoice.confidence || 0) >= 0.85 },
+                    { label: t('approval.drawer.no_duplicate'), pass: true },
+                    { label: t('approval.drawer.supplier_matched'), pass: drawerInvoice.validationStatus ?? true },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-3 p-2.5 rounded-[8px] bg-white/[0.01] border border-white/[0.04]">
                       <div className={`w-5 h-5 rounded-[4px] flex items-center justify-center shrink-0 ${item.pass ? 'bg-[#4CAF50]/15' : 'bg-[#D98F8F]/15'}`}>
@@ -394,14 +396,14 @@ export default function ApprovalPage() {
               {/* Notes Box */}
               <div className="flex flex-col flex-1">
                 <label className="text-[13px] font-semibold text-white mb-2 flex items-center justify-between">
-                  Manager Notes 
-                  <span className="text-[#A69697] font-normal text-[11px] uppercase tracking-wider">Required for Rejection</span>
+                  {t('approval.drawer.manager_notes')} 
+                  <span className="text-[#A69697] font-normal text-[11px] uppercase tracking-wider">{t('approval.drawer.required_rejection')}</span>
                 </label>
                 <textarea
                   value={drawerComment}
                   onChange={(e) => setDrawerComment(e.target.value)}
                   className="w-full flex-1 min-h-[100px] resize-none bg-[#1A0A0B]/80 border border-white/10 rounded-[8px] px-3.5 py-3 text-[13px] text-white placeholder:text-[#A69697]/50 outline-none focus:border-[#D98F8F]/50 transition-colors"
-                  placeholder="Type any comments or rejection reasons here..."
+                  placeholder={t('approval.drawer.notes_placeholder')}
                 />
               </div>
 
@@ -425,7 +427,7 @@ export default function ApprovalPage() {
                 className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[8px] bg-white/[0.03] hover:bg-[#8E1B3A]/20 text-[#A69697] hover:text-[#D98F8F] border border-white/[0.06] hover:border-[#8E1B3A]/30 font-semibold text-[13px] transition-all disabled:opacity-50"
               >
                 <X size={16} strokeWidth={2.5} />
-                Reject
+                {t('approval.reject')}
               </button>
               <button
                 onClick={() => handleApprove([drawerInvoice._id], drawerComment || 'Approved via detail view')}
@@ -433,7 +435,7 @@ export default function ApprovalPage() {
                 className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[8px] bg-[#4CAF50]/15 hover:bg-[#4CAF50]/25 text-[#4CAF50] border border-[#4CAF50]/30 font-semibold text-[13px] transition-all disabled:opacity-50"
               >
                 <Check size={16} strokeWidth={2.5} />
-                Approve
+                {t('approval.approve')}
               </button>
             </div>
           </div>
@@ -449,8 +451,8 @@ export default function ApprovalPage() {
                 <AlertTriangle size={20} className="text-[#D98F8F]" />
               </div>
               <div>
-                <h3 className="text-white text-[18px] font-bold">Reject Invoice{rejectingInvoiceIds.length > 1 ? 's' : ''}</h3>
-                <p className="text-[#A69697] text-[13px]">Please provide a reason for rejection.</p>
+                <h3 className="text-white text-[18px] font-bold">{rejectingInvoiceIds.length > 1 ? t('approval.modal.reject_invoices') : t('approval.modal.reject_invoice')}</h3>
+                <p className="text-[#A69697] text-[13px]">{t('approval.modal.provide_reason')}</p>
               </div>
             </div>
             
@@ -458,7 +460,7 @@ export default function ApprovalPage() {
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               className="w-full h-[100px] resize-none bg-black/30 border border-white/10 rounded-[8px] px-4 py-3 text-[14px] text-white placeholder:text-[#A69697]/50 outline-none focus:border-[#D98F8F]/50 transition-colors mt-2"
-              placeholder="Reason for rejection (required)..."
+              placeholder={t('approval.modal.reason_placeholder')}
             />
             
             <div className="flex gap-3 mt-6">
@@ -466,14 +468,14 @@ export default function ApprovalPage() {
                 onClick={() => setShowRejectModal(false)}
                 className="flex-1 py-2.5 rounded-[8px] bg-white/[0.05] hover:bg-white/[0.1] text-white font-semibold text-[13px] transition-all"
               >
-                Cancel
+                {t('approval.modal.cancel')}
               </button>
               <button
                 onClick={handleRejectConfirm}
                 disabled={isProcessing || !rejectionReason.trim()}
                 className="flex-1 py-2.5 rounded-[8px] bg-[#8E1B3A]/80 hover:bg-[#8E1B3A] text-white font-semibold text-[13px] transition-all disabled:opacity-50"
               >
-                {isProcessing ? 'Processing...' : `Reject ${rejectingInvoiceIds.length} Invoice${rejectingInvoiceIds.length > 1 ? 's' : ''}`}
+                {isProcessing ? t('approval.modal.processing') : `${t('approval.reject')} ${rejectingInvoiceIds.length} ${t('approval.toast.invoices_count')}`}
               </button>
             </div>
           </div>

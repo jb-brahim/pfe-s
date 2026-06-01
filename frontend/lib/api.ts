@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 
-const API_BASE_URL = 'https://pfe-s.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // Create axios instance with token attachment
 const apiClient: AxiosInstance = axios.create({
@@ -186,8 +186,8 @@ export const authAPI = {
     return response.data;
   },
 
-  register: async (name: string, email: string, password: string, role: string) => {
-    const response = await apiClient.post('/auth/register', { name, email, password, role });
+  register: async (name: string, email: string, password: string, role: string, companyName?: string) => {
+    const response = await apiClient.post('/auth/register', { name, email, password, role, companyName });
     return response.data;
   },
 
@@ -526,6 +526,13 @@ export const reportAPI = {
 
   deleteSchedule: async (id: string) => {
     const response = await apiClient.delete(`/reports/schedules/${id}`);
+    return response.data;
+  }
+};
+
+export const subscriptionAPI = {
+  checkout: async (plan: string) => {
+    const response = await apiClient.post('/subscription/checkout', { plan });
     return response.data;
   }
 };

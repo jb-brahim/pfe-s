@@ -40,6 +40,7 @@ export default function InvoiceDetailsPage() {
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorStatus, setErrorStatus] = useState<number | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   useEffect(() => {
     const fetchInvoice = async () => {
@@ -104,11 +105,11 @@ export default function InvoiceDetailsPage() {
         </div>
 
         {/* Main Grid Layout */}
-        <div className="grid lg:grid-cols-[1.1fr_3fr] gap-6 items-stretch">
+        <div className="grid lg:grid-cols-[1.1fr_3fr] gap-6 items-start">
           
           {/* LEFT: Invoice Preview Panel */}
-          <div className="flex flex-col gap-4">
-            <div className="bg-[rgba(255,255,255,0.05)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.1)] rounded-[20px] p-5 shadow-lg flex-1 flex flex-col">
+          <div className="flex flex-col gap-4 sticky top-6">
+            <div className="bg-[rgba(255,255,255,0.05)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.1)] rounded-[20px] p-5 shadow-lg flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-[#FFFFFF] text-[16px] font-medium">Invoice Preview Panel</h3>
                 <MoreHorizontal size={18} className="text-[#A69697] cursor-pointer" />
@@ -118,25 +119,30 @@ export default function InvoiceDetailsPage() {
               <div className="flex items-center justify-between text-[#A69697] text-[13px] mb-4">
                 <span className="bg-white/5 px-3 py-1 rounded-full border border-white/5">Page</span>
                 <span className="flex items-center gap-2">Page 1 <span className="cursor-pointer">&gt;</span></span>
-                <div className="flex items-center gap-2 bg-white/5 px-2 py-1 rounded-full border border-white/5">
-                  <span className="cursor-pointer px-1">-</span> Zoom <span className="cursor-pointer px-1">+</span>
+                <div className="flex items-center gap-2 bg-white/5 px-2 py-1 rounded-full border border-white/5 select-none">
+                  <span className="cursor-pointer px-1 hover:text-white" onClick={() => setZoomLevel(prev => Math.max(0.5, prev - 0.25))}>-</span> 
+                  <span className="min-w-[40px] text-center">{Math.round(zoomLevel * 100)}%</span> 
+                  <span className="cursor-pointer px-1 hover:text-white" onClick={() => setZoomLevel(prev => Math.min(3, prev + 0.25))}>+</span>
                 </div>
               </div>
 
               {/* Real File Preview or Fallback */}
-              <div className="flex-1 bg-gradient-to-b from-[#EBD8D8] to-[#C9A9A9] rounded-[16px] text-[#2D1B1C] relative shadow-[inset_0_0_20px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col">
+              <div className="bg-gradient-to-b from-[#EBD8D8] to-[#C9A9A9] rounded-[16px] text-[#2D1B1C] relative shadow-[inset_0_0_20px_rgba(0,0,0,0.1)] overflow-auto flex flex-col max-h-[800px] custom-scrollbar">
                 {invoice.fileUrl ? (
                   invoice.fileUrl.toLowerCase().endsWith('.pdf') ? (
-                    <iframe 
-                      src={`http://localhost:5000/${invoice.fileUrl.replace(/\\/g, '/')}`} 
-                      className="w-full h-full border-none"
-                      title="Invoice PDF"
-                    />
+                    <div style={{ width: `${zoomLevel * 100}%`, minHeight: `${zoomLevel * 600}px`, transition: 'width 0.2s ease' }} className="flex-shrink-0">
+                      <iframe 
+                        src={`http://localhost:5000/${invoice.fileUrl.replace(/\\/g, '/')}`} 
+                        className="w-full h-full border-none min-h-[600px]"
+                        title="Invoice PDF"
+                      />
+                    </div>
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center p-4">
+                    <div className="w-full flex items-center justify-center p-4">
                       <img 
                         src={`http://localhost:5000/${invoice.fileUrl.replace(/\\/g, '/')}`} 
-                        className="max-w-full max-h-full object-contain"
+                        className="h-auto object-contain rounded-md shadow-sm transition-all duration-200 max-w-none origin-top"
+                        style={{ width: `${zoomLevel * 100}%` }}
                         alt="Invoice Image"
                       />
                     </div>
@@ -150,8 +156,30 @@ export default function InvoiceDetailsPage() {
               </div>
             </div>
 
-            <button className="w-full py-4 rounded-xl bg-gradient-to-r from-[#EBD8D8] to-[#D98F8F] shadow-[0_0_20px_rgba(217,143,143,0.2)] font-semibold text-[15px] flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform text-[#3C0D0D]">
-              <Download size={18} /> Download PDF Invoice
+            <button 
+              onClick={async () => {
+                if (!invoice.fileUrl) return;
+                try {
+                  const url = `http://localhost:5000/${invoice.fileUrl.replace(/\\/g, '/')}`;
+                  const response = await fetch(url);
+                  const blob = await response.blob();
+                  const downloadUrl = window.URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = downloadUrl;
+                  const extension = invoice.fileUrl.split('.').pop() || 'pdf';
+                  link.download = `Invoice-${extractedData?.invoiceNumber || invoice._id}.${extension}`;
+                  document.body.appendChild(link);
+                  link.click();
+                  link.remove();
+                  window.URL.revokeObjectURL(downloadUrl);
+                } catch (error) {
+                  console.error('Download failed:', error);
+                  window.open(`http://localhost:5000/${invoice.fileUrl.replace(/\\/g, '/')}`, '_blank');
+                }
+              }}
+              className="w-full py-4 rounded-xl bg-gradient-to-r from-[#EBD8D8] to-[#D98F8F] shadow-[0_0_20px_rgba(217,143,143,0.2)] font-semibold text-[15px] flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform text-[#3C0D0D]"
+            >
+              <Download size={18} /> Download Invoice
             </button>
           </div>
 
@@ -249,6 +277,38 @@ export default function InvoiceDetailsPage() {
                 </div>
               </div>
             </div>
+
+            {/* Products / Line Items Row */}
+            {extractedData.lineItems && extractedData.lineItems.length > 0 && (
+              <div className="bg-[rgba(255,255,255,0.05)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.1)] rounded-[16px] p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-[#FFFFFF] text-[14px] font-medium">Extracted Line Items</h3>
+                  <MoreHorizontal size={16} className="text-[#A69697]" />
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-[13px] text-[#A69697]">
+                    <thead>
+                      <tr className="border-b border-white/10">
+                        <th className="pb-2 font-medium">Description</th>
+                        <th className="pb-2 font-medium text-center">Quantity</th>
+                        <th className="pb-2 font-medium text-right">Unit Price</th>
+                        <th className="pb-2 font-medium text-right">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {extractedData.lineItems.map((item: any, idx: number) => (
+                        <tr key={idx} className="hover:bg-white/[0.02]">
+                          <td className="py-2 text-white">{item.description || 'N/A'}</td>
+                          <td className="py-2 text-center">{item.quantity || 1}</td>
+                          <td className="py-2 text-right">{item.unitPrice?.toLocaleString('fr-FR') || 0} TND</td>
+                          <td className="py-2 text-right text-white font-medium">{item.totalPrice?.toLocaleString('fr-FR') || 0} TND</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
             {/* Bottom Row: Workflow */}
             <div className="bg-[rgba(255,255,255,0.05)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.1)] rounded-[16px] p-5">

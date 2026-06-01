@@ -117,6 +117,13 @@ const uploadInvoice = async (req, res, next) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
+    const ownerId = req.user.managedBy || req.user._id;
+    const owner = await User.findById(ownerId);
+    
+    if (owner && owner.billing && owner.billing.aiScansUsed >= owner.billing.aiScansLimit) {
+      return res.status(403).json({ message: 'LIMIT_REACHED' });
+    }
+
     const invoice = await Invoice.create({
       userId: req.user._id,
       fileUrl: req.file.path,
@@ -162,6 +169,13 @@ const uploadInvoice = async (req, res, next) => {
 
       invoice.status = 'EXTRACTED';
       await invoice.save();
+
+      if (owner && owner.billing) {
+        await User.updateOne(
+          { _id: owner._id },
+          { $inc: { 'billing.aiScansUsed': 1 } }
+        );
+      }
 
       // If this request came from n8n (via API key) or has email data, create a Mail record
       const isFromN8n = req.user.email === 'n8n-bot@system.com';
@@ -599,10 +613,22 @@ const batchUpload = async (req, res, next) => {
       return res.status(400).json({ message: 'No files uploaded' });
     }
 
+    const ownerId = req.user.managedBy || req.user._id;
+    const owner = await User.findById(ownerId);
+
     const results = [];
 
     for (const file of req.files) {
       try {
+        // Check Limit
+        if (owner && owner.billing && owner.billing.aiScansUsed >= owner.billing.aiScansLimit) {
+          results.push({
+            filename: file.originalname,
+            status: 'LIMIT_REACHED'
+          });
+          continue;
+        }
+
         const invoice = await Invoice.create({
           userId: req.user._id,
           fileUrl: file.path,
@@ -612,7 +638,7 @@ const batchUpload = async (req, res, next) => {
         const aiResponse = await extractInvoiceData(file.path);
 
         // Duplicate check
-        const duplicate = await checkDuplicate(aiResponse.invoiceNumber, aiResponse.companyName);
+        const duplicate = await checkDuplicate(aiResponse.invoiceNumber, aiResponse.companyName, req.user);
         if (duplicate) {
           invoice.status = 'FAILED';
           await invoice.save();
@@ -632,6 +658,13 @@ const batchUpload = async (req, res, next) => {
 
         invoice.status = 'EXTRACTED';
         await invoice.save();
+
+        if (owner && owner.billing) {
+          await User.updateOne(
+            { _id: owner._id },
+            { $inc: { 'billing.aiScansUsed': 1 } }
+          );
+        }
 
         results.push({
           filename: file.originalname,

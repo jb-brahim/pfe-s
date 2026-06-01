@@ -52,7 +52,7 @@ export interface User {
   name: string;
   email: string;
   profileImage?: string;
-  role: 'ADMIN' | 'ACCOUNTANT' | 'SUPER_ADMIN' | 'DELIVERY';
+  role: 'ADMIN' | 'ACCOUNTANT' | 'SUPER_ADMIN';
   preferences?: Preferences;
   companyDetails?: CompanyDetails;
   apiKeys?: ApiKey[];
@@ -64,7 +64,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<User | undefined>;
-  register: (name: string, email: string, password: string, role: string) => Promise<void>;
+  register: (name: string, email: string, password: string, role: string, companyName?: string) => Promise<void>;
   verifyEmail: (email: string, code: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -110,13 +110,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const register = async (name: string, email: string, password: string, role: string) => {
+  const register = async (name: string, email: string, password: string, role: string, companyName?: string) => {
     try {
       // Clear token and user state to ensure a clean public registration
       localStorage.removeItem('authToken');
       setUser(null);
       
-      await authAPI.register(name, email, password, role);
+      await authAPI.register(name, email, password, role, companyName);
       // We don't set user/token here anymore because they need to verify email
     } catch (error) {
       throw error;

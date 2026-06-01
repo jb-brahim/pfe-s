@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Invoice = require('../models/Invoice');
 const ExtractedData = require('../models/ExtractedData');
+const AuditLog = require('../models/AuditLog');
 const bcrypt = require('bcryptjs');
 
 // ──────────────────────────────────────────────
@@ -58,6 +59,18 @@ const createUser = async (req, res, next) => {
       managedBy: req.user._id,
       isEmailVerified: true
     });
+
+    try {
+      await AuditLog.create({
+        userId: req.user._id,
+        action: `Added New Employee (${role || 'ACCOUNTANT'})`,
+        entityType: 'User',
+        entityId: user._id,
+        details: `Name: ${name}, Email: ${email}`
+      });
+    } catch (err) {
+      console.error('Failed to create audit log for employee creation:', err);
+    }
 
     // Send an email with the auto-generated password
     const { sendMail } = require('../utils/mailer');
@@ -275,6 +288,9 @@ const generateApiKey = async (req, res, next) => {
     const key = 'sk_live_' + crypto.randomBytes(16).toString('hex');
     
     const user = await User.findById(req.user._id);
+    if (!user.apiKeys) {
+      user.apiKeys = [];
+    }
     user.apiKeys.push({ name: name || 'New API Key', key });
     await user.save();
     

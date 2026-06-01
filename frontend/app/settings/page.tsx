@@ -5,12 +5,14 @@ import { DashboardLayout } from '@/components/dashboard-layout';
 import { useAuth } from '@/lib/auth-context';
 import { authAPI, userAPI } from '@/lib/api';
 import { toast } from 'sonner';
+import { useLanguage } from '@/lib/i18n-context';
 import { User as UserIcon, Lock, Bell, Key, Link as LinkIcon, Save, CheckCircle2, ChevronRight, Network, X, Copy } from 'lucide-react';
 
 export default function SettingsPage() {
   const { user, updateUser } = useAuth();
+  const { t } = useLanguage();
   const [theme, setTheme] = useState('dark');
-  const [activeTab, setActiveTab] = useState<'general' | 'security' | 'notifications' | 'integrations'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'security' | 'notifications' | 'integrations' | 'subscription'>('general');
   const profileInputRef = useRef<HTMLInputElement>(null);
 
   // Profile fields state
@@ -29,6 +31,15 @@ export default function SettingsPage() {
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
   const [companyName, setCompanyName] = useState('');
   const [taxId, setTaxId] = useState('');
+  
+  // Checkout Modal State
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState('');
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [cardName, setCardName] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvc, setCardCvc] = useState('');
 
   // Sync fields from Auth User context
   useEffect(() => {
@@ -47,17 +58,17 @@ export default function SettingsPage() {
   const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profileName.trim() || !profileEmail.trim()) {
-      toast.error('Name and email cannot be empty');
+      toast.error(t('settings.toast.name_email_req'));
       return;
     }
     try {
       const res = await authAPI.updateProfile(profileName, profileEmail);
       if (res.data) {
         updateUser({ name: res.data.name, email: res.data.email });
-        toast.success('Profile updated successfully!');
+        toast.success(t('settings.toast.profile_success'));
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to update profile');
+      toast.error(err.response?.data?.message || t('settings.toast.profile_failed'));
     }
   };
 
@@ -68,10 +79,10 @@ export default function SettingsPage() {
       const res = await userAPI.uploadProfileImage(file);
       if (res.data) {
         updateUser({ profileImage: res.data.profileImage });
-        toast.success('Profile image updated successfully!');
+        toast.success(t('settings.toast.img_success'));
       }
     } catch (err: any) {
-      toast.error('Failed to upload profile image');
+      toast.error(t('settings.toast.img_failed'));
     }
   };
 
@@ -104,7 +115,7 @@ export default function SettingsPage() {
         updateUser({ preferences: res.data.preferences });
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to update preferences');
+      toast.error(err.response?.data?.message || t('settings.toast.pref_failed'));
     }
   };
 
@@ -124,18 +135,18 @@ export default function SettingsPage() {
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentPassword || !newPassword) {
-      toast.error('Both passwords are required');
+      toast.error(t('settings.toast.pass_req'));
       return;
     }
     setPasswordLoading(true);
     try {
       await authAPI.changePassword(currentPassword, newPassword);
-      toast.success('Password updated successfully!');
+      toast.success(t('settings.toast.pass_success'));
       setPasswordUpdated(true);
       setCurrentPassword('');
       setNewPassword('');
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to update password');
+      toast.error(err.response?.data?.message || t('settings.toast.pass_failed'));
     } finally {
       setPasswordLoading(false);
     }
@@ -147,10 +158,10 @@ export default function SettingsPage() {
       const res = await userAPI.updateIntegrations(integrations);
       if (res.data) {
         updateUser({ integrations: res.data.integrations });
-        toast.success('TTN Integrations updated!');
+        toast.success(t('settings.toast.integ_success'));
       }
     } catch (err) {
-      toast.error('Failed to update integrations');
+      toast.error(t('settings.toast.integ_failed'));
     }
   };
 
@@ -161,10 +172,10 @@ export default function SettingsPage() {
       const res = await userAPI.updateIntegrations(integrations);
       if (res.data) {
         updateUser({ integrations: res.data.integrations });
-        toast.success('Integration status updated!');
+        toast.success(t('settings.toast.integ_status_success'));
       }
     } catch (err) {
-      toast.error('Failed to toggle integration');
+      toast.error(t('settings.toast.integ_status_failed'));
     }
   };
 
@@ -174,11 +185,11 @@ export default function SettingsPage() {
       const res = await userAPI.updateCompanyDetails({ name: companyName, taxId });
       if (res.data) {
         updateUser({ companyDetails: res.data.companyDetails });
-        toast.success('Company details saved!');
+        toast.success(t('settings.toast.company_success'));
         setIsCompanyModalOpen(false);
       }
     } catch (err) {
-      toast.error('Failed to save company details');
+      toast.error(t('settings.toast.company_failed'));
     }
   };
 
@@ -187,10 +198,10 @@ export default function SettingsPage() {
       const res = await userAPI.generateApiKey('New Gen API Key');
       if (res.data) {
         updateUser({ apiKeys: res.data.apiKeys });
-        toast.success('New API Key generated successfully!');
+        toast.success(t('settings.toast.api_success'));
       }
     } catch (err) {
-      toast.error('Failed to generate API Key');
+      toast.error(t('settings.toast.api_failed'));
     }
   };
 
@@ -216,8 +227,8 @@ export default function SettingsPage() {
         
         {/* Header */}
         <div className="mb-2">
-          <h1 className="text-[32px] font-bold tracking-tight mb-1 text-[#FFFFFF]">Platform Settings</h1>
-          <p className="text-[#A69697] text-[15px]">Manage your profile, security, and integrations preferences.</p>
+          <h1 className="text-[32px] font-bold tracking-tight mb-1 text-[#FFFFFF]">{t('settings.title')}</h1>
+          <p className="text-[#A69697] text-[15px]">{t('settings.subtitle')}</p>
         </div>
 
         {/* TAB NAVIGATION & CONTENT */}
@@ -227,11 +238,12 @@ export default function SettingsPage() {
           <div className="w-full md:w-[240px] shrink-0">
             <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-[rgba(255,255,255,0.05)] rounded-[20px] p-2 flex flex-col gap-1">
               {[
-                { id: 'general', label: 'General', icon: <UserIcon size={16} /> },
-                { id: 'security', label: 'Security', icon: <Lock size={16} /> },
-                { id: 'notifications', label: 'Notifications', icon: <Bell size={16} /> },
+                { id: 'general', label: t('settings.tabs.general'), icon: <UserIcon size={16} /> },
+                { id: 'security', label: t('settings.tabs.security'), icon: <Lock size={16} /> },
+                { id: 'notifications', label: t('settings.tabs.notifications'), icon: <Bell size={16} /> },
                 ...(user?.role === 'ADMIN' ? [
-                  { id: 'integrations', label: 'Integrations', icon: <Network size={16} /> }
+                  { id: 'integrations', label: t('settings.tabs.integrations'), icon: <Network size={16} /> },
+                  { id: 'subscription', label: t('settings.tabs.subscription'), icon: <Key size={16} /> }
                 ] : [])
               ].map((tab) => (
                 <button
@@ -259,7 +271,7 @@ export default function SettingsPage() {
                 
                 {/* Profile Settings */}
                 <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-[rgba(255,255,255,0.05)] rounded-[24px] p-6 shadow-lg">
-                  <h3 className="text-[#FFFFFF] text-[16px] font-bold mb-6">Profile Information</h3>
+                  <h3 className="text-[#FFFFFF] text-[16px] font-bold mb-6">{t('settings.profile.title')}</h3>
                   
                   <div className="flex items-center gap-6 mb-8">
                     <div 
@@ -278,26 +290,26 @@ export default function SettingsPage() {
                         </div>
                       )}
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="text-white text-[11px] font-bold bg-black/50 px-3 py-1 rounded-full">Edit</span>
+                        <span className="text-white text-[11px] font-bold bg-black/50 px-3 py-1 rounded-full">{t('settings.profile.edit')}</span>
                       </div>
                       <input type="file" accept="image/*" ref={profileInputRef} onChange={handleProfileImageUpload} className="hidden" />
                     </div>
                     <div>
                       <p className="text-white font-bold text-[18px]">{user?.name || 'User'}</p>
-                      <p className="text-[#A69697] text-[13px] mt-1">{user?.role === 'ADMIN' ? 'Administrator' : 'Accountant'} • Member Since 2026</p>
+                      <p className="text-[#A69697] text-[13px] mt-1">{user?.role === 'ADMIN' ? t('team.admin') : t('team.accountant')} • {t('settings.profile.member_since')}</p>
                     </div>
                   </div>
 
                   <form onSubmit={handleProfileSave} className="grid grid-cols-2 gap-4">
                     <div className="col-span-2 sm:col-span-1">
-                      <label className="text-[#A69697] text-[12px] block mb-1">Full Name</label>
+                      <label className="text-[#A69697] text-[12px] block mb-1">{t('settings.profile.full_name')}</label>
                       <input 
                         type="text" value={profileName} onChange={(e) => setProfileName(e.target.value)}
                         className="w-full bg-[#1A0A0B]/50 border border-white/10 rounded-[12px] py-2.5 px-3 text-[14px] text-white outline-none focus:border-[#D98F8F]" 
                       />
                     </div>
                     <div className="col-span-2 sm:col-span-1">
-                      <label className="text-[#A69697] text-[12px] block mb-1">Email</label>
+                      <label className="text-[#A69697] text-[12px] block mb-1">{t('settings.profile.email')}</label>
                       <input 
                         type="email" value={profileEmail} onChange={(e) => setProfileEmail(e.target.value)}
                         className="w-full bg-[#1A0A0B]/50 border border-white/10 rounded-[12px] py-2.5 px-3 text-[14px] text-white outline-none focus:border-[#D98F8F]" 
@@ -305,7 +317,7 @@ export default function SettingsPage() {
                     </div>
                     <div className="col-span-2 flex justify-end mt-2">
                       <button type="submit" className="bg-white/10 text-white px-5 py-2.5 rounded-[12px] text-[13px] font-bold hover:bg-white/20 transition-colors flex items-center gap-2">
-                        <Save size={16} /> Save Changes
+                        <Save size={16} /> {t('settings.profile.save_changes')}
                       </button>
                     </div>
                   </form>
@@ -323,28 +335,28 @@ export default function SettingsPage() {
                 <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-[rgba(255,255,255,0.05)] rounded-[24px] p-6 shadow-lg">
                   {passwordUpdated && (
                     <div className="mb-4 p-3 bg-[#4CAF50]/20 border border-[#4CAF50]/50 rounded-[12px] text-[#4CAF50] font-medium">
-                      Password has been updated successfully.
+                      {t('settings.security.password_updated')}
                     </div>
                   )}
-                  <h3 className="text-[#FFFFFF] text-[16px] font-bold mb-6">Security & Authentication</h3>
+                  <h3 className="text-[#FFFFFF] text-[16px] font-bold mb-6">{t('settings.security.title')}</h3>
 
 
 
-                  <h4 className="text-white text-[14px] font-medium mb-4">Change Password</h4>
+                  <h4 className="text-white text-[14px] font-medium mb-4">{t('settings.security.change_password')}</h4>
                   <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
                     <input 
-                      type="password" placeholder="Current password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)}
+                      type="password" placeholder={t('settings.security.current_password')} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)}
                       className="w-full bg-[#1A0A0B]/50 border border-white/10 rounded-[12px] py-2.5 px-3 text-[14px] text-white outline-none focus:border-[#D98F8F]" 
                     />
                     <input 
-                      type="password" placeholder="New secure password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                      type="password" placeholder={t('settings.security.new_password')} value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
                       className="w-full bg-[#1A0A0B]/50 border border-white/10 rounded-[12px] py-2.5 px-3 text-[14px] text-white outline-none focus:border-[#D98F8F]" 
                     />
                     <button 
                       type="submit" disabled={passwordLoading}
                       className="bg-white/10 text-white px-5 py-2.5 rounded-[12px] text-[13px] font-bold hover:bg-white/20 transition-colors disabled:opacity-50 mt-2"
                     >
-                      {passwordLoading ? 'Updating...' : 'Update Password'}
+                      {passwordLoading ? t('settings.security.updating') : t('settings.security.update_password')}
                     </button>
                   </form>
                 </div>
@@ -356,19 +368,19 @@ export default function SettingsPage() {
             {activeTab === 'notifications' && (
               <div className="flex flex-col gap-6">
                 <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-[rgba(255,255,255,0.05)] rounded-[24px] p-6 shadow-lg">
-                  <h3 className="text-[#FFFFFF] text-[16px] font-bold mb-6">Notification Preferences</h3>
+                  <h3 className="text-[#FFFFFF] text-[16px] font-bold mb-6">{t('settings.notifications.title')}</h3>
 
                   <div className="flex justify-end gap-10 mb-4 pr-6">
-                    <span className="text-[#A69697] text-[11px] uppercase tracking-wider font-bold">Email</span>
-                    <span className="text-[#A69697] text-[11px] uppercase tracking-wider font-bold">In-App</span>
+                    <span className="text-[#A69697] text-[11px] uppercase tracking-wider font-bold">{t('settings.notifications.email')}</span>
+                    <span className="text-[#A69697] text-[11px] uppercase tracking-wider font-bold">{t('settings.notifications.in_app')}</span>
                   </div>
 
                   <div className="space-y-2">
                     {[
-                      { label: 'Invoice Alerts', desc: 'When invoices are assigned to you or approved', key: 'invoiceAlerts' },
-                      { label: 'System Updates', desc: 'Platform maintenance and feature releases', key: 'systemUpdates' },
-                      { label: 'Direct Mentions', desc: 'When someone mentions you in a comment', key: 'directMentions' },
-                      { label: 'Weekly Reports', desc: 'Summary of your processing metrics', key: 'weeklyReports' },
+                      { label: t('settings.notifications.invoice_alerts'), desc: t('settings.notifications.invoice_alerts_desc'), key: 'invoiceAlerts' },
+                      { label: t('settings.notifications.system_updates'), desc: t('settings.notifications.system_updates_desc'), key: 'systemUpdates' },
+                      { label: t('settings.notifications.direct_mentions'), desc: t('settings.notifications.direct_mentions_desc'), key: 'directMentions' },
+                      { label: t('settings.notifications.weekly_reports'), desc: t('settings.notifications.weekly_reports_desc'), key: 'weeklyReports' },
                     ].map((notif, i) => (
                       <div key={i} className="flex items-center justify-between p-4 rounded-[16px] hover:bg-white/[0.02] border border-transparent hover:border-white/5 transition-colors">
                         <div>
@@ -395,8 +407,8 @@ export default function SettingsPage() {
                 <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-[rgba(255,255,255,0.05)] rounded-[24px] p-6 shadow-lg">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-[#FFFFFF] text-[16px] font-bold">TTN Network Integration</h3>
-                      <p className="text-[#A69697] text-[12px] mt-1">Connect to the national e-invoicing network</p>
+                      <h3 className="text-[#FFFFFF] text-[16px] font-bold">{t('settings.integrations.ttn_title')}</h3>
+                      <p className="text-[#A69697] text-[12px] mt-1">{t('settings.integrations.ttn_desc')}</p>
                     </div>
                     <div className="w-12 h-12 bg-[#1A0A0B] rounded-[12px] flex items-center justify-center border border-white/5">
                       <Network className="text-[#D98F8F]" size={24} />
@@ -405,17 +417,17 @@ export default function SettingsPage() {
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[#A69697] text-[12px] block mb-1">TTN Account ID</label>
+                      <label className="text-[#A69697] text-[12px] block mb-1">{t('settings.integrations.ttn_account_id')}</label>
                       <input 
-                        type="text" value={ttnAccountId} onChange={(e) => setTtnAccountId(e.target.value)} onBlur={handleIntegrationsSave} placeholder="Enter Account ID"
+                        type="text" value={ttnAccountId} onChange={(e) => setTtnAccountId(e.target.value)} onBlur={handleIntegrationsSave} placeholder={t('settings.integrations.ttn_account_id_placeholder')}
                         className="w-full bg-[#1A0A0B]/80 border border-white/10 rounded-[12px] py-2.5 px-4 text-[14px] text-white outline-none font-mono focus:border-[#D98F8F]" 
                       />
                     </div>
                     <div>
-                      <label className="text-[#A69697] text-[12px] block mb-1">Integration API Key</label>
+                      <label className="text-[#A69697] text-[12px] block mb-1">{t('settings.integrations.ttn_api_key')}</label>
                       <div className="relative">
                         <input 
-                          type="password" value={ttnIntegrationKey} onChange={(e) => setTtnIntegrationKey(e.target.value)} onBlur={handleIntegrationsSave} placeholder="Enter API Key"
+                          type="password" value={ttnIntegrationKey} onChange={(e) => setTtnIntegrationKey(e.target.value)} onBlur={handleIntegrationsSave} placeholder={t('settings.integrations.ttn_api_key_placeholder')}
                           className="w-full bg-[#1A0A0B]/80 border border-white/10 rounded-[12px] py-2.5 pl-4 pr-10 text-[14px] text-white outline-none font-mono tracking-widest focus:border-[#D98F8F]" 
                         />
                       </div>
@@ -423,6 +435,89 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
+
+              </div>
+            )}
+
+            {/* SUBSCRIPTION & API TAB */}
+            {activeTab === 'subscription' && user?.role === 'ADMIN' && (
+              <div className="flex flex-col gap-6">
+                
+                {/* Current Plan */}
+                <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-[#D98F8F]/30 rounded-[24px] p-6 shadow-lg relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#D98F8F]/10 rounded-full blur-3xl"></div>
+                  <h3 className="text-[#FFFFFF] text-[16px] font-bold mb-2">{t('settings.subscription.title')}</h3>
+                  <p className="text-[#A69697] text-[13px] mb-6">{t('settings.subscription.subtitle')}</p>
+                  
+                  <div className="flex items-end justify-between bg-[#1A0A0B]/50 p-5 rounded-[16px] border border-white/5 mb-6">
+                    <div>
+                      <p className="text-[#A69697] text-[12px] uppercase tracking-wider font-bold mb-1">{t('settings.subscription.active_plan')}</p>
+                      <p className="text-white text-[24px] font-bold">{user?.billing?.plan || t('settings.subscription.free')}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[#A69697] text-[12px] uppercase tracking-wider font-bold mb-1">{t('settings.subscription.scans_limit')}</p>
+                      <p className="text-white text-[16px] font-bold">{user?.billing?.aiScansUsed || 0} / {user?.billing?.aiScansLimit || 50}</p>
+                    </div>
+                  </div>
+
+                  <h4 className="text-white text-[14px] font-bold mb-4">{t('settings.subscription.upgrade_plan')}</h4>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {['Normal', 'Pro', 'Premium'].map((planTier) => (
+                      <div key={planTier} className={`border ${user?.billing?.plan === planTier ? 'border-[#D98F8F] bg-[#D98F8F]/5' : 'border-white/10 bg-white/5'} rounded-[16px] p-4 flex flex-col`}>
+                        <p className="text-white font-bold text-[16px] mb-1">{planTier}</p>
+                        <p className="text-[#A69697] text-[12px] mb-4">{planTier === 'Premium' ? t('settings.subscription.unlimited') : planTier === 'Pro' ? t('settings.subscription.scans_5000') : t('settings.subscription.scans_500')}</p>
+                        <button 
+                          onClick={() => {
+                            setSelectedPlan(planTier);
+                            setIsCheckoutModalOpen(true);
+                          }}
+                          disabled={user?.billing?.plan === planTier}
+                          className={`mt-auto py-2 rounded-[8px] text-[13px] font-bold transition-all ${user?.billing?.plan === planTier ? 'bg-[#D98F8F]/20 text-[#D98F8F] cursor-not-allowed' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                        >
+                          {user?.billing?.plan === planTier ? t('settings.subscription.current') : t('settings.subscription.select')}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* API Key */}
+                <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-[rgba(255,255,255,0.05)] rounded-[24px] p-6 shadow-lg">
+                  <h3 className="text-[#FFFFFF] text-[16px] font-bold mb-2">{t('settings.subscription.developer_api')}</h3>
+                  <p className="text-[#A69697] text-[13px] mb-6">{t('settings.subscription.api_desc')}</p>
+                  
+                  <div className="mb-4">
+                    <label className="text-[#A69697] text-[12px] block mb-2">{t('settings.subscription.global_api_key')}</label>
+                    <div className="flex gap-3">
+                      <div className="relative flex-1">
+                        <input 
+                          type="text" 
+                          readOnly 
+                          value={user?.apiKeys?.[0]?.key || t('settings.subscription.no_api_key')}
+                          className="w-full bg-[#1A0A0B]/80 border border-white/10 rounded-[12px] py-3 pl-4 pr-10 text-[14px] text-white outline-none font-mono focus:border-[#D98F8F]" 
+                        />
+                        {user?.apiKeys?.[0]?.key && (
+                          <button 
+                            onClick={() => { navigator.clipboard.writeText(user.apiKeys![0].key); toast.success(t('settings.toast.api_copied')); }}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A69697] hover:text-white"
+                          >
+                            <Copy size={16} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {(!user?.apiKeys || user.apiKeys.length === 0) && (
+                      <div className="mt-4">
+                        <button 
+                          onClick={generateApiKey}
+                          className="px-4 py-2 rounded-md text-[13px] font-medium bg-[#D98F8F] text-[#1A050A] hover:bg-[#D98F8F]/90 transition-colors"
+                        >
+                          Generate API Key
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
 
               </div>
             )}
@@ -438,7 +533,7 @@ export default function SettingsPage() {
               
               <form onSubmit={handleCompanySave} className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-white text-[20px] font-bold">Company Details</h3>
+                  <h3 className="text-white text-[20px] font-bold">{t('settings.company.title')}</h3>
                   <button type="button" onClick={() => setIsCompanyModalOpen(false)} className="text-[#A69697] hover:text-white transition-colors">
                     <X size={20} />
                   </button>
@@ -446,20 +541,20 @@ export default function SettingsPage() {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="text-[#A69697] text-[13px] block mb-1">Company Name</label>
+                    <label className="text-[#A69697] text-[13px] block mb-1">{t('settings.company.name')}</label>
                     <input 
                       type="text" 
-                      placeholder="e.g. Acme Corp" 
+                      placeholder={t('settings.company.name_placeholder')} 
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
                       className="w-full bg-white/5 border border-white/10 rounded-[12px] py-3 px-4 text-[14px] text-white outline-none focus:border-[#D98F8F] transition-colors" 
                     />
                   </div>
                   <div>
-                    <label className="text-[#A69697] text-[13px] block mb-1">Tax ID / Matricule Fiscal</label>
+                    <label className="text-[#A69697] text-[13px] block mb-1">{t('settings.company.tax_id')}</label>
                     <input 
                       type="text" 
-                      placeholder="e.g. TN123456789" 
+                      placeholder={t('settings.company.tax_id_placeholder')} 
                       value={taxId}
                       onChange={(e) => setTaxId(e.target.value)}
                       className="w-full bg-white/5 border border-white/10 rounded-[12px] py-3 px-4 text-[14px] text-white outline-none focus:border-[#D98F8F] transition-colors" 
@@ -469,13 +564,83 @@ export default function SettingsPage() {
 
                 <div className="mt-8 flex gap-3">
                   <button type="button" onClick={() => setIsCompanyModalOpen(false)} className="flex-1 py-3 rounded-[12px] bg-white/5 text-white font-medium hover:bg-white/10 transition-colors">
-                    Cancel
+                    {t('settings.company.cancel')}
                   </button>
                   <button type="submit" className="flex-1 py-3 rounded-[12px] bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white font-bold shadow-lg hover:shadow-[0_0_15px_rgba(217,143,143,0.4)] transition-all">
-                    Save Details
+                    {t('settings.company.save_details')}
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Checkout Modal */}
+        {isCheckoutModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-[#1A0A0B] border border-white/10 rounded-[24px] w-full max-w-[450px] shadow-[0_20px_60px_rgba(0,0,0,0.6)] relative overflow-hidden">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-[#D98F8F] to-transparent"></div>
+              
+              <div className="p-6 border-b border-white/5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-white text-[20px] font-bold">Upgrade to {selectedPlan}</h3>
+                  <button type="button" onClick={() => setIsCheckoutModalOpen(false)} className="text-[#A69697] hover:text-white transition-colors">
+                    <X size={20} />
+                  </button>
+                </div>
+                <p className="text-[#A69697] text-[13px] mt-1">Complete your payment details to upgrade.</p>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="text-[#A69697] text-[13px] block mb-1">Name on Card</label>
+                  <input type="text" placeholder="John Doe" value={cardName} onChange={(e) => setCardName(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-[12px] py-3 px-4 text-[14px] text-white outline-none focus:border-[#D98F8F]" />
+                </div>
+                <div>
+                  <label className="text-[#A69697] text-[13px] block mb-1">Card Number</label>
+                  <input type="text" placeholder="**** **** **** 4242" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-[12px] py-3 px-4 text-[14px] text-white outline-none focus:border-[#D98F8F] font-mono tracking-widest" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[#A69697] text-[13px] block mb-1">Expiry (MM/YY)</label>
+                    <input type="text" placeholder="12/26" value={cardExpiry} onChange={(e) => setCardExpiry(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-[12px] py-3 px-4 text-[14px] text-white outline-none focus:border-[#D98F8F] font-mono" />
+                  </div>
+                  <div>
+                    <label className="text-[#A69697] text-[13px] block mb-1">CVC</label>
+                    <input type="text" placeholder="123" value={cardCvc} onChange={(e) => setCardCvc(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-[12px] py-3 px-4 text-[14px] text-white outline-none focus:border-[#D98F8F] font-mono" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 bg-white/[0.02] border-t border-white/5">
+                <button 
+                  onClick={async () => {
+                    if (!cardName.trim() || !cardNumber.trim() || !cardExpiry.trim() || !cardCvc.trim()) {
+                      toast.error('Please fill in all credit card details to proceed with the upgrade.');
+                      return;
+                    }
+                    
+                    setCheckoutLoading(true);
+                    try {
+                      const { subscriptionAPI } = await import('@/lib/api');
+                      const res = await subscriptionAPI.checkout(selectedPlan);
+                      if (res.success) {
+                        updateUser({ billing: res.billing, apiKeys: res.apiKeys });
+                        toast.success(t('settings.toast.plan_success').replace('{{plan}}', selectedPlan));
+                        setIsCheckoutModalOpen(false);
+                      }
+                    } catch (err: any) {
+                      toast.error(err.response?.data?.message || t('settings.toast.plan_failed'));
+                    } finally {
+                      setCheckoutLoading(false);
+                    }
+                  }}
+                  disabled={checkoutLoading}
+                  className="w-full py-4 rounded-[12px] bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white font-bold shadow-lg hover:shadow-[0_0_15px_rgba(217,143,143,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {checkoutLoading ? 'Processing...' : `Pay & Upgrade to ${selectedPlan}`}
+                </button>
+              </div>
             </div>
           </div>
         )}

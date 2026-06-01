@@ -28,8 +28,11 @@ export function LandingNavbar() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Link href="/auth/login" className="bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white px-6 py-2.5 rounded-full text-[14px] font-bold shadow-[0_0_15px_rgba(142,27,58,0.4)] hover:shadow-[0_0_25px_rgba(217,143,143,0.6)] transition-all hover:-translate-y-0.5">
+          <Link href="/auth/login" className="text-white px-5 py-2.5 rounded-full text-[14px] font-bold border border-white/20 hover:bg-white/10 transition-all hover:-translate-y-0.5">
             Login
+          </Link>
+          <Link href="/auth/register" className="bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white px-6 py-2.5 rounded-full text-[14px] font-bold shadow-[0_0_15px_rgba(142,27,58,0.4)] hover:shadow-[0_0_25px_rgba(217,143,143,0.6)] transition-all hover:-translate-y-0.5">
+            Sign Up
           </Link>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { ResponsiveContainer, ComposedChart, Line, Area, Bar, XAxis, YAxis, Tool
 import { FileText, Download, Calendar, Filter, ChevronDown, Sparkles, Folder, FileBarChart, PieChart, RefreshCw, Zap, Trash2, Mail, Plus, X } from 'lucide-react';
 import { analyticsAPI, reportAPI } from '@/lib/api';
 import { toast } from 'sonner';
+import { useLanguage } from '@/lib/i18n-context';
 
 // Report icons mapping
 const iconMap: Record<string, any> = {
@@ -22,11 +23,29 @@ function formatDate(dateStr: string): string {
 }
 
 export default function ReportsPage() {
+  const { t } = useLanguage();
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
   const [reports, setReports] = useState<any[]>([]);
   const [schedules, setSchedules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+
+  // Type Maps for Translation
+  const typeMap: Record<string, string> = {
+    'Profit & Loss Statement': 'profit_loss',
+    'Tax Compliance Audit': 'tax_compliance',
+    'Vendor Spend Analysis': 'vendor_spend',
+    'AI Extraction Accuracy': 'ai_extraction',
+  };
+
+  const rangeMap: Record<string, string> = {
+    'Q1 (Jan - Mar 2026)': 'q1',
+    'Q2 (Apr - Jun 2026)': 'q2',
+    'Q3 (Jul - Sep 2026)': 'q3',
+    'Q4 (Oct - Dec 2026)': 'q4',
+    'Full Year 2026': 'full_year',
+    'Custom Range': 'custom_range',
+  };
 
   // Dropdown options
   const reportTypes = [
@@ -114,7 +133,7 @@ export default function ReportsPage() {
     setGenerating(true);
     try {
       if (selectedRange === 'Custom Range' && (!customStartDate || !customEndDate)) {
-        toast.error('Please select both start and end dates.');
+        toast.error(t('reports.select_dates'));
         setGenerating(false);
         return;
       }
@@ -126,40 +145,40 @@ export default function ReportsPage() {
         format: selectedFormat,
       });
       if (res.success) {
-        toast.success(`Generated ${selectedType} successfully!`);
+        toast.success(t('reports.generated_success'));
         // Refresh report vault
         const reportsRes = await reportAPI.getAll();
         setReports(reportsRes.data || []);
       } else {
-        toast.error(res.message || 'Report generation failed.');
+        toast.error(res.message || t('reports.generation_failed'));
       }
     } catch (error) {
       console.error(error);
-      toast.error('Error generating report.');
+      toast.error(t('reports.generation_failed'));
     } finally {
       setGenerating(false);
     }
   };
 
   const handleDeleteReport = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this report?')) return;
+    if (!confirm(t('reports.delete_confirm'))) return;
     try {
       const res = await reportAPI.delete(id);
       if (res.success) {
-        toast.success('Report deleted.');
+        toast.success(t('reports.delete_success'));
         setReports(prev => prev.filter(r => r._id !== id));
       } else {
-        toast.error(res.message || 'Failed to delete report.');
+        toast.error(res.message || t('reports.delete_failed'));
       }
     } catch (err) {
-      toast.error('Error deleting report.');
+      toast.error(t('reports.delete_failed'));
     }
   };
 
   const handleCreateSchedule = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!schedRecipients.trim()) {
-      toast.error('Please enter at least one recipient email.');
+      toast.error(t('reports.recipient_required'));
       return;
     }
     try {
@@ -170,32 +189,32 @@ export default function ReportsPage() {
         recipients: schedRecipients,
       });
       if (res.success) {
-        toast.success('Report schedule created!');
+        toast.success(t('reports.schedule_success'));
         setShowScheduleModal(false);
         setSchedRecipients('');
         // Refresh schedule list
         const schedsRes = await reportAPI.getSchedules();
         setSchedules(schedsRes.data || []);
       } else {
-        toast.error(res.message || 'Failed to create schedule.');
+        toast.error(res.message || t('reports.schedule_failed'));
       }
     } catch (err) {
-      toast.error('Error saving schedule.');
+      toast.error(t('reports.schedule_failed'));
     }
   };
 
   const handleDeleteSchedule = async (id: string) => {
-    if (!confirm('Cancel this automated report schedule?')) return;
+    if (!confirm(t('reports.cancel_schedule_confirm'))) return;
     try {
       const res = await reportAPI.deleteSchedule(id);
       if (res.success) {
-        toast.success('Schedule cancelled.');
+        toast.success(t('reports.schedule_cancelled'));
         setSchedules(prev => prev.filter(s => s._id !== id));
       } else {
-        toast.error(res.message || 'Failed to delete schedule.');
+        toast.error(res.message || t('reports.delete_failed'));
       }
     } catch (err) {
-      toast.error('Error deleting schedule.');
+      toast.error(t('reports.delete_failed'));
     }
   };
 
@@ -221,9 +240,9 @@ export default function ReportsPage() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 relative z-10">
           <div>
             <h1 className="text-[36px] font-bold tracking-tight mb-2 flex items-center gap-3 text-[#FFFFFF]">
-              Intelligence Reports
+              {t('reports.title')}
             </h1>
-            <p className="text-[#A69697] text-[16px]">Generate, analyze, and export comprehensive financial and operational insights.</p>
+            <p className="text-[#A69697] text-[16px]">{t('reports.subtitle')}</p>
           </div>
 
         </div>
@@ -233,29 +252,29 @@ export default function ReportsPage() {
           <div className="absolute top-[-50%] right-[-10%] w-[500px] h-[500px] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#8E1B3A]/30 to-transparent blur-[80px] rounded-full pointer-events-none"></div>
           
           <h3 className="text-white text-[20px] font-bold flex items-center gap-2 mb-8 relative z-10">
-            Report Generation Engine
+            {t('reports.engine_title')}
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-20">
             {/* Type selector */}
             <div className="flex flex-col gap-2 relative" ref={typeRef}>
-              <label className="text-[#A69697] text-[13px] ml-1">Report Type</label>
+              <label className="text-[#A69697] text-[13px] ml-1">{t('reports.report_type')}</label>
               <div 
                 onClick={() => setOpenType(!openType)}
                 className="bg-white/[0.12] backdrop-blur-md border border-white/20 rounded-[16px] p-4 flex items-center justify-between cursor-pointer hover:border-[#D98F8F]/50 hover:bg-white/[0.15] transition-colors shadow-inner"
               >
-                 <span className="text-white text-[14px] truncate">{selectedType}</span>
+                 <span className="text-white text-[14px] truncate">{typeMap[selectedType] ? t(`reports.types.${typeMap[selectedType]}`) : selectedType}</span>
                  <ChevronDown size={16} className={`text-[#A69697] transition-transform duration-200 ${openType ? 'rotate-180' : ''}`} />
               </div>
               {openType && (
                 <div className="absolute top-[80px] left-0 w-full bg-[#2A0808] backdrop-blur-lg border border-white/20 rounded-[16px] shadow-2xl z-50 overflow-hidden py-1">
-                  {reportTypes.map((t) => (
+                  {reportTypes.map((t_type) => (
                     <div 
-                      key={t}
-                      onClick={() => { setSelectedType(t); setOpenType(false); }}
-                      className={`px-4 py-3 text-[14px] cursor-pointer transition-colors ${selectedType === t ? 'text-[#D98F8F] bg-[#8E1B3A]/20 font-medium' : 'text-white/80 hover:bg-white/5 hover:text-white'}`}
+                      key={t_type}
+                      onClick={() => { setSelectedType(t_type); setOpenType(false); }}
+                      className={`px-4 py-3 text-[14px] cursor-pointer transition-colors ${selectedType === t_type ? 'text-[#D98F8F] bg-[#8E1B3A]/20 font-medium' : 'text-white/80 hover:bg-white/5 hover:text-white'}`}
                     >
-                      {t}
+                      {typeMap[t_type] ? t(`reports.types.${typeMap[t_type]}`) : t_type}
                     </div>
                   ))}
                 </div>
@@ -264,14 +283,14 @@ export default function ReportsPage() {
 
             {/* Date Range selector */}
             <div className="flex flex-col gap-2 relative" ref={rangeRef}>
-              <label className="text-[#A69697] text-[13px] ml-1">Date Range</label>
+              <label className="text-[#A69697] text-[13px] ml-1">{t('reports.date_range')}</label>
               <div 
                 onClick={() => setOpenRange(!openRange)}
                 className="bg-white/[0.06] backdrop-blur-md border border-white/15 rounded-[16px] p-4 flex items-center justify-between cursor-pointer hover:border-[#D98F8F]/50 hover:bg-white/[0.09] transition-colors shadow-inner"
               >
                  <div className="flex items-center gap-2 text-white text-[14px] truncate">
                    <Calendar size={16} className="text-[#D98F8F] shrink-0" />
-                   <span className="truncate">{selectedRange}</span>
+                   <span className="truncate">{rangeMap[selectedRange] ? t(`reports.ranges.${rangeMap[selectedRange]}`) : selectedRange}</span>
                  </div>
                  <ChevronDown size={16} className={`text-[#A69697] transition-transform duration-200 ${openRange ? 'rotate-180' : ''}`} />
               </div>
@@ -283,7 +302,7 @@ export default function ReportsPage() {
                       onClick={() => { setSelectedRange(r); setOpenRange(false); }}
                       className={`px-4 py-3 text-[14px] cursor-pointer transition-colors ${selectedRange === r ? 'text-[#D98F8F] bg-[#8E1B3A]/20 font-medium' : 'text-white/80 hover:bg-white/5 hover:text-white'}`}
                     >
-                      {r}
+                      {rangeMap[r] ? t(`reports.ranges.${rangeMap[r]}`) : r}
                     </div>
                   ))}
                 </div>
@@ -292,7 +311,7 @@ export default function ReportsPage() {
 
             {/* Format selector */}
             <div className="flex flex-col gap-2 relative" ref={formatRef}>
-              <label className="text-[#A69697] text-[13px] ml-1">Format</label>
+              <label className="text-[#A69697] text-[13px] ml-1">{t('reports.format')}</label>
               <div 
                 onClick={() => setOpenFormat(!openFormat)}
                 className="bg-white/[0.06] backdrop-blur-md border border-white/15 rounded-[16px] p-4 flex items-center justify-between cursor-pointer hover:border-[#D98F8F]/50 hover:bg-white/[0.09] transition-colors shadow-inner"
@@ -323,11 +342,11 @@ export default function ReportsPage() {
               >
                 {generating ? (
                   <>
-                    <RefreshCw size={18} className="animate-spin" /> Generating...
+                    <RefreshCw size={18} className="animate-spin" /> {t('reports.generating')}
                   </>
                 ) : (
                   <>
-                    Generate Report <ChevronDown className="rotate-[-90deg]" size={18} />
+                    {t('reports.generate_report')} <ChevronDown className="rotate-[-90deg]" size={18} />
                   </>
                 )}
               </button>
@@ -337,7 +356,7 @@ export default function ReportsPage() {
             {selectedRange === 'Custom Range' && (
               <div className="col-span-1 md:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-6 mt-[-10px] mb-4">
                 <div className="flex flex-col gap-2">
-                  <label className="text-[#A69697] text-[13px] ml-1">Start Date</label>
+                  <label className="text-[#A69697] text-[13px] ml-1">{t('reports.start_date')}</label>
                   <input 
                     type="date" 
                     value={customStartDate} 
@@ -346,7 +365,7 @@ export default function ReportsPage() {
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="text-[#A69697] text-[13px] ml-1">End Date</label>
+                  <label className="text-[#A69697] text-[13px] ml-1">{t('reports.end_date')}</label>
                   <input 
                     type="date" 
                     value={customEndDate} 
@@ -365,15 +384,15 @@ export default function ReportsPage() {
         {schedules.length > 0 && (
           <div className="bg-[rgba(255,255,255,0.02)] border border-white/5 rounded-[24px] p-6">
             <h4 className="text-white text-[18px] font-bold mb-4 flex items-center gap-2">
-              <Mail className="text-[#D98F8F]" size={18} /> Active Auto-Report Schedules
+              <Mail className="text-[#D98F8F]" size={18} /> {t('reports.active_schedules')}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {schedules.map(sched => (
                 <div key={sched._id} className="bg-[#3C0D0D]/80 border border-white/10 p-4 rounded-[16px] flex items-center justify-between shadow-md">
                   <div>
-                    <h5 className="text-white text-[14px] font-semibold">{sched.reportType}</h5>
-                    <p className="text-[#A69697] text-[12px] mt-0.5">Frequency: <span className="text-[#D98F8F]">{sched.frequency}</span> | Format: <span className="text-[#D98F8F]">{sched.format}</span></p>
-                    <p className="text-white/60 text-[11px] mt-1 truncate max-w-[220px]" title={sched.recipients}>To: {sched.recipients}</p>
+                    <h5 className="text-white text-[14px] font-semibold">{typeMap[sched.reportType] ? t(`reports.types.${typeMap[sched.reportType]}`) : sched.reportType}</h5>
+                    <p className="text-[#A69697] text-[12px] mt-0.5">{t('reports.frequency')}: <span className="text-[#D98F8F]">{t(`reports.modal.${sched.frequency.toLowerCase()}`)}</span> | {t('reports.format')}: <span className="text-[#D98F8F]">{sched.format}</span></p>
+                    <p className="text-white/60 text-[11px] mt-1 truncate max-w-[220px]" title={sched.recipients}>{t('reports.to')}: {sched.recipients}</p>
                   </div>
                   <button 
                     onClick={() => handleDeleteSchedule(sched._id)}
@@ -391,7 +410,7 @@ export default function ReportsPage() {
         <div>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <h3 className="text-[#FFFFFF] text-[20px] font-bold flex items-center gap-2">
-              <Folder className="text-[#D98F8F]" size={20} /> Report Vault
+              <Folder className="text-[#D98F8F]" size={20} /> {t('reports.report_vault')}
             </h3>
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex bg-[#3C0D0D] p-1.5 rounded-[12px] border border-white/10">
@@ -401,7 +420,7 @@ export default function ReportsPage() {
                     onClick={() => setFilterFormat(fmt)}
                     className={`px-3 py-1.5 rounded-[8px] text-[12px] font-medium transition-colors cursor-pointer ${filterFormat === fmt ? 'bg-[#8E1B3A]/30 text-[#D98F8F] border border-[#8E1B3A]/40' : 'text-[#A69697] hover:text-white'}`}
                   >
-                    {fmt}
+                    {fmt === 'ALL' ? t('reports.all') : fmt}
                   </button>
                 ))}
               </div>
@@ -412,8 +431,8 @@ export default function ReportsPage() {
           {filteredReports.length === 0 ? (
             <div className="bg-[rgba(255,255,255,0.01)] border border-white/5 rounded-[24px] p-16 text-center">
               <Folder className="mx-auto text-white/20 mb-4" size={48} />
-              <p className="text-white/60 font-semibold text-[16px]">No generated reports found</p>
-              <p className="text-[#A69697] text-[14px] mt-1">Configure parameters above and click generate to create a report.</p>
+              <p className="text-white/60 font-semibold text-[16px]">{t('reports.no_reports')}</p>
+              <p className="text-[#A69697] text-[14px] mt-1">{t('reports.no_reports_desc')}</p>
             </div>
           ) : (
             <div className="flex flex-col gap-4">
@@ -430,7 +449,7 @@ export default function ReportsPage() {
                       </div>
                       
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-white text-[16px] font-bold mb-1.5 leading-tight truncate">{report.title}</h4>
+                        <h4 className="text-white text-[16px] font-bold mb-1.5 leading-tight truncate">{typeMap[report.type] ? t(`reports.types.${typeMap[report.type]}`) : report.title}</h4>
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[#A69697] text-[13px]">
                           <span>{formatDate(report.createdAt)}</span>
                           <span className="w-1 h-1 rounded-full bg-white/20"></span>
@@ -449,7 +468,7 @@ export default function ReportsPage() {
                           onClick={() => handleDownload(report)}
                           className="px-6 py-2.5 rounded-[12px] bg-[#3C0D0D] border border-white/10 text-[#A69697] font-bold text-[13px] flex items-center justify-center gap-2 group-hover:bg-gradient-to-r group-hover:from-[#D98F8F] group-hover:to-[#8E1B3A] group-hover:text-white group-hover:border-transparent transition-all duration-300 shadow-lg cursor-pointer whitespace-nowrap"
                         >
-                          <Download size={16} /> Download
+                          <Download size={16} /> {t('reports.download')}
                         </button>
                         
                         <button 
@@ -476,7 +495,7 @@ export default function ReportsPage() {
               
               <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
                 <h3 className="text-white text-[20px] font-bold flex items-center gap-2">
-                  <Mail className="text-[#D98F8F]" size={20} /> Schedule Auto-Report
+                  <Mail className="text-[#D98F8F]" size={20} /> {t('reports.modal.schedule_title')}
                 </h3>
                 <button 
                   onClick={() => setShowScheduleModal(false)}
@@ -488,34 +507,34 @@ export default function ReportsPage() {
 
               <form onSubmit={handleCreateSchedule} className="flex flex-col gap-5 relative z-10">
                 <div className="flex flex-col gap-2">
-                  <label className="text-[#A69697] text-[13px]">Report Type</label>
+                  <label className="text-[#A69697] text-[13px]">{t('reports.report_type')}</label>
                   <select 
                     value={schedType}
                     onChange={(e) => setSchedType(e.target.value)}
                     className="bg-[#100506] border border-white/10 rounded-[14px] p-3 text-[14px] text-white focus:outline-none focus:border-[#D98F8F]/50"
                   >
-                    {reportTypes.map(t => (
-                      <option key={t} value={t} className="bg-[#3C0D0D] text-white">{t}</option>
+                    {reportTypes.map(t_type => (
+                      <option key={t_type} value={t_type} className="bg-[#3C0D0D] text-white">{typeMap[t_type] ? t(`reports.types.${typeMap[t_type]}`) : t_type}</option>
                     ))}
                   </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex flex-col gap-2">
-                    <label className="text-[#A69697] text-[13px]">Frequency</label>
+                    <label className="text-[#A69697] text-[13px]">{t('reports.modal.frequency')}</label>
                     <select 
                       value={schedFreq}
                       onChange={(e) => setSchedFreq(e.target.value)}
                       className="bg-[#100506] border border-white/10 rounded-[14px] p-3 text-[14px] text-white focus:outline-none focus:border-[#D98F8F]/50"
                     >
-                      <option value="Daily" className="bg-[#3C0D0D]">Daily</option>
-                      <option value="Weekly" className="bg-[#3C0D0D]">Weekly</option>
-                      <option value="Monthly" className="bg-[#3C0D0D]">Monthly</option>
+                      <option value="Daily" className="bg-[#3C0D0D]">{t('reports.modal.daily')}</option>
+                      <option value="Weekly" className="bg-[#3C0D0D]">{t('reports.modal.weekly')}</option>
+                      <option value="Monthly" className="bg-[#3C0D0D]">{t('reports.modal.monthly')}</option>
                     </select>
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-[#A69697] text-[13px]">Format</label>
+                    <label className="text-[#A69697] text-[13px]">{t('reports.format')}</label>
                     <select 
                       value={schedFormat}
                       onChange={(e) => setSchedFormat(e.target.value)}
@@ -529,10 +548,10 @@ export default function ReportsPage() {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-[#A69697] text-[13px]">Recipient Emails (comma separated)</label>
+                  <label className="text-[#A69697] text-[13px]">{t('reports.modal.recipients')}</label>
                   <input 
                     type="text"
-                    placeholder="accountant@aura.com, admin@aura.com"
+                    placeholder={t('reports.modal.recipients_placeholder')}
                     value={schedRecipients}
                     onChange={(e) => setSchedRecipients(e.target.value)}
                     className="bg-[#100506] border border-white/10 rounded-[14px] p-3 text-[14px] text-white focus:outline-none focus:border-[#D98F8F]/50 placeholder:text-white/20"
@@ -545,13 +564,13 @@ export default function ReportsPage() {
                     onClick={() => setShowScheduleModal(false)}
                     className="flex-1 py-3 border border-white/10 rounded-[14px] text-[#A69697] font-semibold hover:bg-white/5 transition-colors cursor-pointer"
                   >
-                    Cancel
+                    {t('reports.modal.cancel')}
                   </button>
                   <button 
                     type="submit"
                     className="flex-1 py-3 bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white rounded-[14px] font-semibold hover:shadow-[0_0_20px_rgba(217,143,143,0.3)] transition-all cursor-pointer"
                   >
-                    Schedule
+                    {t('reports.modal.schedule')}
                   </button>
                 </div>
               </form>

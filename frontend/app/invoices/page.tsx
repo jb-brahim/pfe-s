@@ -3,10 +3,11 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { invoiceAPI } from '@/lib/api';
-import { Upload, Loader, Eye, Edit, Trash2, Search, FileText, Zap, Sparkles, CheckCircle2, ChevronRight, AlertTriangle } from 'lucide-react';
+import { Upload, Loader, Eye, Edit, Trash2, Search, FileText, Zap, Sparkles, CheckCircle2, ChevronRight, AlertTriangle, Download } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useLanguage } from '@/lib/i18n-context';
 
 type InvoiceStatus = 'ALL' | 'DRAFT' | 'EXTRACTED' | 'VERIFIED' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'FAILED';
 
@@ -42,7 +43,9 @@ export default function InvoicesPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedStatus, setSelectedStatus] = useState<InvoiceStatus>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showLimitModal, setShowLimitModal] = useState(false);
   const router = useRouter();
+  const { t } = useLanguage();
 
   const statuses: InvoiceStatus[] = ['ALL', 'SUBMITTED', 'APPROVED', 'REJECTED', 'FAILED'];
 
@@ -101,9 +104,11 @@ export default function InvoicesPage() {
       } catch (error: any) {
         console.error('Upload failed:', error);
         if (error.response?.status === 409) {
-          toast.error(`Duplicate Invoice: ${file.name} has already been uploaded.`);
+          toast.error(`${t('invoices.duplicate_invoice')}: ${file.name} ${t('invoices.has_been_uploaded')}`);
+        } else if (error.response?.status === 403 && error.response?.data?.message === 'LIMIT_REACHED') {
+          setShowLimitModal(true);
         } else {
-          toast.error(`Failed to upload ${file.name}`);
+          toast.error(`${t('invoices.upload_failed')} ${file.name}`);
         }
       } finally {
         clearInterval(interval);
@@ -121,14 +126,105 @@ export default function InvoicesPage() {
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!confirm('Are you sure you want to delete this invoice?')) return;
+    if (!confirm(t('invoices.delete_confirm'))) return;
     try {
       await invoiceAPI.delete(id);
       setInvoices(invoices.filter(inv => inv._id !== id));
-      toast.success('Invoice deleted successfully');
+      toast.success(t('invoices.delete_success'));
     } catch (error) {
-      toast.error('Failed to delete invoice');
+      toast.error(t('invoices.delete_failed'));
     }
+  };
+
+  const handleExportCSV = () => {
+    if (invoices.length === 0) return toast.error(t('invoices.export_empty'));
+    
+    // Professional header structure for accounting/detailed view
+    const headers = [
+      'Invoice Number',
+      'Vendor / Company',
+      'Status',
+      'Date Added',
+      'Total H.T. (TND)',
+      'TVA (TND)',
+      'Total T.T.C. (TND)',
+      'AI Confidence',
+      'Product / Service Description',
+      'Quantity',
+      'Unit Price (TND)',
+      'Total Price (TND)'
+    ];
+
+    const escapeCSV = (value: any) => {
+      if (value === null || value === undefined) return '""';
+      const str = String(value);
+      return `"${str.replace(/"/g, '""')}"`; // Escape quotes to prevent CSV breakage
+    };
+
+    const rows: string[] = [];
+    rows.push(headers.join(','));
+
+    invoices.forEach(inv => {
+      const invNum = inv.invoiceNumber || 'N/A';
+      const company = inv.companyName || 'N/A';
+      const status = inv.status;
+      const date = new Date(inv.createdAt).toLocaleDateString();
+      const totalHT = inv.extractedData?.totalHT || 0;
+      const tvaAmount = inv.taxAmount || 0;
+      const totalAmount = inv.totalAmount || 0;
+      const confidence = inv.confidence || 0;
+
+      const lineItems = inv.extractedData?.lineItems || [];
+
+      if (lineItems.length === 0) {
+        // Invoice without extracted products
+        rows.push([
+          escapeCSV(invNum),
+          escapeCSV(company),
+          escapeCSV(status),
+          escapeCSV(date),
+          escapeCSV(totalHT),
+          escapeCSV(tvaAmount),
+          escapeCSV(totalAmount),
+          escapeCSV(Math.round(confidence * 100) + '%'),
+          escapeCSV('No line items extracted'),
+          escapeCSV(''),
+          escapeCSV(''),
+          escapeCSV('')
+        ].join(','));
+      } else {
+        // Create one row per product (Standard accounting format)
+        // To keep it clean, only show the Invoice details on the first row of each invoice
+        lineItems.forEach((item: any, index: number) => {
+          rows.push([
+            escapeCSV(index === 0 ? invNum : ''),
+            escapeCSV(index === 0 ? company : ''),
+            escapeCSV(index === 0 ? status : ''),
+            escapeCSV(index === 0 ? date : ''),
+            escapeCSV(index === 0 ? totalHT : ''),
+            escapeCSV(index === 0 ? tvaAmount : ''),
+            escapeCSV(index === 0 ? totalAmount : ''),
+            escapeCSV(index === 0 ? Math.round(confidence * 100) + '%' : ''),
+            escapeCSV(item.description || 'N/A'),
+            escapeCSV(item.quantity || 1),
+            escapeCSV(item.unitPrice || 0),
+            escapeCSV(item.totalPrice || 0)
+          ].join(','));
+        });
+      }
+    });
+
+    const csvContent = rows.join('\n');
+    // Add BOM (\uFEFF) to enforce UTF-8 encoding so Microsoft Excel reads special characters correctly
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Invoices_Detailed_Export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success(t('invoices.export_success'));
   };
 
   const getStatusStyle = (status: string) => {
@@ -161,9 +257,15 @@ export default function InvoicesPage() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
-            <h1 className="text-[28px] font-bold text-white tracking-tight">Invoices</h1>
-            <p className="text-[#A69697] text-[14px]">Manage, verify, and track your processed documents.</p>
+            <h1 className="text-[28px] font-bold text-white tracking-tight">{t('invoices.title')}</h1>
+            <p className="text-[#A69697] text-[14px]">{t('invoices.subtitle')}</p>
           </div>
+          <button 
+            onClick={handleExportCSV}
+            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 rounded-[8px] text-[13px] font-medium transition-colors text-white"
+          >
+            <Download size={16} /> {t('invoices.export_csv')}
+          </button>
         </div>
 
         {/* Action Cards */}
@@ -182,16 +284,16 @@ export default function InvoicesPage() {
               </div>
               <div>
                 <h3 className="text-white font-bold text-[16px] mb-1">
-                  {isUploading ? `Extracting Data (${Math.round(uploadProgress)}%)` : 'AI Dropzone'}
+                  {isUploading ? `${t('invoices.extracting_data')} (${Math.round(uploadProgress)}%)` : t('invoices.ai_dropzone')}
                 </h3>
                 <p className="text-[#A69697] text-[13px] hidden xl:block">
-                  {isUploading ? 'Analyzing document layout and fields...' : 'Drag & drop PDF, JPG, or PNG files here.'}
+                  {isUploading ? t('invoices.dropzone_desc_1') : t('invoices.dropzone_desc_2')}
                 </p>
               </div>
             </div>
             
             <div className="z-10 bg-white/5 border border-white/10 px-4 py-2 rounded-md text-[12px] text-white font-medium group-hover:bg-[#8E1B3A] group-hover:border-[#8E1B3A] transition-colors whitespace-nowrap">
-              Browse Files
+              {t('invoices.browse_files')}
             </div>
             
             <input
@@ -217,13 +319,13 @@ export default function InvoicesPage() {
                 <Edit className="text-[#A69697] group-hover:text-white transition-colors" size={24} />
               </div>
               <div>
-                <h3 className="text-white font-bold text-[16px] mb-1">Add Manually</h3>
-                <p className="text-[#A69697] text-[13px] hidden xl:block">Create an invoice record without AI extraction.</p>
+                <h3 className="text-white font-bold text-[16px] mb-1">{t('invoices.add_manually')}</h3>
+                <p className="text-[#A69697] text-[13px] hidden xl:block">{t('invoices.add_manually_desc')}</p>
               </div>
             </div>
             
             <div className="z-10 flex items-center gap-2 text-[#A69697] group-hover:text-white transition-colors">
-              <span className="text-[13px] font-medium whitespace-nowrap">Create New</span>
+              <span className="text-[13px] font-medium whitespace-nowrap">{t('invoices.create_new')}</span>
               <ChevronRight size={16} />
             </div>
           </Link>
@@ -246,7 +348,7 @@ export default function InvoicesPage() {
                       : 'text-[#A69697] border-transparent hover:text-white'
                   }`}
                 >
-                  {status}
+                  {status === 'ALL' ? t('invoices.all') : t(`status.${status.toLowerCase()}`)}
                 </button>
               ))}
             </div>
@@ -257,7 +359,7 @@ export default function InvoicesPage() {
               </div>
               <input
                 type="text"
-                placeholder="Search invoice # or company..."
+                placeholder={t('invoices.search_placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-[#1A0A0B]/80 border border-white/10 rounded-[6px] py-1.5 pl-9 pr-3 text-[13px] text-white outline-none focus:border-[#D98F8F]/50 transition-all placeholder:text-[#A69697]"
@@ -270,12 +372,12 @@ export default function InvoicesPage() {
             <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
                 <tr className="border-b border-white/10 text-[11px] font-medium text-[#A69697] uppercase tracking-wider bg-white/[0.02]">
-                  <th className="px-6 py-4">Company & Invoice</th>
-                  <th className="px-6 py-4">Date Added</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">AI Match</th>
-                  <th className="px-6 py-4 text-right">Amount</th>
-                  <th className="px-6 py-4 text-center">Actions</th>
+                  <th className="px-6 py-4">{t('invoices.table.company_invoice')}</th>
+                  <th className="px-6 py-4">{t('invoices.table.date_added')}</th>
+                  <th className="px-6 py-4">{t('invoices.table.status')}</th>
+                  <th className="px-6 py-4">{t('invoices.table.ai_match')}</th>
+                  <th className="px-6 py-4 text-right">{t('invoices.table.amount')}</th>
+                  <th className="px-6 py-4 text-center">{t('invoices.table.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 text-[13px]">
@@ -284,7 +386,7 @@ export default function InvoicesPage() {
                     <td colSpan={6} className="px-6 py-16 text-center text-[#A69697]">
                       <div className="flex flex-col items-center justify-center gap-3">
                         <FileText size={32} className="opacity-20" />
-                        <p>No invoices found matching your criteria.</p>
+                        <p>{t('invoices.no_invoices')}</p>
                       </div>
                     </td>
                   </tr>
@@ -314,12 +416,12 @@ export default function InvoicesPage() {
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase border ${style.bg} ${style.text} ${style.border}`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`}></span>
-                            {invoice.status}
+                            {t(`status.${invoice.status.toLowerCase()}`)}
                           </span>
                         </td>
                         <td className="px-6 py-4">
                           {invoice.status === 'FAILED' ? (
-                            <span className="text-[#FF5252] text-[12px] flex items-center gap-1.5 font-medium"><AlertTriangle size={14}/> Failed</span>
+                            <span className="text-[#FF5252] text-[12px] flex items-center gap-1.5 font-medium"><AlertTriangle size={14}/> {t('invoices.failed')}</span>
                           ) : invoice.confidence ? (
                             <div className="flex items-center gap-3">
                               <div className="w-20 h-1.5 bg-[#1A0A0B] rounded-full overflow-hidden border border-white/5">
@@ -331,26 +433,26 @@ export default function InvoicesPage() {
                               <span className={`text-[12px] font-medium ${invoice.confidence > 0.8 ? 'text-[#4CAF50]' : invoice.confidence > 0.5 ? 'text-[#FFC107]' : 'text-[#D98F8F]'}`}>{Math.round(invoice.confidence * 100)}%</span>
                             </div>
                           ) : (
-                            <span className="text-[#A69697] text-[12px] italic">Not scanned</span>
+                            <span className="text-[#A69697] text-[12px] italic">{t('invoices.not_scanned')}</span>
                           )}
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <p className="font-bold text-white">${invoice.totalAmount?.toLocaleString() || '0'}</p>
-                          <p className="text-[#A69697] text-[11px] mt-0.5">Tax: ${invoice.taxAmount?.toLocaleString() || '0'}</p>
+                          <p className="font-bold text-white">{invoice.totalAmount?.toLocaleString() || '0'} TND</p>
+                          <p className="text-[#A69697] text-[11px] mt-0.5">{t('invoices.tax')}: {invoice.taxAmount?.toLocaleString() || '0'} TND</p>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button 
                               onClick={(e) => { e.stopPropagation(); router.push(`/invoices/${invoice._id}`); }}
                               className="p-2 rounded-md hover:bg-white/10 text-[#A69697] hover:text-white transition-colors"
-                              title="Edit"
+                              title={t('invoices.edit')}
                             >
                               <Edit size={14} />
                             </button>
                             <button 
                               onClick={(e) => handleDelete(e, invoice._id)}
                               className="p-2 rounded-md hover:bg-[#8E1B3A]/30 text-[#A69697] hover:text-[#D98F8F] transition-colors"
-                              title="Delete"
+                              title={t('invoices.delete')}
                             >
                               <Trash2 size={14} />
                             </button>
@@ -366,6 +468,39 @@ export default function InvoicesPage() {
         </div>
 
       </div>
+
+      {/* Limit Reached Upgrade Modal */}
+      {showLimitModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="glass-card w-full max-w-[420px] shadow-2xl relative overflow-hidden bg-[#3A0A14]/95 border-[#8E1B3A]/40 text-center">
+            <div className="p-8">
+              <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-500/20">
+                <AlertTriangle size={36} className="text-red-400" />
+              </div>
+              
+              <h2 className="text-white text-[24px] font-bold mb-3">Limit Reached</h2>
+              <p className="text-white/70 text-[15px] mb-8 leading-relaxed">
+                You have exhausted your free AI scans. Please upgrade your subscription to continue processing invoices.
+              </p>
+              
+              <div className="flex flex-col gap-3">
+                <button 
+                  onClick={() => router.push('/settings?tab=subscription')}
+                  className="w-full btn-burgundy py-3.5 text-[15px] font-bold shadow-lg"
+                >
+                  Upgrade Plan
+                </button>
+                <button 
+                  onClick={() => setShowLimitModal(false)}
+                  className="w-full py-3.5 text-white/50 hover:text-white transition-colors text-[14px]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

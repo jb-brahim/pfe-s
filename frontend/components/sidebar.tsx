@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Logo } from '@/components/logo';
+import { useLanguage } from '@/lib/i18n-context';
 import {
   LayoutGrid,
   FileText,
@@ -27,18 +28,19 @@ export function Sidebar() {
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const { language, t } = useLanguage();
 
   const mainItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid, adminOnly: false },
-    { href: '/invoices', label: 'Invoices', icon: FileText, adminOnly: false },
-    { href: '/approval', label: 'Approval', icon: ClipboardCheck, adminOnly: true },
-    { href: '/reports', label: 'Reports', icon: BarChart3, adminOnly: true },
+    { href: '/dashboard', label: t('sidebar.dashboard'), icon: LayoutGrid, adminOnly: false },
+    { href: '/invoices', label: t('sidebar.invoices'), icon: FileText, adminOnly: false },
+    { href: '/approval', label: t('sidebar.approval'), icon: ClipboardCheck, adminOnly: true },
+    { href: '/reports', label: t('sidebar.reports'), icon: BarChart3, adminOnly: true },
   ];
 
   const managementItems = [
-    { href: '/suppliers', label: 'Suppliers', icon: Building2, adminOnly: true },
-    { href: '/team', label: 'Team', icon: Users, adminOnly: true },
-    { href: '/settings', label: 'Settings', icon: Settings, adminOnly: false },
+    { href: '/suppliers', label: t('sidebar.suppliers'), icon: Building2, adminOnly: true },
+    { href: '/team', label: t('sidebar.team'), icon: Users, adminOnly: true },
+    { href: '/settings', label: t('sidebar.settings'), icon: Settings, adminOnly: false },
   ];
 
   const filteredMain = mainItems.filter(i => user?.role === 'ADMIN' || !i.adminOnly);
@@ -63,19 +65,19 @@ export function Sidebar() {
       )}
 
       <aside
-        className={`fixed left-0 top-0 h-screen w-[260px] bg-[#1E0A0B]/50 backdrop-blur-xl border-r border-white/[0.06] flex flex-col z-40 transition-transform duration-300 lg:translate-x-0 ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed ${language === 'AR' ? 'right-0' : 'left-0'} top-0 h-screen w-[260px] bg-[#1E0A0B]/50 backdrop-blur-xl border-x border-white/[0.06] flex flex-col z-40 transition-transform duration-300 lg:translate-x-0 ${
+          mobileOpen ? 'translate-x-0' : (language === 'AR' ? 'translate-x-full' : '-translate-x-full')
         }`}
       >
         {/* Logo */}
         <div className="pt-8 pb-6 px-7 flex items-center gap-3">
           <Logo size="sm" />
-          <h1 className="text-[18px] font-semibold text-[#FFFFFF] tracking-tight">Aura <span className="text-[#A69697] font-normal">Finance</span></h1>
+          <h1 className="text-[18px] font-semibold text-[#FFFFFF] tracking-tight">{t('sidebar.title')} <span className="text-[#A69697] font-normal">{t('sidebar.subtitle')}</span></h1>
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 space-y-0.5 px-3 overflow-y-auto scrollbar-none">
-          <p className="text-[11px] uppercase tracking-widest text-[#A69697]/60 font-semibold px-4 pt-2 pb-3">Main</p>
+          <p className="text-[11px] uppercase tracking-widest text-[#A69697]/60 font-semibold px-4 pt-2 pb-3">{t('sidebar.main')}</p>
           {filteredMain.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
@@ -94,7 +96,7 @@ export function Sidebar() {
 
           {filteredManagement.length > 0 && (
             <>
-              <p className="text-[11px] uppercase tracking-widest text-[#A69697]/60 font-semibold px-4 pt-6 pb-3">Management</p>
+              <p className="text-[11px] uppercase tracking-widest text-[#A69697]/60 font-semibold px-4 pt-6 pb-3">{t('sidebar.management')}</p>
               {filteredManagement.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
@@ -128,7 +130,7 @@ export function Sidebar() {
               </div>
               <div className="p-1.5">
                 <Link href="/settings" className="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#A69697] hover:text-white hover:bg-white/5 rounded-lg transition-colors">
-                  <Settings size={14} /> Account Settings
+                  <Settings size={14} /> {t('sidebar.account_settings')}
                 </Link>
                 <button 
                   onClick={() => {
@@ -137,7 +139,7 @@ export function Sidebar() {
                   }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#D98F8F] hover:text-white hover:bg-[#8E1B3A]/20 rounded-lg transition-colors"
                 >
-                  <LogOut size={14} /> Log Out
+                  <LogOut size={14} /> {t('sidebar.logout')}
                 </button>
               </div>
             </div>

@@ -28,10 +28,22 @@ const protect = async (req, res, next) => {
     }
   }
 
-  // 2. Standard JWT Bearer Authentication (Frontend Web App)
+  // 2. Standard JWT Bearer Authentication (Frontend Web App) OR User API Key
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       token = req.headers.authorization.split(' ')[1];
+      
+      // Check if it's an API Key (starts with sk_live_)
+      if (token.startsWith('sk_live_')) {
+        const user = await User.findOne({ 'apiKeys.key': token }).select('-passwordHash');
+        if (!user) {
+          return res.status(401).json({ message: 'Invalid API Key' });
+        }
+        req.user = user;
+        return next();
+      }
+
+      // Otherwise it's a JWT
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.id).select('-passwordHash');
       if (!req.user) {
@@ -44,9 +56,47 @@ const protect = async (req, res, next) => {
     }
   }
 
+  // 3. Check for x-api-key header containing user API Key
+  const userApiKey = req.headers['x-api-key'];
+  if (userApiKey && userApiKey.startsWith('sk_live_')) {
+    try {
+      const user = await User.findOne({ 'apiKeys.key': userApiKey }).select('-passwordHash');
+      if (!user) {
+        return res.status(401).json({ message: 'Invalid API Key' });
+      }
+      req.user = user;
+      return next();
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: 'Server error during API Key validation' });
+    }
+  }
+
   if (!token) {
     return res.status(401).json({ message: 'Not authorized, no token' });
   }
 };
 
-module.exports = { protect };
+const apiKeyProtect = async (req, res, next) => {
+  const apiKey = req.headers['x-api-key'];
+  
+  if (!apiKey) {
+    return res.status(401).json({ success: false, message: 'API Key missing' });
+  }
+
+  try {
+    const user = await User.findOne({ 'apiKeys.key': apiKey });
+    
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Invalid API Key' });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error('API Key validation error:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
+
+module.exports = { protect, apiKeyProtect };

@@ -25,6 +25,7 @@ const seedSuperAdmin = async () => {
         email,
         passwordHash,
         role: 'SUPER_ADMIN',
+        isEmailVerified: true,
         companyDetails: {
           name: 'System Platform'
         }

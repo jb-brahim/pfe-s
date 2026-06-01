@@ -1,16 +1,21 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Bell, Search, FileText, X } from 'lucide-react';
+import { Bell, Search, FileText, X, Globe } from 'lucide-react';
 import { notificationAPI, invoiceAPI } from '@/lib/api';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/lib/auth-context';
+import { useLanguage } from '@/lib/i18n-context';
 
 export function Navbar() {
+  const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showLanguages, setShowLanguages] = useState(false);
+  const { language: lang, setLanguage: setLang, t } = useLanguage();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -89,6 +94,11 @@ export function Navbar() {
     return segments[0].charAt(0).toUpperCase() + segments[0].slice(1);
   };
 
+  const handleLanguageChange = (l: any) => {
+    setLang(l);
+    setShowLanguages(false);
+  };
+
   return (
     <nav className="h-16 w-full flex items-center justify-between px-6 md:px-8 bg-transparent z-30 border-b border-white/[0.04]">
       {/* Search Bar */}
@@ -145,6 +155,30 @@ export function Navbar() {
 
       {/* Right Section */}
       <div className="flex items-center gap-2">
+        {/* Language Switcher */}
+        <div className="relative">
+          <button
+            onClick={() => setShowLanguages(!showLanguages)}
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-transparent border border-transparent text-[#A69697] hover:text-[#FFFFFF] hover:bg-white/[0.04] transition-colors"
+            title="Switch Language"
+          >
+            <Globe className="w-4 h-4" strokeWidth={1.5} />
+          </button>
+          {showLanguages && (
+            <div className="absolute top-12 right-0 w-32 bg-[#1A0A0B] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 py-1">
+              {['EN', 'FR', 'AR'].map(l => (
+                <button
+                  key={l}
+                  onClick={() => handleLanguageChange(l)}
+                  className={`w-full text-left px-4 py-2 text-[13px] hover:bg-white/5 transition-colors ${lang === l ? 'text-[#D98F8F] font-bold' : 'text-[#A69697]'}`}
+                >
+                  {l === 'EN' ? 'English' : l === 'FR' ? 'Français' : 'العربية'}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Theme Toggle */}
         <button
           onClick={() => {
@@ -158,6 +192,7 @@ export function Navbar() {
         </button>
 
         {/* Notifications */}
+        {user?.role !== 'SUPER_ADMIN' && (
         <div className="relative">
           <button
             onClick={() => { setShowNotifications(!showNotifications); }}
@@ -200,6 +235,7 @@ export function Navbar() {
             </div>
           )}
         </div>
+        )}
 
 
       </div>

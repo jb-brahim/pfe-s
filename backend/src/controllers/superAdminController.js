@@ -4,6 +4,9 @@ const SystemSettings = require('../models/SystemSettings');
 const AuditLog = require('../models/AuditLog');
 const bcrypt = require('bcryptjs');
 
+const os = require('os');
+const mongoose = require('mongoose');
+
 // ----------------------------------------------------
 // SYSTEM STATS
 // ----------------------------------------------------
@@ -14,16 +17,46 @@ exports.getSystemStats = async (req, res) => {
     const accountantUsers = await User.countDocuments({ role: 'ACCOUNTANT' });
     const superAdminUsers = await User.countDocuments({ role: 'SUPER_ADMIN' });
 
+    const memUsage = (1 - os.freemem() / os.totalmem()) * 100;
+    const serverLoad = memUsage.toFixed(0) + '%';
+    const systemStatus = mongoose.connection.readyState === 1 ? 'Healthy' : 'Degraded';
+    const securityAlerts = await User.countDocuments({ status: 'Locked' });
+
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+
+    const growthData = await User.aggregate([
+      { $match: { createdAt: { $gte: sixMonthsAgo } } },
+      { 
+        $group: { 
+          _id: { month: { $month: "$createdAt" }, year: { $year: "$createdAt" } }, 
+          count: { $sum: 1 } 
+        } 
+      },
+      { $sort: { "_id.year": 1, "_id.month": 1 } }
+    ]);
+
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const chartData = growthData.map(d => ({
+      name: `${monthNames[d._id.month - 1]} ${d._id.year}`,
+      users: d.count
+    }));
+
     res.status(200).json({
       success: true,
       data: {
         totalUsers,
         breakdown: { admins: adminUsers, accountants: accountantUsers, superAdmins: superAdminUsers },
-        systemStatus: 'Healthy',
+        systemStatus,
+        serverLoad,
+        securityAlerts,
+        chartData,
         lastUpdated: new Date()
       }
     });
   } catch (error) {
+    console.error("Stats Error:", error);
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 };
@@ -35,6 +68,25 @@ exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find({}, '-passwordHash').sort({ createdAt: -1 });
     res.status(200).json({ success: true, data: users });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+exports.getCompanies = async (req, res) => {
+  try {
+    const admins = await User.find({ role: 'ADMIN' }, '-passwordHash').lean();
+    const companies = [];
+
+    for (const admin of admins) {
+      const employees = await User.find({ managedBy: admin._id }, 'name email role status').lean();
+      companies.push({
+        ...admin,
+        employees
+      });
+    }
+
+    res.status(200).json({ success: true, data: companies });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
@@ -73,11 +125,12 @@ exports.createUser = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   try {
-    const { plan, status } = req.body;
+    const { plan, amount, status } = req.body;
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ success: false, message: 'Not found' });
 
     if (plan) user.billing.plan = plan;
+    if (amount !== undefined) user.billing.amount = amount;
     if (status) user.status = status;
 
     await user.save();
@@ -126,6 +179,38 @@ exports.toggleUserLock = async (req, res) => {
   }
 };
 
+exports.sendSubscriptionReminder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { subject, message } = req.body;
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ success: false, message: 'Organization not found' });
+
+    const { sendMail } = require('../utils/mailer');
+    const daysLeft = Math.ceil((new Date(user.billing.renewalDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
+    
+    const finalSubject = subject || `Urgent: Your Subscription to Aura Finance is ending soon!`;
+    const finalMessage = message || `Hello ${user.name},\n\nYour subscription plan (${user.billing.plan}) is set to expire in ${daysLeft} days. Please renew your subscription to avoid service interruption.\n\nThank you,\nAura Finance Team`;
+    
+    const emailRes = await sendMail(user.email, finalSubject, finalMessage);
+
+    if (emailRes.success) {
+      await AuditLog.create({
+        userId: req.user._id,
+        action: 'Sent Subscription Reminder',
+        entityType: 'User',
+        entityId: user._id
+      });
+      res.status(200).json({ success: true, message: 'Reminder sent successfully' });
+    } else {
+      res.status(500).json({ success: false, message: 'Failed to send reminder via SMTP' });
+    }
+  } catch (error) {
+    console.error('Error in sendSubscriptionReminder:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
 // ----------------------------------------------------
 // BILLING STATS
 // ----------------------------------------------------
@@ -161,7 +246,9 @@ exports.getBillingStats = async (req, res) => {
 // ----------------------------------------------------
 exports.getAnnouncements = async (req, res) => {
   try {
-    const announcements = await Announcement.find().sort({ createdAt: -1 });
+    const announcements = await Announcement.find()
+      .populate('targetUsers', 'name email')
+      .sort({ createdAt: -1 });
     res.status(200).json({ success: true, data: announcements });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server Error' });
@@ -170,9 +257,12 @@ exports.getAnnouncements = async (req, res) => {
 
 exports.createAnnouncement = async (req, res) => {
   try {
-    const { title, message, severity } = req.body;
+    const { title, message, severity, targetAudience, targetUsers } = req.body;
     const announcement = await Announcement.create({
-      title, message, severity, createdBy: req.user._id
+      title, message, severity, 
+      targetAudience: targetAudience || 'ALL',
+      targetUsers: targetUsers || [],
+      createdBy: req.user._id
     });
     res.status(201).json({ success: true, data: announcement });
   } catch (error) {
@@ -225,10 +315,20 @@ exports.updateSystemSettings = async (req, res) => {
     let settings = await SystemSettings.findOne();
     if (!settings) settings = new SystemSettings({});
     
-    const { platformName, maintenanceMode, allowPublicRegistration } = req.body;
+    const { 
+      platformName, maintenanceMode, allowPublicRegistration,
+      mfaRequired, passwordExpiryDays, dbBackupFrequency, 
+      googleVisionApiKey, emailAlerts 
+    } = req.body;
+
     if (platformName !== undefined) settings.platformName = platformName;
     if (maintenanceMode !== undefined) settings.maintenanceMode = maintenanceMode;
     if (allowPublicRegistration !== undefined) settings.allowPublicRegistration = allowPublicRegistration;
+    if (mfaRequired !== undefined) settings.mfaRequired = mfaRequired;
+    if (passwordExpiryDays !== undefined) settings.passwordExpiryDays = passwordExpiryDays;
+    if (dbBackupFrequency !== undefined) settings.dbBackupFrequency = dbBackupFrequency;
+    if (googleVisionApiKey !== undefined) settings.googleVisionApiKey = googleVisionApiKey;
+    if (emailAlerts !== undefined) settings.emailAlerts = emailAlerts;
     
     settings.lastUpdatedBy = req.user._id;
     await settings.save();

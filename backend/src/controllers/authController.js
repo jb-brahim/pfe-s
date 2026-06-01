@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const AuditLog = require('../models/AuditLog');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { sendMail } = require('../utils/mailer');
@@ -11,7 +12,7 @@ const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString()
 
 const registerUser = async (req, res, next) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, companyName } = req.body;
     
     // AUTH LOGIC FOR HIERARCHY
     const authHeader = req.headers.authorization;
@@ -62,10 +63,35 @@ const registerUser = async (req, res, next) => {
       managedBy: creator ? creator._id : null,
       isEmailVerified: creator ? true : false,
       verificationCode,
-      verificationCodeExpires
+      verificationCodeExpires,
+      // If new ADMIN (organization owner), initialize company and free trial
+      ...(!creator ? {
+        companyDetails: { name: companyName || '' },
+        billing: {
+          plan: 'Free',
+          status: 'Active',
+          aiScansLimit: 15,
+          storageLimitGB: 1,
+          amount: 0,
+          renewalDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) // 14 days
+        }
+      } : {})
     });
 
     if (user) {
+      // Audit log creation
+      try {
+        await AuditLog.create({
+          userId: creator ? creator._id : user._id,
+          action: creator ? `Created ${role} Account` : 'New Organization Registered',
+          entityType: 'User',
+          entityId: user._id,
+          details: `Email: ${user.email}`
+        });
+      } catch (err) {
+        console.error('Failed to create audit log for user registration:', err);
+      }
+
       // Send Email (Non-blocking)
       sendMail(
         user.email,

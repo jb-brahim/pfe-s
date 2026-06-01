@@ -15,7 +15,8 @@ const {
   toggleAnnouncement,
   getAuditLogs,
   getSystemSettings,
-  updateSystemSettings
+  updateSystemSettings,
+  getCompanies
 } = require('../controllers/superAdminController');
 
 // All routes here are protected and require SUPER_ADMIN role
@@ -24,10 +25,12 @@ router.use(authorize('SUPER_ADMIN'));
 
 router.get('/stats', getSystemStats);
 router.get('/users', getAllUsers);
+router.get('/companies', getCompanies);
 router.post('/users', createUser);
 router.put('/users/:id', updateUser);
 router.delete('/users/:id', deleteUser);
 router.put('/users/:id/lock', toggleUserLock);
+router.post('/users/:id/send-reminder', require('../controllers/superAdminController').sendSubscriptionReminder);
 
 router.get('/billing-stats', getBillingStats);
 

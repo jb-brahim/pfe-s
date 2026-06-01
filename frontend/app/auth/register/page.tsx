@@ -10,6 +10,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const { register } = useAuth();
   const [name, setName] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -65,7 +66,7 @@ export default function RegisterPage() {
     setError('');
 
     try {
-      await register(name, email, password, 'ADMIN');
+      await register(name, email, password, 'ADMIN', companyName);
       setMode('verify');
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Failed to create account. Please try again.';
@@ -169,6 +170,25 @@ export default function RegisterPage() {
                     }`}>
                       <User size={12} className={isDark ? "text-[#D98F8F]" : "text-[#8E1B3A]"} />
                     </div>
+                  </div>
+                </div>
+
+                {/* Company Name */}
+                <div>
+                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>Company / Organization Name</label>
+                  <div className="relative group">
+                    <input
+                      type="text"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      placeholder="e.g., Pereira S.A.R.L."
+                      className={`w-full rounded-[14px] py-4 px-5 text-[15px] outline-none transition-all duration-700 ${
+                        isDark 
+                          ? 'bg-[#1A0A0B]/60 border border-[rgba(255,255,255,0.08)] text-white focus:border-[#D98F8F]/50 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)]'
+                          : 'bg-white border border-[#8E1B3A]/10 text-[#1A0A0B] focus:border-[#8E1B3A]/40 shadow-[inset_0_2px_10px_rgba(142,27,58,0.05)]'
+                      }`}
+                      required
+                    />
                   </div>
                 </div>
 

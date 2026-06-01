@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
   profileImage: { type: String, default: '' },
   role: { 
     type: String, 
-    enum: ['ACCOUNTANT', 'ADMIN', 'SUPER_ADMIN', 'DELIVERY'], 
+    enum: ['ACCOUNTANT', 'ADMIN', 'SUPER_ADMIN'], 
     default: 'ACCOUNTANT' 
   },
   status: {
@@ -39,8 +39,8 @@ const userSchema = new mongoose.Schema({
     taxId: { type: String, default: '' }
   },
   apiKeys: [{
-    name: { type: String, required: true },
-    key: { type: String, required: true },
+    name: String,
+    key: String,
     createdAt: { type: Date, default: Date.now }
   }],
   integrations: {
@@ -50,12 +50,14 @@ const userSchema = new mongoose.Schema({
     quickbooksActive: { type: Boolean, default: false }
   },
   billing: {
-    plan: { type: String, default: 'Pro Quarterly' },
+    plan: { type: String, enum: ['Free', 'Normal', 'Pro', 'Premium'], default: 'Free' },
+    status: { type: String, enum: ['Trialing', 'Active', 'Suspended', 'Canceled'], default: 'Trialing' },
     aiScansUsed: { type: Number, default: 0 },
-    aiScansLimit: { type: Number, default: 5000 },
+    aiScansLimit: { type: Number, default: 50 },
     storageUsedGB: { type: Number, default: 0 },
-    storageLimitGB: { type: Number, default: 50 },
-    renewalDate: { type: Date, default: () => new Date(new Date().setMonth(new Date().getMonth() + 3)) }
+    storageLimitGB: { type: Number, default: 1 },
+    amount: { type: Number, default: 49 },
+    renewalDate: { type: Date, default: () => new Date(new Date().setMonth(new Date().getMonth() + 1)) }
   },
   managedBy: {
     type: mongoose.Schema.Types.ObjectId,

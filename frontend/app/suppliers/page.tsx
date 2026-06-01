@@ -5,6 +5,7 @@ import { DashboardLayout } from '@/components/dashboard-layout';
 import { Building2, Search, ChevronDown, ChevronUp, FileText, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { analyticsAPI } from '@/lib/api';
+import { useLanguage } from '@/lib/i18n-context';
 
 const mockSuppliers = [
   {
@@ -52,6 +53,7 @@ const mockSuppliers = [
 ];
 
 export default function SuppliersPage() {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -76,7 +78,7 @@ export default function SuppliersPage() {
   const displaySuppliers = suppliers.map((s, index) => ({
     id: s._id || s.id || `sup-${index}`,
     name: s.name,
-    category: s.category || 'General Vendor',
+    category: s.category || t('suppliers.general_vendor'),
     totalSpend: s.totalSpend || 0,
     invoiceCount: s.invoiceCount || (s.recentInvoices ? s.recentInvoices.length : 0),
     recentInvoices: s.recentInvoices || []
@@ -89,10 +91,10 @@ export default function SuppliersPage() {
 
   const getStatusBadge = (status: string) => {
     switch(status) {
-      case 'APPROVED': return <span className="bg-[#4CAF50]/10 text-[#4CAF50] border border-[#4CAF50]/30 px-3 py-1 rounded-[8px] text-[10px] font-bold uppercase">Approved</span>;
-      case 'VERIFIED': return <span className="bg-[#4CAF50]/10 text-[#4CAF50] border border-[#4CAF50]/30 px-3 py-1 rounded-[8px] text-[10px] font-bold uppercase">Verified</span>;
-      case 'PROCESSING': return <span className="bg-[#FFC107]/10 text-[#FFC107] border border-[#FFC107]/30 px-3 py-1 rounded-[8px] text-[10px] font-bold uppercase animate-pulse">Processing</span>;
-      default: return <span className="bg-white/5 text-[#A69697] border border-white/10 px-3 py-1 rounded-[8px] text-[10px] font-bold uppercase">{status}</span>;
+      case 'APPROVED': return <span className="bg-[#4CAF50]/10 text-[#4CAF50] border border-[#4CAF50]/30 px-3 py-1 rounded-[8px] text-[10px] font-bold uppercase">{t('status.approved')}</span>;
+      case 'VERIFIED': return <span className="bg-[#4CAF50]/10 text-[#4CAF50] border border-[#4CAF50]/30 px-3 py-1 rounded-[8px] text-[10px] font-bold uppercase">{t('status.verified')}</span>;
+      case 'PROCESSING': return <span className="bg-[#FFC107]/10 text-[#FFC107] border border-[#FFC107]/30 px-3 py-1 rounded-[8px] text-[10px] font-bold uppercase animate-pulse">{t('status.processing')}</span>;
+      default: return <span className="bg-white/5 text-[#A69697] border border-white/10 px-3 py-1 rounded-[8px] text-[10px] font-bold uppercase">{t(`status.${status.toLowerCase()}`)}</span>;
     }
   };
 
@@ -105,16 +107,16 @@ export default function SuppliersPage() {
           <div>
             <h1 className="text-[36px] font-bold tracking-tight mb-2">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#FFFFFF] via-[#EBD8D8] to-[#D98F8F]">
-                Suppliers Directory
+                {t('suppliers.title')}
               </span>
             </h1>
             <p className="text-[#A69697] text-[15px] max-w-[600px]">
-              Manage your vendors and track invoice history seamlessly.
+              {t('suppliers.subtitle')}
             </p>
           </div>
           
           <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-[rgba(255,255,255,0.05)] rounded-[20px] px-6 py-4 shadow-lg flex flex-col justify-center min-w-[180px]">
-            <p className="text-[#A69697] text-[11px] font-bold uppercase tracking-wider mb-1">Total Suppliers</p>
+            <p className="text-[#A69697] text-[11px] font-bold uppercase tracking-wider mb-1">{t('suppliers.total_suppliers')}</p>
             <p className="text-white text-[28px] font-bold leading-none">{displaySuppliers.length}</p>
           </div>
         </div>
@@ -124,7 +126,7 @@ export default function SuppliersPage() {
           <Search size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-[#A69697]" />
           <input
             type="text"
-            placeholder="Search suppliers by name or category..."
+            placeholder={t('suppliers.search_placeholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-[#1A0A0B]/50 py-4 pl-12 pr-4 text-[15px] text-white outline-none focus:bg-[#1E0A0B] transition-all placeholder:text-[#A69697]"
@@ -138,9 +140,9 @@ export default function SuppliersPage() {
               <div className="w-16 h-16 rounded-full bg-[#1A0A0B] flex items-center justify-center text-[#A69697] mb-4 shadow-inner">
                 <Building2 size={32} />
               </div>
-              <h3 className="text-white text-[18px] font-bold mb-2">No suppliers found</h3>
+              <h3 className="text-white text-[18px] font-bold mb-2">{t('suppliers.no_suppliers')}</h3>
               <p className="text-[#A69697] text-[14px] max-w-[400px]">
-                You haven't uploaded any invoices yet, or no suppliers match your search. Upload an invoice to automatically build your supplier directory.
+                {t('suppliers.no_suppliers_desc')}
               </p>
             </div>
           ) : (
@@ -178,11 +180,11 @@ export default function SuppliersPage() {
                     {/* Stats */}
                     <div className="flex items-center gap-8 md:pr-4">
                       <div className="text-right hidden sm:block w-[140px]">
-                        <p className="text-[#A69697] text-[11px] uppercase tracking-wider mb-1 font-bold">Total Spent</p>
+                        <p className="text-[#A69697] text-[11px] uppercase tracking-wider mb-1 font-bold">{t('suppliers.total_spent')}</p>
                         <p className="text-white text-[18px] font-bold tracking-tight">{supplier.totalSpend.toLocaleString()} TND</p>
                       </div>
                       <div className="text-right hidden sm:block w-[80px]">
-                        <p className="text-[#A69697] text-[11px] uppercase tracking-wider mb-1 font-bold">Invoices</p>
+                        <p className="text-[#A69697] text-[11px] uppercase tracking-wider mb-1 font-bold">{t('suppliers.invoices')}</p>
                         <p className="text-white text-[18px] font-bold tracking-tight">{supplier.invoiceCount}</p>
                       </div>
                       <div className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all ${
@@ -202,10 +204,10 @@ export default function SuppliersPage() {
                     <div className="p-6 md:p-8 pt-0 pl-6 md:pl-8 border-t border-white/5">
                       <div className="flex items-center justify-between mb-4 mt-2">
                         <h4 className="text-white text-[15px] font-semibold flex items-center gap-2">
-                          Recent Invoices
+                          {t('suppliers.recent_invoices')}
                         </h4>
                         <button className="text-[#A69697] hover:text-white text-[13px] transition-colors flex items-center gap-1 font-medium">
-                          View all invoices <ArrowUpRight size={14} />
+                          {t('suppliers.view_all')} <ArrowUpRight size={14} />
                         </button>
                       </div>
 
@@ -241,11 +243,11 @@ export default function SuppliersPage() {
                         ) : (
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-[#1A0A0B]/20 rounded-[12px] border border-white/5">
                             <div>
-                              <p className="text-white text-[14px] font-medium mb-1">No invoices found</p>
-                              <p className="text-[#A69697] text-[13px]">This supplier hasn't billed you recently. When they do, invoices will appear here.</p>
+                              <p className="text-white text-[14px] font-medium mb-1">{t('suppliers.no_invoices')}</p>
+                              <p className="text-[#A69697] text-[13px]">{t('suppliers.no_invoices_desc')}</p>
                             </div>
                             <Link href="/invoices/manual" className="mt-4 sm:mt-0 px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-[13px] font-medium rounded-lg border border-white/10 transition-colors">
-                              Add manual invoice
+                              {t('suppliers.add_manual')}
                             </Link>
                           </div>
                         )}

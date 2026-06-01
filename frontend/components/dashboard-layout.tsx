@@ -3,6 +3,7 @@
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useLanguage } from '@/lib/i18n-context';
 import { Sidebar } from './sidebar';
 import { Navbar } from './navbar';
 import { Loader } from 'lucide-react';
@@ -10,6 +11,7 @@ import { Loader } from 'lucide-react';
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const { language } = useLanguage();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -37,7 +39,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
       <div className="relative z-10 flex w-full h-full">
         <Sidebar />
-        <div className="flex-1 lg:ml-[260px] flex flex-col h-screen overflow-hidden relative">
+        <div className={`flex-1 ${language === 'AR' ? 'lg:mr-[260px]' : 'lg:ml-[260px]'} flex flex-col h-screen overflow-hidden relative`}>
           <Navbar />
           <main className="flex-1 overflow-y-auto p-6 md:p-8 w-full max-w-[1600px] mx-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
             {children}

@@ -59,7 +59,9 @@ const extractInvoiceData = async (filePath) => {
     - tvaAmount: The total TVA amount.
     - timbre: The fiscal stamp amount (Timbre fiscal).
     - totalAmount: The total amount after tax (TTC or Net à Payer).
+    - totalAmount: The total amount after tax (TTC or Net à Payer).
     - rawText: A short summary of the items or services.
+    - lineItems: An array of products or services. Each item should have "description" (string), "quantity" (number), "unitPrice" (number), and "totalPrice" (number). If not found, return an empty array.
 
     Return ONLY the JSON object inside a json code block.
     Example response structure:
@@ -76,6 +78,14 @@ const extractInvoiceData = async (filePath) => {
       "timbre": 1.000,
       "totalAmount": 1191.000,
       "rawText": "Purchase of equipment",
+      "lineItems": [
+        {
+          "description": "Equipment A",
+          "quantity": 2,
+          "unitPrice": 500.00,
+          "totalPrice": 1000.00
+        }
+      ],
       "confidenceScores": {
         "overall": 0.95
       }
@@ -132,6 +142,7 @@ const extractInvoiceData = async (filePath) => {
       timbre: parseFloat(parsed.timbre) || 0,
       totalAmount: parseFloat(parsed.totalAmount) || 0,
       rawText: parsed.rawText || text.substring(0, 500),
+      lineItems: Array.isArray(parsed.lineItems) ? parsed.lineItems : [],
       confidenceScores: parsed.confidenceScores || { overall: 0.85 },
     };
 

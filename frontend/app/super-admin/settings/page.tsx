@@ -1,14 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Save, Shield, Bell, Key, Database, Globe, Check, Loader } from 'lucide-react';
+import { Save, Key, Globe, Check, Loader } from 'lucide-react';
 import axios from 'axios';
+import { useLanguage } from '@/lib/i18n-context';
 
 export default function SettingsPage() {
+  const { t } = useLanguage();
+  const [activeTab, setActiveTab] = useState('General');
+
+  // General Settings
   const [platformName, setPlatformName] = useState("Aura Finance");
   const [maintenanceMode, setMaintenanceMode] = useState(false);
-  const [allowPublicRegistration, setAllowPublicRegistration] = useState(true);
-  
+
+  // API Keys
+  const [googleVisionApiKey, setGoogleVisionApiKey] = useState('');
+
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -21,9 +28,10 @@ export default function SettingsPage() {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.data && res.data.success && res.data.data) {
-          setPlatformName(res.data.data.platformName);
-          setMaintenanceMode(res.data.data.maintenanceMode);
-          setAllowPublicRegistration(res.data.data.allowPublicRegistration);
+          const d = res.data.data;
+          if (d.platformName) setPlatformName(d.platformName);
+          if (d.maintenanceMode !== undefined) setMaintenanceMode(d.maintenanceMode);
+          if (d.googleVisionApiKey) setGoogleVisionApiKey(d.googleVisionApiKey);
         }
       } catch (error) {
         console.error('Error fetching settings:', error);
@@ -43,7 +51,7 @@ export default function SettingsPage() {
       await axios.put('http://localhost:5000/api/super-admin/settings', {
         platformName,
         maintenanceMode,
-        allowPublicRegistration
+        googleVisionApiKey
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -69,15 +77,15 @@ export default function SettingsPage() {
         <div className="w-5 h-5 rounded-full bg-[#4ADE80] flex items-center justify-center">
           <Check size={12} className="text-black" />
         </div>
-        <span className="text-[13px] font-medium">Settings saved successfully</span>
+        <span className="text-[13px] font-medium">{t('superadmin.settings_page.toast_success')}</span>
       </div>
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-[24px] font-semibold text-white tracking-tight mb-1">System Settings</h1>
+          <h1 className="text-[24px] font-semibold text-white tracking-tight mb-1">{t('superadmin.settings_page.title')}</h1>
           <p className="text-[13px] text-[#A69697]">
-            Global configuration, security, and integration rules.
+            {t('superadmin.settings_page.subtitle')}
           </p>
         </div>
         <button 
@@ -86,7 +94,7 @@ export default function SettingsPage() {
           className="flex items-center gap-2 px-4 py-2 rounded-md text-[12px] font-medium bg-white text-[#1A0A0B] hover:bg-white/90 transition-colors disabled:opacity-50"
         >
           {isSaving ? <Loader size={14} className="animate-spin"/> : <Save size={14} />}
-          {isSaving ? 'Saving...' : 'Save Changes'}
+          {isSaving ? t('superadmin.settings_page.saving_btn') : t('superadmin.settings_page.save_btn')}
         </button>
       </div>
 
@@ -95,83 +103,83 @@ export default function SettingsPage() {
         {/* Sidebar Nav */}
         <div className="w-full md:w-56 flex-shrink-0 space-y-1">
           {[
-            { name: 'General', icon: Globe, active: true },
-            { name: 'Security', icon: Shield, active: false },
-            { name: 'Database', icon: Database, active: false },
-            { name: 'API Keys', icon: Key, active: false },
-            { name: 'Notifications', icon: Bell, active: false },
+            { name: 'General', label: t('superadmin.settings_page.tab_general'), icon: Globe },
+            { name: 'API Keys', label: t('superadmin.settings_page.tab_api'), icon: Key },
           ].map((item, i) => (
             <button 
               key={i} 
+              onClick={() => setActiveTab(item.name)}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[12px] transition-colors ${
-                item.active
+                activeTab === item.name
                   ? 'bg-white/10 text-white font-medium border border-white/5'
                   : 'text-[#A69697] hover:text-white hover:bg-white/5 border border-transparent'
               }`}
             >
-              <item.icon size={14} className={item.active ? 'text-white' : 'text-inherit'} />
-              {item.name}
+              <item.icon size={14} className={activeTab === item.name ? 'text-white' : 'text-inherit'} />
+              {item.label}
             </button>
           ))}
         </div>
 
         {/* Content Area */}
         <div className="flex-1 space-y-4">
-          <div className={cardClasses}>
-            <h2 className="text-[14px] font-semibold text-white mb-5 border-b border-white/5 pb-3">
-              Platform General Settings
-            </h2>
-            
-            <div className="space-y-5 max-w-lg">
-              <div>
-                <label className="block text-[11px] font-medium text-[#A69697] mb-1.5 uppercase tracking-wider">Platform Name</label>
-                <input 
-                  type="text" 
-                  value={platformName}
-                  onChange={(e) => setPlatformName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-md border outline-none text-[12px] transition-colors bg-[#1E0A0B] border-white/5 text-white focus:border-[#D98F8F]/50"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-[11px] font-medium text-[#A69697] mb-1.5 uppercase tracking-wider">Maintenance Mode</label>
-                <div 
-                  className="px-4 py-3 rounded-md border border-white/5 bg-[#1E0A0B] flex items-center justify-between cursor-pointer group"
-                  onClick={() => setMaintenanceMode(!maintenanceMode)}
-                >
-                  <div>
-                    <p className="font-medium text-[12px] text-white">Enable Maintenance</p>
-                    <p className="text-[11px] text-[#A69697] mt-0.5">Locks out all non-system administrators.</p>
-                  </div>
-                  {/* Toggle Switch */}
-                  <div className={`w-8 h-4 rounded-full p-0.5 transition-colors ${maintenanceMode ? 'bg-[#D98F8F]' : 'bg-white/10'}`}>
-                    <div className={`w-3 h-3 rounded-full transition-transform ${maintenanceMode ? 'translate-x-4 bg-[#1E0A0B]' : 'translate-x-0 bg-[#A69697]'}`}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className={cardClasses}>
-            <h2 className="text-[14px] font-semibold text-white mb-5 border-b border-white/5 pb-3">
-              Tenant Registration
-            </h2>
-            
-            <div className="space-y-5 max-w-lg">
-              <div className="flex items-start justify-between cursor-pointer group" onClick={() => setAllowPublicRegistration(!allowPublicRegistration)}>
+          
+          {activeTab === 'General' && (
+            <div className={cardClasses}>
+              <h2 className="text-[14px] font-semibold text-white mb-5 border-b border-white/5 pb-3">
+                {t('superadmin.settings_page.general_title')}
+              </h2>
+              <div className="space-y-5 max-w-lg">
                 <div>
-                  <p className="font-medium text-[12px] text-white">Allow Public Registration</p>
-                  <p className="text-[11px] text-[#A69697] mt-0.5">Enables the public signup page for new tenants.</p>
+                  <label className="block text-[11px] font-medium text-[#A69697] mb-1.5 uppercase tracking-wider">{t('superadmin.settings_page.platform_name')}</label>
+                  <input 
+                    type="text" 
+                    value={platformName}
+                    onChange={(e) => setPlatformName(e.target.value)}
+                    className="w-full px-3 py-2 rounded-md border outline-none text-[12px] transition-colors bg-[#1E0A0B] border-white/5 text-white focus:border-[#D98F8F]/50"
+                  />
                 </div>
-                {/* Toggle Switch */}
-                <div className={`w-8 h-4 rounded-full p-0.5 transition-colors ${allowPublicRegistration ? 'bg-green-500/40 border border-green-500/50' : 'bg-white/10 border border-transparent'}`}>
-                  <div className={`w-3 h-3 rounded-full transition-transform ${allowPublicRegistration ? 'translate-x-4 bg-green-400' : 'translate-x-0 bg-[#A69697]'}`}></div>
+                <div>
+                  <label className="block text-[11px] font-medium text-[#A69697] mb-1.5 uppercase tracking-wider">{t('superadmin.settings_page.maintenance_mode')}</label>
+                  <div 
+                    className="px-4 py-3 rounded-md border border-white/5 bg-[#1E0A0B] flex items-center justify-between cursor-pointer group"
+                    onClick={() => setMaintenanceMode(!maintenanceMode)}
+                  >
+                    <div>
+                      <p className="font-medium text-[12px] text-white">{t('superadmin.settings_page.enable_maintenance')}</p>
+                      <p className="text-[11px] text-[#A69697] mt-0.5">{t('superadmin.settings_page.maintenance_desc')}</p>
+                    </div>
+                    <div className={`w-8 h-4 rounded-full p-0.5 transition-colors ${maintenanceMode ? 'bg-[#D98F8F]' : 'bg-white/10'}`}>
+                      <div className={`w-3 h-3 rounded-full transition-transform ${maintenanceMode ? 'translate-x-4 bg-[#1E0A0B]' : 'translate-x-0 bg-[#A69697]'}`}></div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          )}
 
+          {activeTab === 'API Keys' && (
+            <div className={cardClasses}>
+              <h2 className="text-[14px] font-semibold text-white mb-5 border-b border-white/5 pb-3">
+                {t('superadmin.settings_page.api_title')}
+              </h2>
+              <div className="space-y-5 max-w-lg">
+                <div>
+                  <label className="block text-[11px] font-medium text-[#A69697] mb-1.5 uppercase tracking-wider">{t('superadmin.settings_page.google_vision_key')}</label>
+                  <input 
+                    type="password" 
+                    value={googleVisionApiKey}
+                    onChange={(e) => setGoogleVisionApiKey(e.target.value)}
+                    placeholder={t('superadmin.settings_page.google_vision_placeholder')}
+                    className="w-full px-3 py-2 rounded-md border outline-none text-[12px] transition-colors bg-[#1E0A0B] border-white/5 text-white focus:border-[#D98F8F]/50"
+                  />
+                  <p className="text-[11px] text-[#A69697] mt-1.5">{t('superadmin.settings_page.google_vision_desc')}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
       </div>
     </div>
   );

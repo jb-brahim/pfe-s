@@ -12,6 +12,12 @@ const extractedDataSchema = new mongoose.Schema({
   timbre: { type: Number },
   tva: { type: Number },
   client: { type: String },
+  lineItems: [{
+    description: String,
+    quantity: Number,
+    unitPrice: Number,
+    totalPrice: Number
+  }],
   confidenceScores: { type: Object },
   rawText: { type: String },
   isManualEntry: { type: Boolean, default: false },

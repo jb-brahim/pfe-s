@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { AuthProvider } from '@/lib/auth-context'
 import { ThemeInitializer } from '@/components/theme-initializer'
+import { LanguageProvider } from '@/lib/i18n-context'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -43,8 +44,10 @@ export default function RootLayout({
       <body className="font-sans antialiased bg-white dark:bg-gray-900">
         <ThemeInitializer />
         <AuthProvider>
-          {children}
-          {process.env.NODE_ENV === 'production' && <Analytics />}
+          <LanguageProvider>
+            {children}
+            {process.env.NODE_ENV === 'production' && <Analytics />}
+          </LanguageProvider>
         </AuthProvider>
       </body>
     </html>
