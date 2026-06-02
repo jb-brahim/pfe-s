@@ -155,7 +155,7 @@ export function Sidebar() {
           >
             <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-[#8E1B3A] flex items-center justify-center">
               {user?.profileImage ? (
-                <img src={`http://localhost:5000/${user.profileImage}`} alt="User" className="w-full h-full object-cover" />
+                <img src={`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/${user.profileImage}`} alt="User" className="w-full h-full object-cover" />
               ) : (
                 <span className="text-white text-[12px] font-semibold">{user?.name?.charAt(0)?.toUpperCase() || 'U'}</span>
               )}

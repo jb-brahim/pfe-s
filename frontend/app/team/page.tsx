@@ -72,7 +72,7 @@ export default function TeamPage() {
                       `${log.action.toLowerCase().replace(/_/g, ' ')}`,
           rawAction: log.action || 'UPDATE',
           time: new Date(log.createdAt || log.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-          profileImage: log.userId?.profileImage ? `http://localhost:5000/${log.userId.profileImage}` : null,
+          profileImage: log.userId?.profileImage ? `${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/${log.userId.profileImage}` : null,
           entityId: log.entityId || log.invoiceId || 'N/A',
           entityType: log.entityType || 'Invoice'
         }));
@@ -323,7 +323,7 @@ export default function TeamPage() {
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-3">
                             {emp.profileImage ? (
-                              <img src={`http://localhost:5000/${emp.profileImage}`} alt={emp.name} className="w-10 h-10 rounded-full border border-white/10 object-cover" />
+                              <img src={`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/${emp.profileImage}`} alt={emp.name} className="w-10 h-10 rounded-full border border-white/10 object-cover" />
                             ) : (
                               <div className="w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-[#A69697] shrink-0">
                                 <User size={18} />

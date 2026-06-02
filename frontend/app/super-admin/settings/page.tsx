@@ -24,7 +24,7 @@ export default function SettingsPage() {
     const fetchSettings = async () => {
       try {
         const token = localStorage.getItem('authToken');
-        const res = await axios.get('http://localhost:5000/api/super-admin/settings', {
+        const res = await axios.get(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/super-admin/settings`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.data && res.data.success && res.data.data) {
@@ -48,7 +48,7 @@ export default function SettingsPage() {
     setIsSaving(true);
     try {
       const token = localStorage.getItem('authToken');
-      await axios.put('http://localhost:5000/api/super-admin/settings', {
+      await axios.put(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/super-admin/settings`, {
         platformName,
         maintenanceMode,
         googleVisionApiKey

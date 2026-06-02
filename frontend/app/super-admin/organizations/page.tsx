@@ -28,7 +28,7 @@ export default function OrganizationsPage() {
   const fetchOrganizations = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const res = await axios.get('http://localhost:5000/api/super-admin/companies', {
+      const res = await axios.get(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/super-admin/companies`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data && res.data.success) {
@@ -49,7 +49,7 @@ export default function OrganizationsPage() {
     if (window.confirm("Are you sure you want to delete this organization?")) {
       try {
         const token = localStorage.getItem('authToken');
-        await axios.delete(`http://localhost:5000/api/super-admin/users/${id}`, {
+        await axios.delete(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/super-admin/users/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setOrganizations(organizations.filter(org => org._id !== id));
@@ -76,7 +76,7 @@ export default function OrganizationsPage() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('authToken');
-      await axios.put(`http://localhost:5000/api/super-admin/users/${editOrgForm.id}`, {
+      await axios.put(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/super-admin/users/${editOrgForm.id}`, {
         plan: editOrgForm.plan,
         amount: editOrgForm.amount,
         status: editOrgForm.status
@@ -112,7 +112,7 @@ export default function OrganizationsPage() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('authToken');
-      await axios.post(`http://localhost:5000/api/super-admin/users/${messageForm.id}/send-reminder`, {
+      await axios.post(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/super-admin/users/${messageForm.id}/send-reminder`, {
         subject: messageForm.subject,
         message: messageForm.message
       }, {
@@ -148,7 +148,7 @@ export default function OrganizationsPage() {
     setIsGeneratingApi(true);
     try {
       const token = localStorage.getItem('authToken');
-      const res = await axios.post(`http://localhost:5000/api/super-admin/users/${apiOrg._id}/generate-api-key`, {}, {
+      const res = await axios.post(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/super-admin/users/${apiOrg._id}/generate-api-key`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data && res.data.success) {

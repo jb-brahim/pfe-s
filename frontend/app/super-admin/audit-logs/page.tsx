@@ -13,7 +13,7 @@ export default function AuditLogsPage() {
     const fetchLogs = async () => {
       try {
         const token = localStorage.getItem('authToken');
-        const res = await axios.get('http://localhost:5000/api/super-admin/audit-logs', {
+        const res = await axios.get(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/super-admin/audit-logs`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.data && res.data.success) {

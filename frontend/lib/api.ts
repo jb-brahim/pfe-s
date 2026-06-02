@@ -1,6 +1,12 @@
 import axios, { AxiosInstance } from 'axios';
 
-const API_BASE_URL = 'https://pfe-s.onrender.com/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
+  (process.env.NODE_ENV === 'production' 
+    ? 'https://pfe-s.onrender.com/api' 
+    : 'http://localhost:5000/api');
+
+// Export the base URL without /api for images and other resources
+export const BASE_URL = API_BASE_URL.replace('/api', '');
 
 // Create axios instance with token attachment
 const apiClient: AxiosInstance = axios.create({

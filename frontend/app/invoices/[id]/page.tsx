@@ -132,7 +132,7 @@ export default function InvoiceDetailsPage() {
                   invoice.fileUrl.toLowerCase().endsWith('.pdf') ? (
                     <div style={{ width: `${zoomLevel * 100}%`, minHeight: `${zoomLevel * 600}px`, transition: 'width 0.2s ease' }} className="flex-shrink-0">
                       <iframe 
-                        src={`http://localhost:5000/${invoice.fileUrl.replace(/\\/g, '/')}`} 
+                        src={`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/${invoice.fileUrl.replace(/\\/g, '/')}`} 
                         className="w-full h-full border-none min-h-[600px]"
                         title="Invoice PDF"
                       />
@@ -140,7 +140,7 @@ export default function InvoiceDetailsPage() {
                   ) : (
                     <div className="w-full flex items-center justify-center p-4">
                       <img 
-                        src={`http://localhost:5000/${invoice.fileUrl.replace(/\\/g, '/')}`} 
+                        src={`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/${invoice.fileUrl.replace(/\\/g, '/')}`} 
                         className="h-auto object-contain rounded-md shadow-sm transition-all duration-200 max-w-none origin-top"
                         style={{ width: `${zoomLevel * 100}%` }}
                         alt="Invoice Image"
@@ -160,7 +160,7 @@ export default function InvoiceDetailsPage() {
               onClick={async () => {
                 if (!invoice.fileUrl) return;
                 try {
-                  const url = `http://localhost:5000/${invoice.fileUrl.replace(/\\/g, '/')}`;
+                  const url = `${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/${invoice.fileUrl.replace(/\\/g, '/')}`;
                   const response = await fetch(url);
                   const blob = await response.blob();
                   const downloadUrl = window.URL.createObjectURL(blob);
@@ -174,7 +174,7 @@ export default function InvoiceDetailsPage() {
                   window.URL.revokeObjectURL(downloadUrl);
                 } catch (error) {
                   console.error('Download failed:', error);
-                  window.open(`http://localhost:5000/${invoice.fileUrl.replace(/\\/g, '/')}`, '_blank');
+                  window.open(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/${invoice.fileUrl.replace(/\\/g, '/')}`, '_blank');
                 }
               }}
               className="w-full py-4 rounded-xl bg-gradient-to-r from-[#EBD8D8] to-[#D98F8F] shadow-[0_0_20px_rgba(217,143,143,0.2)] font-semibold text-[15px] flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform text-[#3C0D0D]"

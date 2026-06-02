@@ -23,13 +23,13 @@ export default function AnnouncementsPage() {
   const fetchAnnouncements = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const res = await axios.get('http://localhost:5000/api/super-admin/announcements', {
+      const res = await axios.get(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/super-admin/announcements`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data && res.data.success) {
         setAnnouncements(res.data.data);
       }
-      const compRes = await axios.get('http://localhost:5000/api/super-admin/companies', {
+      const compRes = await axios.get(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/super-admin/companies`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (compRes.data && compRes.data.success) {
@@ -52,7 +52,7 @@ export default function AnnouncementsPage() {
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem('authToken');
-      await axios.post('http://localhost:5000/api/super-admin/announcements', form, {
+      await axios.post(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/super-admin/announcements`, form, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setForm({ title: '', message: '', severity: 'info', targetAudience: 'ALL', targetUsers: [] });
@@ -68,7 +68,7 @@ export default function AnnouncementsPage() {
   const handleToggleActive = async (id: string) => {
     try {
       const token = localStorage.getItem('authToken');
-      await axios.put(`http://localhost:5000/api/super-admin/announcements/${id}/toggle`, {}, {
+      await axios.put(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/super-admin/announcements/${id}/toggle`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchAnnouncements();

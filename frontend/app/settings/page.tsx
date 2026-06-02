@@ -272,7 +272,7 @@ export default function SettingsPage() {
                     >
                       {user?.profileImage ? (
                         <img 
-                          src={`http://localhost:5000/${user.profileImage}`} 
+                          src={`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/${user.profileImage}`} 
                           alt="Profile" 
                           className="w-20 h-20 rounded-full border-2 border-[#D98F8F]/50 shadow-[0_0_15px_rgba(217,143,143,0.2)] object-cover group-hover:opacity-70 transition-opacity" 
                         />

@@ -13,7 +13,7 @@ export default function GlobalUsersPage() {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const res = await axios.get('http://localhost:5000/api/super-admin/users', {
+      const res = await axios.get(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/super-admin/users`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data && res.data.success) {
@@ -33,7 +33,7 @@ export default function GlobalUsersPage() {
   const handleToggleLock = async (userId: string) => {
     try {
       const token = localStorage.getItem('authToken');
-      const res = await axios.put(`http://localhost:5000/api/super-admin/users/${userId}/lock`, {}, {
+      const res = await axios.put(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/super-admin/users/${userId}/lock`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data && res.data.success) {

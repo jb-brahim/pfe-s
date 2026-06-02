@@ -220,7 +220,7 @@ export default function ReportsPage() {
 
   const handleDownload = (report: any) => {
     // Open dynamic download
-    const backendUrl = 'http://localhost:5000';
+    const backendUrl = `${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}`;
     window.open(`${backendUrl}${report.fileUrl}`, '_blank');
   };
 
