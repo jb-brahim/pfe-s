@@ -99,7 +99,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className={`keep-dark min-h-screen flex items-center justify-center p-6 font-sans ${
+    <div className={`keep-dark relative min-h-screen flex items-center justify-center p-6 font-sans ${
       transitionReady ? 'transition-colors duration-700 ease-in-out' : 'transition-none'
     } ${
       mounted ? 'opacity-100' : 'opacity-0'
@@ -130,8 +130,10 @@ export default function RegisterPage() {
       </div>
 
       {/* Background Ambience */}
-      <div className="fixed top-[-20%] right-[-10%] w-[50%] h-[50%] bg-[#8E1B3A] rounded-full blur-[150px] opacity-20 pointer-events-none transition-opacity duration-700"></div>
-      <div className={`fixed bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#D98F8F] rounded-full blur-[150px] pointer-events-none transition-opacity duration-700 ${isDark ? 'opacity-10' : 'opacity-20'}`}></div>
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-[#8E1B3A] rounded-full blur-[150px] opacity-20 transition-opacity duration-700"></div>
+        <div className={`absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#D98F8F] rounded-full blur-[150px] transition-opacity duration-700 ${isDark ? 'opacity-10' : 'opacity-20'}`}></div>
+      </div>
 
       {/* Main Glass Container */}
       <div className={`w-full max-w-[1100px] backdrop-blur-2xl rounded-[40px] p-12 relative z-10 flex flex-col md:flex-row gap-16 overflow-hidden transition-all duration-700 ease-in-out ${

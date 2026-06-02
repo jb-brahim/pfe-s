@@ -21,7 +21,7 @@ export default function DashboardPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (user) {
+    if (user && user.role === 'ADMIN') {
       const hasSeen = localStorage.getItem(`welcome_${user._id}`);
       if (!hasSeen) {
         setShowWelcome(true);

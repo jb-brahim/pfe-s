@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { AuthProvider } from '@/lib/auth-context'
 import { ThemeInitializer } from '@/components/theme-initializer'
 import { LanguageProvider } from '@/lib/i18n-context'
+import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -47,6 +48,7 @@ export default function RootLayout({
           <LanguageProvider>
             {children}
             {process.env.NODE_ENV === 'production' && <Analytics />}
+            <Toaster />
           </LanguageProvider>
         </AuthProvider>
       </body>
