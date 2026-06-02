@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://pfe-s.onrender.com/api';
 
 // Create axios instance with token attachment
 const apiClient: AxiosInstance = axios.create({
