@@ -7,8 +7,10 @@ import { Sparkles, ArrowRight, Zap, ShieldCheck, BarChart3, Users, CheckCircle2,
 import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis } from 'recharts';
 import { LandingNavbar } from '@/components/landing-navbar';
 import { LandingFooter } from '@/components/landing-footer';
+import { useLanguage } from '@/lib/i18n-context';
 
 export default function LandingPage() {
+  const { t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -62,19 +64,19 @@ export default function LandingPage() {
           </div>
 
           <h1 className="text-[52px] md:text-[72px] font-extrabold tracking-tight leading-[1.05] mb-6 max-w-[900px]">
-            Revolutionize Your Finance: <br/>
+            {t('landing.home.hero_title_1')} <br/>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFFFFF] via-[#EBD8D8] to-[#D98F8F]">
-              AI-Powered Invoicing
+              {t('landing.home.hero_title_highlight')}
             </span> <br/>
-            & Expense Management.
+            {t('landing.home.hero_title_2')}
           </h1>
           <p className="text-[#A69697] text-[18px] md:text-[22px] mb-10 max-w-[700px] leading-relaxed">
-            Automate, Optimize, and Scale with Aura Finance's enterprise-grade platform.
+            {t('landing.home.hero_subtitle')}
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
              <Link href="/features" className="w-full sm:w-auto px-10 py-4 rounded-full bg-[rgba(255,255,255,0.1)] backdrop-blur-md border border-[#D98F8F]/50 text-white font-bold text-[16px] shadow-[0_0_30px_rgba(217,143,143,0.3)] hover:bg-[#D98F8F] hover:text-[#1A0A0B] transition-all flex items-center justify-center gap-2">
-               Explore Features <ArrowRight size={18} />
+               {t('landing.home.explore_features')} <ArrowRight size={18} />
              </Link>
           </div>
         </section>

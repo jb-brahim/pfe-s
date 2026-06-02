@@ -491,5 +491,30 @@
     "apply_changes": "Apply Changes",
     "send_message": "Send Message",
     "send_direct_message": "Send Direct Message"
+  },
+  "landing": {
+    "navbar": {
+      "home": "Home",
+      "features": "Features",
+      "ttn": "TTN Integration",
+      "pricing": "Pricing",
+      "about": "About Us",
+      "contact": "Contact",
+      "login": "Login",
+      "get_started": "Get Started"
+    },
+    "footer": {
+      "desc": "Aura Finance is an enterprise-grade platform designed to revolutionize financial operations. By leveraging advanced artificial intelligence, we automate tedious tasks like invoice extraction, expense tracking, and complex approval workflows. Our mission is to empower modern finance teams to reduce manual errors, scale efficiently, and make data-driven decisions with absolute confidence.",
+      "platform": "Platform",
+      "resources": "Resources",
+      "rights": "Aura Finance. All rights reserved."
+    },
+    "home": {
+      "hero_title_1": "Revolutionize Your Finance:",
+      "hero_title_highlight": "AI-Powered Invoicing",
+      "hero_title_2": "& Expense Management.",
+      "hero_subtitle": "Automate, Optimize, and Scale with Aura Finance's enterprise-grade platform.",
+      "explore_features": "Explore Features"
+    }
   }
 }

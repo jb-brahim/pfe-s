@@ -4,22 +4,24 @@ import { Network, Server, Globe2, ShieldCheck, Database, ArrowRight } from 'luci
 import { LandingNavbar } from '@/components/landing-navbar';
 import { LandingFooter } from '@/components/landing-footer';
 import Link from 'next/link';
+import { useLanguage } from '@/lib/i18n-context';
 
 export default function TTNPage() {
+  const { t } = useLanguage();
   return (
     <div className="min-h-screen bg-[#1A0A0B] text-white selection:bg-[#D98F8F]/30 font-sans">
       <LandingNavbar />
 
       <main className="pt-32 pb-20 px-6 md:px-12 max-w-[1400px] mx-auto">
         <div className="text-center max-w-[900px] mx-auto mb-20">
-          <div className="inline-flex items-center justify-center p-4 bg-[#8E1B3A]/20 rounded-full mb-6 border border-[#8E1B3A]/40">
-            <Network size={48} className="text-[#D98F8F]" />
+          <div className="inline-block px-4 py-1.5 rounded-full bg-[#8E1B3A]/20 border border-[#8E1B3A]/30 text-[#D98F8F] font-bold text-sm tracking-wide mb-6">
+            {t('landing.ttn.badge') || 'OFFICIAL INTEGRATION'}
           </div>
           <h1 className="text-[48px] md:text-[64px] font-extrabold tracking-tight mb-6">
-            TTN Integration Architecture
+            {t('landing.ttn.title') || 'Seamless TTN Compliance'}
           </h1>
-          <p className="text-[#A69697] text-[18px] md:text-[22px] leading-relaxed">
-            The backbone of Aura Finance. Our Trusted Transaction Network (TTN) ensures compliance, speed, and absolute reliability across all global regions.
+          <p className="text-[#A69697] text-[18px] md:text-[22px] leading-relaxed max-w-3xl mx-auto">
+            {t('landing.ttn.subtitle') || "Aura Finance is fully integrated with Tunisia's TradeNet (TTN). Automatically validate, extract, and submit electronic invoices in perfect compliance with national standards."}
           </p>
         </div>
 

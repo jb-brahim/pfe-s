@@ -4,8 +4,10 @@ import { Zap, CheckCircle2, BarChart3, Users, Network, Shield, ArrowRight } from
 import { LandingNavbar } from '@/components/landing-navbar';
 import { LandingFooter } from '@/components/landing-footer';
 import Link from 'next/link';
+import { useLanguage } from '@/lib/i18n-context';
 
 export default function FeaturesPage() {
+  const { t } = useLanguage();
   return (
     <div className="min-h-screen bg-[#1A0A0B] text-white selection:bg-[#D98F8F]/30 font-sans">
       <LandingNavbar />
@@ -16,10 +18,10 @@ export default function FeaturesPage() {
       <main className="pt-32 pb-20 px-6 md:px-12 max-w-[1400px] mx-auto">
         <div className="text-center max-w-[800px] mx-auto mb-20">
           <h1 className="text-[48px] md:text-[64px] font-extrabold tracking-tight mb-6">
-            Powerful Features for Modern Finance
+            {t('landing.features.title') || 'Powerful Features for Modern Finance'}
           </h1>
           <p className="text-[#A69697] text-[18px] md:text-[22px] leading-relaxed">
-            Everything you need to automate, track, and scale your financial operations with enterprise-grade security and advanced AI capabilities.
+            {t('landing.features.subtitle') || 'Everything you need to automate, track, and scale your financial operations with enterprise-grade security and advanced AI capabilities.'}
           </p>
         </div>
 

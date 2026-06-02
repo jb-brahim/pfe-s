@@ -2,10 +2,12 @@
 
 import { LandingNavbar } from '@/components/landing-navbar';
 import { LandingFooter } from '@/components/landing-footer';
-import { MapPin, Phone, Mail, Send, MessageSquare } from 'lucide-react';
+import { MapPin, Phone, Mail, Send, MessageSquare, Globe2 } from 'lucide-react';
 import { useState } from 'react';
+import { useLanguage } from '@/lib/i18n-context';
 
 export default function ContactPage() {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -26,15 +28,16 @@ export default function ContactPage() {
       <LandingNavbar />
 
       <main className="pt-32 pb-20 px-6 md:px-12 max-w-[1400px] mx-auto">
-        <div className="text-center max-w-[800px] mx-auto mb-16">
-          <div className="inline-flex items-center justify-center p-4 bg-[#8E1B3A]/20 rounded-full mb-6 border border-[#8E1B3A]/40">
-            <MessageSquare size={40} className="text-[#D98F8F]" />
+        <div className="text-center max-w-[800px] mx-auto mb-16 relative z-10">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[#D98F8F] text-sm font-medium mb-6">
+            <Globe2 size={16} />
+            {t('landing.contact.badge') || 'Global Support'}
           </div>
           <h1 className="text-[48px] md:text-[64px] font-extrabold tracking-tight mb-6">
-            Contactez-nous
+            {t('landing.contact.title') || "Let's build something"} <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A]">{t('landing.contact.title_highlight') || "amazing."}</span>
           </h1>
           <p className="text-[#A69697] text-[18px] md:text-[22px] leading-relaxed">
-            Nous sommes là pour répondre à vos questions et discuter de la façon dont Aura Finance peut transformer vos opérations financières.
+            {t('landing.contact.subtitle') || "Our enterprise sales and support teams are ready to help you transform your financial operations."}
           </p>
         </div>
 

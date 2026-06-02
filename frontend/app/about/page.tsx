@@ -4,8 +4,10 @@ import { LandingNavbar } from '@/components/landing-navbar';
 import { LandingFooter } from '@/components/landing-footer';
 import { Users, Target, Shield, Zap } from 'lucide-react';
 import Link from 'next/link';
+import { useLanguage } from '@/lib/i18n-context';
 
 export default function AboutPage() {
+  const { t } = useLanguage();
   return (
     <div className="min-h-screen bg-[#1A0A0B] text-white selection:bg-[#D98F8F]/30 overflow-x-hidden flex flex-col">
       <LandingNavbar />
@@ -16,10 +18,10 @@ export default function AboutPage() {
           {/* Header Section */}
           <div className="text-center max-w-3xl mx-auto mb-20">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
-              Empowering Modern <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A]">Finance Teams</span>
+              {t('landing.about.title_1') || 'Empowering Modern'} <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A]">{t('landing.about.title_highlight') || 'Finance Teams'}</span>
             </h1>
             <p className="text-[#A69697] text-lg md:text-xl leading-relaxed">
-              Aura Finance was built with a single mission: to eliminate the friction from financial operations so businesses can focus on growth.
+              {t('landing.about.subtitle') || 'Aura Finance was built with a single mission: to eliminate the friction from financial operations so businesses can focus on growth.'}
             </p>
           </div>
 

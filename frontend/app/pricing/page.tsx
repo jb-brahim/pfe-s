@@ -5,9 +5,11 @@ import { LandingNavbar } from '@/components/landing-navbar';
 import { LandingFooter } from '@/components/landing-footer';
 import { ChevronDown, CheckCircle2, XCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useLanguage } from '@/lib/i18n-context';
 
 export default function PricingPage() {
   const [isAnnual, setIsAnnual] = useState(true);
+  const { t } = useLanguage();
 
   const faqs = [
     { q: 'How does the billing cycle work?', a: 'We offer both monthly and annual billing options. Annual plans come with a 20% discount applied automatically.' },
@@ -24,10 +26,10 @@ export default function PricingPage() {
       <main className="pt-32 pb-20 px-6 md:px-12 max-w-[1400px] mx-auto">
         <div className="text-center max-w-[800px] mx-auto mb-16">
           <h1 className="text-[48px] md:text-[64px] font-extrabold tracking-tight mb-6">
-            Transparent Pricing for Every Scale
+            {t('landing.pricing.title') || 'Transparent Pricing for Every Scale'}
           </h1>
           <p className="text-[#A69697] text-[18px] md:text-[22px] leading-relaxed mb-10">
-            Start automating your financial operations today. Simple pricing, no hidden fees.
+            {t('landing.pricing.subtitle') || 'Start automating your financial operations today. Simple pricing, no hidden fees.'}
           </p>
           
           <div className="inline-flex bg-[#1A0A0B] border border-white/10 p-1.5 rounded-full">

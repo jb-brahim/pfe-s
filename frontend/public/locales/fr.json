@@ -491,5 +491,30 @@
     "apply_changes": "Appliquer les Changements",
     "send_message": "Envoyer Message",
     "send_direct_message": "Envoyer un Message Direct"
+  },
+  "landing": {
+    "navbar": {
+      "home": "Accueil",
+      "features": "Fonctionnalités",
+      "ttn": "Intégration TTN",
+      "pricing": "Tarifs",
+      "about": "À Propos",
+      "contact": "Contact",
+      "login": "Connexion",
+      "get_started": "Commencer"
+    },
+    "footer": {
+      "desc": "Aura Finance est une plateforme d'entreprise conçue pour révolutionner les opérations financières. Grâce à l'intelligence artificielle avancée, nous automatisons les tâches fastidieuses telles que l'extraction des factures, le suivi des dépenses et les flux d'approbation complexes. Notre mission est de donner aux équipes financières modernes les moyens de réduire les erreurs manuelles, d'évoluer efficacement et de prendre des décisions basées sur les données en toute confiance.",
+      "platform": "Plateforme",
+      "resources": "Ressources",
+      "rights": "Aura Finance. Tous droits réservés."
+    },
+    "home": {
+      "hero_title_1": "Révolutionnez vos Finances :",
+      "hero_title_highlight": "Facturation par IA",
+      "hero_title_2": "& Gestion des Dépenses.",
+      "hero_subtitle": "Automatisez, optimisez et évoluez avec la plateforme d'entreprise d'Aura Finance.",
+      "explore_features": "Découvrir les Fonctionnalités"
+    }
   }
 }
