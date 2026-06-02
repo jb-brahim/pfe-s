@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Sparkles, Twitter, Linkedin, Github, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
+import { Logo } from '@/components/logo';
 
 export function LandingFooter() {
   return (
@@ -11,44 +12,32 @@ export function LandingFooter() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16">
           {/* Brand Column */}
           <div className="lg:col-span-5">
-            <Link href="/" className="flex items-center gap-3 mb-6">
-              <div className="bg-[#8E1B3A] p-2 rounded-lg flex items-center justify-center">
-                <Sparkles size={24} className="text-[#D98F8F]" />
-              </div>
-              <span className="text-xl font-bold text-white tracking-wide">Aura Finance</span>
+            <Link href="/" className="flex items-center gap-2 mb-6">
+              <Logo size="md" className="shadow-[0_0_15px_rgba(217,143,143,0.4)]" />
+              <span className="text-[20px] font-bold text-white tracking-tight">Aura Finance</span>
             </Link>
             <p className="text-[#A69697] text-sm leading-relaxed mb-6">
               Aura Finance is an enterprise-grade platform designed to revolutionize financial operations. By leveraging advanced artificial intelligence, we automate tedious tasks like invoice extraction, expense tracking, and complex approval workflows. Our mission is to empower modern finance teams to reduce manual errors, scale efficiently, and make data-driven decisions with absolute confidence.
             </p>
-            <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-[rgba(255,255,255,0.05)] border border-white/10 flex items-center justify-center text-[#A69697] hover:text-white hover:bg-[#D98F8F]/20 hover:border-[#D98F8F]/50 transition-all">
-                <Twitter size={18} />
-              </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-[rgba(255,255,255,0.05)] border border-white/10 flex items-center justify-center text-[#A69697] hover:text-white hover:bg-[#D98F8F]/20 hover:border-[#D98F8F]/50 transition-all">
-                <Linkedin size={18} />
-              </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-[rgba(255,255,255,0.05)] border border-white/10 flex items-center justify-center text-[#A69697] hover:text-white hover:bg-[#D98F8F]/20 hover:border-[#D98F8F]/50 transition-all">
-                <Github size={18} />
-              </a>
-            </div>
           </div>
 
           {/* Links Columns */}
           <div className="lg:col-span-7 flex flex-col md:flex-row justify-between gap-12 md:gap-8">
             <div>
-              <h4 className="text-white font-bold mb-6">Product</h4>
+              <h4 className="text-white font-bold mb-6">Platform</h4>
               <ul className="space-y-4">
+                <li><Link href="/" className="text-[#A69697] hover:text-[#D98F8F] text-sm transition-colors">Home</Link></li>
                 <li><Link href="/features" className="text-[#A69697] hover:text-[#D98F8F] text-sm transition-colors">Features</Link></li>
                 <li><Link href="/pricing" className="text-[#A69697] hover:text-[#D98F8F] text-sm transition-colors">Pricing</Link></li>
-                <li><Link href="/ttn" className="text-[#A69697] hover:text-[#D98F8F] text-sm transition-colors">TTN Integration</Link></li>
               </ul>
             </div>
-            
+
             <div>
-              <h4 className="text-white font-bold mb-6">Company</h4>
+              <h4 className="text-white font-bold mb-6">Resources</h4>
               <ul className="space-y-4">
-                <li><Link href="/contact" className="text-[#A69697] hover:text-[#D98F8F] text-sm transition-colors">Contact Us</Link></li>
-                <li><Link href="#" className="text-[#A69697] hover:text-[#D98F8F] text-sm transition-colors">About</Link></li>
+                <li><Link href="/ttn" className="text-[#A69697] hover:text-[#D98F8F] text-sm transition-colors">TTN Integration</Link></li>
+                <li><Link href="/about" className="text-[#A69697] hover:text-[#D98F8F] text-sm transition-colors">About Us</Link></li>
+                <li><Link href="/contact" className="text-[#A69697] hover:text-[#D98F8F] text-sm transition-colors">Contact</Link></li>
               </ul>
             </div>
 
