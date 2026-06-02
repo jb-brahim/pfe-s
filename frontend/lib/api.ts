@@ -192,37 +192,37 @@ export const mockEmails = [
 
 export const authAPI = {
   login: async (email: string, password: string) => {
-    const response = await apiClient.post('/auth/login', { email, password });
+    const response = await apiClient.post('auth/login', { email, password });
     return response.data;
   },
 
   register: async (name: string, email: string, password: string, role: string, companyName?: string) => {
-    const response = await apiClient.post('/auth/register', { name, email, password, role, companyName });
+    const response = await apiClient.post('auth/register', { name, email, password, role, companyName });
     return response.data;
   },
 
   verifyEmail: async (email: string, code: string) => {
-    const response = await apiClient.post('/auth/verify-email', { email, code });
+    const response = await apiClient.post('auth/verify-email', { email, code });
     return response.data;
   },
 
   getProfile: async () => {
-    const response = await apiClient.get('/auth/profile');
+    const response = await apiClient.get('auth/profile');
     return response.data;
   },
 
   updateProfile: async (name: string, email: string) => {
-    const response = await apiClient.put('/auth/profile', { name, email });
+    const response = await apiClient.put('auth/profile', { name, email });
     return response.data;
   },
 
   updatePreferences: async (preferences: any) => {
-    const response = await apiClient.put('/auth/preferences', { preferences });
+    const response = await apiClient.put('auth/preferences', { preferences });
     return response.data;
   },
 
   changePassword: async (currentPassword: string, newPassword: string) => {
-    const response = await apiClient.put('/auth/change-password', { currentPassword, newPassword });
+    const response = await apiClient.put('auth/change-password', { currentPassword, newPassword });
     return response.data;
   },
 };
@@ -230,7 +230,7 @@ export const authAPI = {
 export const analyticsAPI = {
   getDashboardStats: async () => {
     try {
-      const response = await apiClient.get('/analytics/dashboard');
+      const response = await apiClient.get('analytics/dashboard');
       return response.data;
     } catch (error) {
       return { data: null };
@@ -240,7 +240,7 @@ export const analyticsAPI = {
   getMonthlyStats: async (year?: number) => {
     try {
       const params = year ? `?year=${year}` : '';
-      const response = await apiClient.get(`/analytics/monthly${params}`);
+      const response = await apiClient.get(`analytics/monthly${params}`);
       return response.data;
     } catch (error) {
       return { data: [] };
@@ -249,7 +249,7 @@ export const analyticsAPI = {
 
   getSuppliers: async () => {
     try {
-      const response = await apiClient.get('/analytics/suppliers');
+      const response = await apiClient.get('analytics/suppliers');
       return response.data;
     } catch (error) {
       return { data: [] };
@@ -261,7 +261,7 @@ export const invoiceAPI = {
   uploadFile: async (file: File) => {
     const formData = new FormData();
     formData.append('invoiceFile', file);
-    const response = await apiClient.post('/invoices/upload', formData, {
+    const response = await apiClient.post('invoices/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       timeout: 60000, // Increased timeout to 60 seconds for AI processing
     });
@@ -280,7 +280,7 @@ export const invoiceAPI = {
 
   createManual: async (data: any) => {
     try {
-      const response = await apiClient.post('/invoices/manual', data);
+      const response = await apiClient.post('invoices/manual', data);
       return { data: response.data };
     } catch (error) {
       throw error;
@@ -292,7 +292,7 @@ export const invoiceAPI = {
       const params = new URLSearchParams();
       if (status) params.append('status', status);
       if (search) params.append('search', search);
-      const response = await apiClient.get(`/invoices?${params}`);
+      const response = await apiClient.get(`invoices?${params}`);
       const list = Array.isArray(response.data) ? response.data : (response.data.data || []);
       const mapped = list.map((item: any) => ({
         ...item,
@@ -310,7 +310,7 @@ export const invoiceAPI = {
 
   getById: async (id: string) => {
     try {
-      const response = await apiClient.get(`/invoices/${id}`);
+      const response = await apiClient.get(`invoices/${id}`);
       const inv = response.data.invoice || response.data;
       const ext = response.data.extractedData || {};
       const mapped = {
@@ -333,7 +333,7 @@ export const invoiceAPI = {
 
   update: async (id: string, data: any) => {
     try {
-      const response = await apiClient.put(`/invoices/${id}/extracted`, data);
+      const response = await apiClient.put(`invoices/${id}/extracted`, data);
       return { data: response.data.extractedData || response.data };
     } catch (error) {
       throw error;
@@ -342,7 +342,7 @@ export const invoiceAPI = {
 
   delete: async (id: string) => {
     try {
-      await apiClient.delete(`/invoices/${id}`);
+      await apiClient.delete(`invoices/${id}`);
       return { success: true };
     } catch (error) {
       return { success: true };
@@ -351,7 +351,7 @@ export const invoiceAPI = {
 
   approve: async (id: string) => {
     try {
-      const response = await apiClient.post(`/invoices/${id}/approve`);
+      const response = await apiClient.post(`invoices/${id}/approve`);
       return response.data;
     } catch (error) {
       return { success: false };
@@ -360,7 +360,7 @@ export const invoiceAPI = {
 
   reject: async (id: string, reason: string = 'No reason provided') => {
     try {
-      const response = await apiClient.post(`/invoices/${id}/reject`, { reason });
+      const response = await apiClient.post(`invoices/${id}/reject`, { reason });
       return response.data;
     } catch (error) {
       return { success: false };
@@ -374,7 +374,7 @@ export const budgetAPI = {
       const params = new URLSearchParams();
       if (year) params.append('year', year.toString());
       if (month) params.append('month', month.toString());
-      const response = await apiClient.get(`/budget/status?${params}`);
+      const response = await apiClient.get(`budget/status?${params}`);
       return response.data;
     } catch (error) {
       return { data: { budget: { monthlyLimit: 0 }, currentSpending: 0, remaining: 0, percentage: 0 } };
@@ -383,7 +383,7 @@ export const budgetAPI = {
 
   setBudget: async (monthlyLimit: number, alertThreshold: number, year: number, month: number) => {
     try {
-      const response = await apiClient.post('/budget', { monthlyLimit, alertThreshold, year, month });
+      const response = await apiClient.post('budget', { monthlyLimit, alertThreshold, year, month });
       return response.data;
     } catch (error) {
       throw error;
@@ -394,7 +394,7 @@ export const budgetAPI = {
 export const auditAPI = {
   getTrail: async () => {
     try {
-      const response = await apiClient.get('/audit');
+      const response = await apiClient.get('audit');
       return { data: response.data.logs || response.data };
     } catch (error) {
       return { data: [] };
@@ -405,7 +405,7 @@ export const auditAPI = {
 export const notificationAPI = {
   getAll: async () => {
     try {
-      const response = await apiClient.get('/notifications');
+      const response = await apiClient.get('notifications');
       return { data: response.data.notifications || response.data };
     } catch (error) {
       return { data: [] };
@@ -416,7 +416,7 @@ export const notificationAPI = {
 export const workflowAPI = {
   approve: async (invoiceId: string, decision: string, notes: string) => {
     try {
-      const response = await apiClient.post(`/workflow/${invoiceId}/approve`, { decision, notes });
+      const response = await apiClient.post(`workflow/${invoiceId}/approve`, { decision, notes });
       return response.data;
     } catch (error) {
       return { success: true, data: { status: decision } };
@@ -427,7 +427,7 @@ export const workflowAPI = {
 export const userAPI = {
   getAll: async () => {
     try {
-      const response = await apiClient.get('/users');
+      const response = await apiClient.get('users');
       return response.data;
     } catch (error) {
       return { data: [] };
@@ -436,13 +436,13 @@ export const userAPI = {
 
   invite: async (email: string, role: string, fullName: string, password?: string) => {
     const payloadPassword = password || 'TempPassword123!';
-    const response = await apiClient.post('/users', { name: fullName, email, password: payloadPassword, role });
+    const response = await apiClient.post('users', { name: fullName, email, password: payloadPassword, role });
     return { success: true, data: response.data.data || response.data };
   },
 
   getStats: async () => {
     try {
-      const response = await apiClient.get('/users/stats');
+      const response = await apiClient.get('users/stats');
       return response.data;
     } catch (error) {
       return { data: [] };
@@ -450,41 +450,41 @@ export const userAPI = {
   },
 
   updateRole: async (id: string, role: 'ADMIN' | 'ACCOUNTANT') => {
-    const response = await apiClient.put(`/users/${id}/role`, { role });
+    const response = await apiClient.put(`users/${id}/role`, { role });
     return response.data;
   },
 
   updateLevel: async (id: string, level: number) => {
-    const response = await apiClient.put(`/users/${id}/level`, { level });
+    const response = await apiClient.put(`users/${id}/level`, { level });
     return response.data;
   },
 
   uploadProfileImage: async (file: File) => {
     const formData = new FormData();
     formData.append('profileImage', file);
-    const response = await apiClient.post('/users/profile-image', formData, {
+    const response = await apiClient.post('users/profile-image', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     return response.data;
   },
 
   deleteUser: async (id: string) => {
-    const response = await apiClient.delete(`/users/${id}`);
+    const response = await apiClient.delete(`users/${id}`);
     return response.data;
   },
 
   updateCompanyDetails: async (companyDetails: any) => {
-    const response = await apiClient.post('/users/company', { companyDetails });
+    const response = await apiClient.post('users/company', { companyDetails });
     return response.data;
   },
 
   generateApiKey: async (name?: string) => {
-    const response = await apiClient.post('/users/apikeys', { name });
+    const response = await apiClient.post('users/apikeys', { name });
     return response.data;
   },
 
   updateIntegrations: async (integrations: any) => {
-    const response = await apiClient.post('/users/integrations', { integrations });
+    const response = await apiClient.post('users/integrations', { integrations });
     return response.data;
   },
 };
@@ -492,7 +492,7 @@ export const userAPI = {
 export const mailAPI = {
   getAll: async () => {
     try {
-      const response = await apiClient.get('/mail');
+      const response = await apiClient.get('mail');
       return response.data;
     } catch (error) {
       return { data: [] };
@@ -503,7 +503,7 @@ export const mailAPI = {
 export const reportAPI = {
   getAll: async () => {
     try {
-      const response = await apiClient.get('/reports');
+      const response = await apiClient.get('reports');
       return response.data;
     } catch (error) {
       return { data: [] };
@@ -511,18 +511,18 @@ export const reportAPI = {
   },
 
   generate: async (data: { type: string; dateRange: string; format: string }) => {
-    const response = await apiClient.post('/reports/generate', data);
+    const response = await apiClient.post('reports/generate', data);
     return response.data;
   },
 
   delete: async (id: string) => {
-    const response = await apiClient.delete(`/reports/${id}`);
+    const response = await apiClient.delete(`reports/${id}`);
     return response.data;
   },
 
   getSchedules: async () => {
     try {
-      const response = await apiClient.get('/reports/schedules');
+      const response = await apiClient.get('reports/schedules');
       return response.data;
     } catch (error) {
       return { data: [] };
@@ -530,19 +530,19 @@ export const reportAPI = {
   },
 
   createSchedule: async (data: { reportType: string; frequency: string; format: string; recipients: string }) => {
-    const response = await apiClient.post('/reports/schedules', data);
+    const response = await apiClient.post('reports/schedules', data);
     return response.data;
   },
 
   deleteSchedule: async (id: string) => {
-    const response = await apiClient.delete(`/reports/schedules/${id}`);
+    const response = await apiClient.delete(`reports/schedules/${id}`);
     return response.data;
   }
 };
 
 export const subscriptionAPI = {
   checkout: async (plan: string) => {
-    const response = await apiClient.post('/subscription/checkout', { plan });
+    const response = await apiClient.post('subscription/checkout', { plan });
     return response.data;
   }
 };
