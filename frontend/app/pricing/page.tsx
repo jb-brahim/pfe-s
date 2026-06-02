@@ -12,11 +12,24 @@ export default function PricingPage() {
   const { t } = useLanguage();
 
   const faqs = [
-    { q: 'How does the billing cycle work?', a: 'We offer both monthly and annual billing options. Annual plans come with a 20% discount applied automatically.' },
-    { q: 'What happens if I exceed my monthly scan limit?', a: 'You will be notified when you reach 80% and 100% of your limit. Additional scans are billed at a flat overage rate depending on your tier.' },
-    { q: 'Can I upgrade or downgrade my plan at any time?', a: 'Yes, you can upgrade your plan immediately. Downgrades take effect at the start of your next billing cycle.' },
-    { q: 'Is there a free trial available?', a: 'Yes! We offer a 14-day free trial on the Pro plan so you can test our automation capabilities with your own documents.' },
-    { q: 'What kind of support is included?', a: 'Basic includes email support. Pro includes priority email and chat support. Enterprise includes a dedicated account manager and 24/7 phone support.' },
+    { 
+      q: t('landing.pricing_faq.q1') || 'How does the billing cycle work?', 
+      a: t('landing.pricing_faq.a1') || 'We offer both monthly and annual billing options. Annual plans come with a 20% discount applied automatically.' 
+    },
+    { 
+      q: t('landing.pricing_faq.q2') || 'Can I change plans later?', 
+      a: t('landing.pricing_faq.a2') || 'Yes, you can upgrade or downgrade your plan at any time. Prorated charges or credits will automatically be applied to your account.' 
+    },
+    { 
+      q: t('landing.pricing_faq.q3') || 'What payment methods do you accept?', 
+      a: t('landing.pricing_faq.a3') || 'We accept all major credit cards, wire transfers for Enterprise customers, and standard local bank transfers.' 
+    },
+    { 
+      q: t('landing.pricing_faq.q4') || 'Is there a long-term contract?', 
+      a: t('landing.pricing_faq.a4') || 'No, unless you choose an Enterprise custom agreement. Standard plans are strictly month-to-month or year-to-year.' 
+    },
+    { q: t('landing.pricing_faq.q5') || 'Is there a free trial available?', a: t('landing.pricing_faq.a5') || 'Yes! We offer a 14-day free trial on the Pro plan so you can test our automation capabilities with your own documents.' },
+    { q: t('landing.pricing_faq.q6') || 'What kind of support is included?', a: t('landing.pricing_faq.a6') || 'Basic includes email support. Pro includes priority email and chat support. Enterprise includes a dedicated account manager and 24/7 phone support.' },
   ];
 
   return (
@@ -37,13 +50,13 @@ export default function PricingPage() {
               onClick={() => setIsAnnual(false)}
               className={`px-8 py-2.5 rounded-full text-[15px] transition-all font-bold ${!isAnnual ? 'bg-white/10 text-white' : 'text-[#A69697] hover:text-white'}`}
             >
-              Monthly
+              {t('landing.pricing_cards.monthly') || 'Monthly'}
             </button>
             <button 
               onClick={() => setIsAnnual(true)}
               className={`px-8 py-2.5 rounded-full text-[15px] transition-all font-bold ${isAnnual ? 'bg-white/10 text-white shadow-sm' : 'text-[#A69697] hover:text-white'}`}
             >
-              Yearly <span className="text-[#D98F8F] ml-1 text-xs px-2 py-0.5 bg-[#8E1B3A]/20 rounded-full border border-[#8E1B3A]/30">-20%</span>
+              {t('landing.pricing_cards.yearly') || 'Yearly'} <span className="text-[#D98F8F] ml-1 text-xs px-2 py-0.5 bg-[#8E1B3A]/20 rounded-full border border-[#8E1B3A]/30">-20%</span>
             </button>
           </div>
         </div>
@@ -52,11 +65,11 @@ export default function PricingPage() {
         <div className="grid md:grid-cols-3 gap-8 mb-32">
           {/* Basic */}
           <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[30px] p-10 flex flex-col hover:border-white/10 transition-colors">
-            <h3 className="text-white text-[24px] font-bold mb-4">Starter</h3>
-            <p className="text-[#A69697] text-[14px] mb-8">Perfect for small teams and startups testing the waters of automation.</p>
+            <h3 className="text-white text-[24px] font-bold mb-4">{t('landing.pricing_cards.starter') || 'Starter'}</h3>
+            <p className="text-[#A69697] text-[14px] mb-8">{t('landing.pricing_cards.starter_desc') || 'Perfect for small teams and startups testing the waters of automation.'}</p>
             <div className="mb-8">
               <span className="text-[54px] font-bold text-white">{isAnnual ? '29' : '39'}</span><span className="text-[#A69697] font-bold"> TND</span><span className="text-[#A69697]">/mo</span>
-              <p className="text-[#A69697] text-[12px] mt-1">{isAnnual ? 'Billed annually' : 'Billed monthly'}</p>
+              <p className="text-[#A69697] text-[12px] mt-1">{isAnnual ? (t('landing.pricing_cards.billed_annually') || 'Billed annually') : (t('landing.pricing_cards.billed_monthly') || 'Billed monthly')}</p>
             </div>
             <ul className="space-y-4 mb-10 text-[15px] text-[#A69697] flex-1">
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Up to 50 Invoice Scans /mo</li>
@@ -64,19 +77,19 @@ export default function PricingPage() {
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> 1 Basic Dashboard</li>
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Email Support</li>
             </ul>
-            <Link href="/auth/register" className="w-full py-4 rounded-full border border-white/20 text-center text-[#A69697] font-bold hover:bg-white/10 hover:text-white transition-colors">Get Started</Link>
+            <Link href="/auth/register" className="w-full py-4 rounded-full border border-white/20 text-center text-[#A69697] font-bold hover:bg-white/10 hover:text-white transition-colors">{t('landing.pricing_cards.get_started') || 'Get Started'}</Link>
           </div>
 
           {/* Pro */}
           <div className="bg-[rgba(255,255,255,0.05)] border border-[#D98F8F]/50 rounded-[30px] p-10 relative transform md:-translate-y-4 shadow-[0_20px_50px_rgba(142,27,58,0.3)] flex flex-col">
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white text-xs font-bold px-4 py-1 rounded-full">MOST POPULAR</div>
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white text-xs font-bold px-4 py-1 rounded-full">{t('landing.pricing_cards.most_popular') || 'MOST POPULAR'}</div>
             <div className="absolute inset-0 rounded-[30px] ring-1 ring-inset ring-[#D98F8F] shadow-[inset_0_0_20px_rgba(217,143,143,0.2)] pointer-events-none"></div>
             
-            <h3 className="text-white text-[24px] font-bold mb-4">Professional</h3>
-            <p className="text-[#A69697] text-[14px] mb-8">For growing businesses that need high-volume processing and advanced analytics.</p>
+            <h3 className="text-white text-[24px] font-bold mb-4">{t('landing.pricing_cards.professional') || 'Professional'}</h3>
+            <p className="text-[#A69697] text-[14px] mb-8">{t('landing.pricing_cards.professional_desc') || 'For growing businesses that need high-volume processing and advanced analytics.'}</p>
             <div className="mb-8">
               <span className="text-[54px] font-bold text-white">{isAnnual ? '99' : '119'}</span><span className="text-[#D98F8F] font-bold"> TND</span><span className="text-[#D98F8F]">/mo</span>
-              <p className="text-[#D98F8F]/70 text-[12px] mt-1">{isAnnual ? 'Billed annually' : 'Billed monthly'}</p>
+              <p className="text-[#D98F8F]/70 text-[12px] mt-1">{isAnnual ? (t('landing.pricing_cards.billed_annually') || 'Billed annually') : (t('landing.pricing_cards.billed_monthly') || 'Billed monthly')}</p>
             </div>
             <ul className="space-y-4 mb-10 text-[15px] text-white flex-1">
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-[#D98F8F]" /> Up to 5,000 Invoice Scans /mo</li>
@@ -85,16 +98,16 @@ export default function PricingPage() {
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-[#D98F8F]" /> Advanced AI Analytics</li>
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-[#D98F8F]" /> Priority Support</li>
             </ul>
-            <Link href="/auth/register" className="w-full py-4 rounded-full bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white text-center font-bold shadow-lg hover:shadow-[0_0_20px_rgba(217,143,143,0.4)] transition-all">Start 14-Day Free Trial</Link>
+            <Link href="/auth/register" className="w-full py-4 rounded-full bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white text-center font-bold shadow-lg hover:shadow-[0_0_20px_rgba(217,143,143,0.4)] transition-all">{t('landing.pricing_cards.start_trial') || 'Start 14-Day Free Trial'}</Link>
           </div>
 
           {/* Enterprise */}
           <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[30px] p-10 flex flex-col hover:border-white/10 transition-colors">
-            <h3 className="text-white text-[24px] font-bold mb-4">Enterprise</h3>
-            <p className="text-[#A69697] text-[14px] mb-8">Custom solutions for large organizations with complex compliance needs.</p>
+            <h3 className="text-white text-[24px] font-bold mb-4">{t('landing.pricing_cards.enterprise') || 'Enterprise'}</h3>
+            <p className="text-[#A69697] text-[14px] mb-8">{t('landing.pricing_cards.enterprise_desc') || 'Custom solutions for large organizations with complex compliance needs.'}</p>
             <div className="mb-8">
-              <span className="text-[54px] font-bold text-white">Custom</span>
-              <p className="text-[#A69697] text-[12px] mt-1">Tailored to your exact scale</p>
+              <span className="text-[54px] font-bold text-white">{t('landing.pricing_cards.custom') || 'Custom'}</span>
+              <p className="text-[#A69697] text-[12px] mt-1">{t('landing.pricing_cards.tailored') || 'Tailored to your exact scale'}</p>
             </div>
             <ul className="space-y-4 mb-10 text-[15px] text-[#A69697] flex-1">
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Unlimited Invoice Scans</li>
@@ -103,15 +116,15 @@ export default function PricingPage() {
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> SLA Guarantee & 24/7 Support</li>
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Custom Model Training</li>
             </ul>
-            <Link href="/auth/login" className="w-full py-4 rounded-full bg-white/10 text-white font-bold hover:bg-white/20 transition-colors text-center">Contact Sales</Link>
+            <Link href="/auth/login" className="w-full py-4 rounded-full bg-white/10 text-white font-bold hover:bg-white/20 transition-colors text-center">{t('landing.pricing_cards.contact_sales') || 'Contact Sales'}</Link>
           </div>
         </div>
 
         {/* FAQ Section */}
         <div className="max-w-[800px] mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-[32px] font-bold text-white mb-4">Frequently Asked Questions</h2>
-            <p className="text-[#A69697]">Everything you need to know about billing and plans.</p>
+            <h2 className="text-[32px] font-bold text-white mb-4">{t('landing.pricing_faq.title') || 'Frequently Asked Questions'}</h2>
+            <p className="text-[#A69697]">{t('landing.pricing_faq.subtitle') || 'Everything you need to know about billing and plans.'}</p>
           </div>
           
           <div className="space-y-4">

@@ -84,7 +84,7 @@ export default function LandingPage() {
         {/* 2. AI INVOICE AUTOMATION DEMO */}
         <section className="px-6 md:px-12 max-w-[1400px] mx-auto w-full">
           <div className="mb-8">
-            <h2 className="text-[28px] font-bold text-white">AI Invoice Automation Demo</h2>
+            <h2 className="text-[28px] font-bold text-white">{t('landing.home_sections.demo_title') || 'AI Invoice Automation Demo'}</h2>
           </div>
           
           <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-lg border border-[rgba(255,255,255,0.05)] rounded-[30px] p-6 md:p-10 shadow-2xl">
@@ -96,13 +96,13 @@ export default function LandingPage() {
                  <div className="bg-[#1A0A0B]/80 border border-white/10 rounded-[20px] p-8 text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[200px] group border-dashed hover:border-[#D98F8F]/50 cursor-pointer">
                     <div className="absolute right-0 top-0 w-32 h-32 bg-[#D98F8F] rounded-full blur-[60px] opacity-10"></div>
                     <Upload className="text-[#D98F8F] mb-4" size={32} />
-                    <p className="text-white font-bold">Drag & Drop Invoices Here</p>
+                    <p className="text-white font-bold">{t('landing.home_sections.drag_drop') || 'Drag & Drop Invoices Here'}</p>
                  </div>
                  
                  {/* OCR Preview */}
                  <div className="bg-[#1A0A0B]/80 border border-white/10 rounded-[20px] p-6 relative">
                     <p className="text-[#A69697] text-[13px] mb-4 flex justify-between items-center">
-                      <span>OCR Extraction Preview</span>
+                      <span>{t('landing.home_sections.ocr_preview') || 'OCR Extraction Preview'}</span>
                       <span className="flex gap-1"><span className="w-2 h-2 rounded-full bg-white/20"></span><span className="w-2 h-2 rounded-full bg-white/20"></span><span className="w-2 h-2 rounded-full bg-white/20"></span></span>
                     </p>
                     <div className="w-full h-[180px] bg-gradient-to-br from-[#EBD8D8] to-[#D98F8F] rounded-[12px] p-4 flex flex-col">
@@ -126,7 +126,7 @@ export default function LandingPage() {
 
                {/* Right: Extracted Data Cards */}
                <div className="bg-[#1A0A0B]/80 border border-white/10 rounded-[20px] p-6">
-                 <p className="text-[#A69697] text-[13px] mb-4">Extracted Data Cards</p>
+                 <p className="text-[#A69697] text-[13px] mb-4">{t('landing.home_sections.extracted_data') || 'Extracted Data Cards'}</p>
                  
                  <div className="space-y-4">
                    <div className="bg-[rgba(255,255,255,0.03)] border border-white/5 rounded-[16px] p-5 flex justify-between items-center">
@@ -164,8 +164,8 @@ export default function LandingPage() {
         {/* 3. ANALYTICS PREVIEW */}
         <section className="px-6 md:px-12 max-w-[1400px] mx-auto w-full mb-20">
           <div className="mb-8 flex justify-between items-center">
-            <h2 className="text-[28px] font-bold text-white">Analytics Preview</h2>
-            <button className="bg-[rgba(255,255,255,0.05)] border border-white/10 rounded-full px-4 py-1.5 text-[12px] text-white">Smart Statistics</button>
+            <h2 className="text-[28px] font-bold text-white">{t('landing.home_sections.analytics_title') || 'Analytics Preview'}</h2>
+            <button className="bg-[rgba(255,255,255,0.05)] border border-white/10 rounded-full px-4 py-1.5 text-[12px] text-white">{t('landing.home_sections.smart_stats') || 'Smart Statistics'}</button>
           </div>
           
           <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-[rgba(255,255,255,0.05)] rounded-[30px] p-6 shadow-2xl grid lg:grid-cols-2 gap-6">

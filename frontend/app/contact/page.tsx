@@ -47,7 +47,7 @@ export default function ContactPage() {
              <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#8E1B3A] rounded-full blur-[120px] opacity-20 pointer-events-none"></div>
             
             <div>
-              <h3 className="text-2xl font-bold mb-8">Coordonnées</h3>
+              <h3 className="text-2xl font-bold mb-8">{t('landing.contact.info') || 'Contact Information'}</h3>
               
               <div className="space-y-8">
                 <div className="flex items-start gap-5">
@@ -55,7 +55,7 @@ export default function ContactPage() {
                     <Phone className="text-[#D98F8F]" size={24} />
                   </div>
                   <div>
-                    <p className="text-[#A69697] text-sm mb-1">Téléphone</p>
+                    <p className="text-[#A69697] text-sm mb-1">{t('landing.contact.phone') || 'Phone'}</p>
                     <p className="font-bold text-lg">+1 (800) 123-AURA</p>
                     <p className="font-bold text-lg">+216 71 123 456</p>
                   </div>
@@ -66,7 +66,7 @@ export default function ContactPage() {
                     <Mail className="text-[#D98F8F]" size={24} />
                   </div>
                   <div>
-                    <p className="text-[#A69697] text-sm mb-1">Email</p>
+                    <p className="text-[#A69697] text-sm mb-1">{t('landing.contact.email') || 'Email'}</p>
                     <p className="font-bold text-lg">support@aurafinance.com</p>
                   </div>
                 </div>
@@ -76,7 +76,7 @@ export default function ContactPage() {
                     <MapPin className="text-[#D98F8F]" size={24} />
                   </div>
                   <div>
-                    <p className="text-[#A69697] text-sm mb-1">Adresse</p>
+                    <p className="text-[#A69697] text-sm mb-1">{t('landing.contact.address') || 'Address'}</p>
                     <p className="font-bold text-lg leading-relaxed">Aura Finance HQ<br/>Tunis, Tunisia</p>
                   </div>
                 </div>
@@ -87,16 +87,16 @@ export default function ContactPage() {
           {/* Contact Form */}
           <div className="bg-[rgba(255,255,255,0.03)] border border-white/10 rounded-[30px] p-8 md:p-10 shadow-2xl relative">
             <div className="absolute inset-0 bg-gradient-to-br from-[#D98F8F]/5 to-transparent rounded-[30px] pointer-events-none"></div>
-            <h3 className="text-2xl font-bold mb-6 relative z-10">Envoyez-nous un message</h3>
+            <h3 className="text-2xl font-bold mb-6 relative z-10">{t('landing.contact.send_message') || 'Send us a message'}</h3>
             
             {isSubmitted ? (
               <div className="bg-green-500/10 border border-green-500/20 rounded-2xl p-8 text-center flex flex-col items-center justify-center h-[300px]">
                 <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
                   <Send size={30} className="text-green-400" />
                 </div>
-                <h4 className="text-xl font-bold text-green-400 mb-2">Message envoyé !</h4>
-                <p className="text-[#A69697]">Nous vous répondrons dans les plus brefs délais.</p>
-                <button onClick={() => setIsSubmitted(false)} className="mt-6 text-sm text-[#D98F8F] hover:text-white transition-colors">Envoyer un autre message</button>
+                <h4 className="text-xl font-bold text-green-400 mb-2">{t('landing.contact.message_sent') || 'Message sent!'}</h4>
+                <p className="text-[#A69697]">{t('landing.contact.we_will_reply') || 'We will get back to you shortly.'}</p>
+                <button onClick={() => setIsSubmitted(false)} className="mt-6 text-sm text-[#D98F8F] hover:text-white transition-colors">{t('landing.contact.send_another') || 'Send another message'}</button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
