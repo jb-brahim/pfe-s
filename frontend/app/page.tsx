@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Sparkles, ArrowRight, Zap, ShieldCheck, BarChart3, Users, CheckCircle2, ChevronDown, Network, FileText, ChevronRight, Search, Upload, LineChart as LineChartIcon, ArrowUpRight } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis } from 'recharts';
 import { LandingNavbar } from '@/components/landing-navbar';
+import { LandingFooter } from '@/components/landing-footer';
 
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
@@ -231,6 +232,8 @@ export default function LandingPage() {
         </section>
 
       </main>
+
+      <LandingFooter />
     </div>
   );
 }

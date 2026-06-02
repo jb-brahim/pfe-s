@@ -12,7 +12,8 @@
     "team": "Team",
     "settings": "Settings",
     "account_settings": "Account Settings",
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "subscription": "Subscription"
   },
   "dashboard": {
     "total_revenue": "Total Revenue",

@@ -22,9 +22,11 @@ export function LandingNavbar() {
         </Link>
         
         <div className="hidden md:flex items-center gap-8 text-[14px] text-[#A69697] font-medium">
+          <Link href="/" className="hover:text-white transition-colors">Home</Link>
           <Link href="/features" className="hover:text-white transition-colors">Features</Link>
           <Link href="/ttn" className="hover:text-white transition-colors">TTN</Link>
           <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
+          <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
         </div>
 
         <div className="flex items-center gap-4">

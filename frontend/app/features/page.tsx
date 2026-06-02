@@ -2,6 +2,7 @@
 
 import { Zap, CheckCircle2, BarChart3, Users, Network, Shield, ArrowRight } from 'lucide-react';
 import { LandingNavbar } from '@/components/landing-navbar';
+import { LandingFooter } from '@/components/landing-footer';
 import Link from 'next/link';
 
 export default function FeaturesPage() {
@@ -158,6 +159,7 @@ export default function FeaturesPage() {
           </Link>
         </div>
       </main>
+      <LandingFooter />
     </div>
   );
 }

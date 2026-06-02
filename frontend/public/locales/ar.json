@@ -12,7 +12,8 @@
     "team": "الفريق",
     "settings": "الإعدادات",
     "account_settings": "إعدادات الحساب",
-    "logout": "تسجيل الخروج"
+    "logout": "تسجيل الخروج",
+    "subscription": "الاشتراك"
   },
   "dashboard": {
     "total_revenue": "إجمالي الإيرادات",

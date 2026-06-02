@@ -2,6 +2,7 @@
 
 import { Network, Server, Globe2, ShieldCheck, Database, ArrowRight } from 'lucide-react';
 import { LandingNavbar } from '@/components/landing-navbar';
+import { LandingFooter } from '@/components/landing-footer';
 import Link from 'next/link';
 
 export default function TTNPage() {
@@ -88,6 +89,7 @@ export default function TTNPage() {
           </Link>
         </div>
       </main>
+      <LandingFooter />
     </div>
   );
 }

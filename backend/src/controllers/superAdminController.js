@@ -140,6 +140,38 @@ exports.updateUser = async (req, res) => {
   }
 };
 
+exports.generateApiKey = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ success: false, message: 'Not found' });
+
+    const crypto = require('crypto');
+    const newApiKey = crypto.randomBytes(32).toString('hex');
+    const keyName = 'SuperAdmin Generated Key - ' + new Date().toLocaleDateString();
+
+    if (!user.apiKeys) {
+      user.apiKeys = [];
+    }
+    user.apiKeys.push({ name: keyName, key: newApiKey });
+    // Also store it in user.apiKey for backward compatibility if needed by externalController
+    user.apiKey = newApiKey; 
+
+    await user.save();
+
+    await AuditLog.create({
+      userId: req.user._id,
+      action: 'Generated API Key for Tenant',
+      entityType: 'User',
+      entityId: user._id
+    });
+
+    res.status(200).json({ success: true, apiKey: newApiKey });
+  } catch (error) {
+    console.error('Error generating API key:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
 exports.deleteUser = async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);

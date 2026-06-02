@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Building, Loader, Trash2, Edit2, X, ChevronDown, ChevronRight, Users } from 'lucide-react';
+import { Search, Building, Loader, Trash2, Edit2, X, ChevronDown, ChevronRight, Users, MoreVertical, Key, Copy } from 'lucide-react';
 import axios from 'axios';
 import { useLanguage } from '@/lib/i18n-context';
 
@@ -19,6 +19,11 @@ export default function OrganizationsPage() {
 
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [messageForm, setMessageForm] = useState({ id: '', email: '', subject: '', message: '' });
+
+  const [isApiModalOpen, setIsApiModalOpen] = useState(false);
+  const [apiOrg, setApiOrg] = useState<any>(null);
+  const [generatedApiKey, setGeneratedApiKey] = useState('');
+  const [isGeneratingApi, setIsGeneratingApi] = useState(false);
 
   const fetchOrganizations = async () => {
     try {
@@ -130,6 +135,36 @@ export default function OrganizationsPage() {
       message: `Hello ${org.companyDetails?.name || org.name || 'Admin'},\n\nYour subscription plan (${org.billing?.plan || 'Enterprise'}) is set to expire in ${daysLeft} days. Please renew your subscription to avoid service interruption.\n\nThank you,\nAura Finance Team`
     });
     setIsMessageModalOpen(true);
+  };
+
+  const openApiModal = (org: any) => {
+    setApiOrg(org);
+    setGeneratedApiKey('');
+    setIsApiModalOpen(true);
+  };
+
+  const handleGenerateApiKey = async () => {
+    if (!apiOrg) return;
+    setIsGeneratingApi(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      const res = await axios.post(`http://localhost:5000/api/super-admin/users/${apiOrg._id}/generate-api-key`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data && res.data.success) {
+        setGeneratedApiKey(res.data.apiKey);
+      }
+    } catch (error) {
+      console.error('Error generating API key:', error);
+      alert('Failed to generate API Key');
+    } finally {
+      setIsGeneratingApi(false);
+    }
+  };
+
+  const handleCopyApi = () => {
+    navigator.clipboard.writeText(generatedApiKey);
+    alert('API Key copied to clipboard!');
   };
 
   const handleExportCSV = () => {
@@ -352,6 +387,16 @@ export default function OrganizationsPage() {
                           >
                             <Trash2 size={14} />
                           </button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openApiModal(org);
+                            }}
+                            className="p-1.5 rounded hover:bg-white/10 text-[#A69697] hover:text-white" 
+                            title="API Settings"
+                          >
+                            <MoreVertical size={14} />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -525,6 +570,64 @@ export default function OrganizationsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* API Key Modal */}
+      {isApiModalOpen && apiOrg && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#1A050A] border border-white/10 rounded-xl w-full max-w-md shadow-2xl p-6">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-[#D98F8F]/10 flex items-center justify-center">
+                  <Key size={16} className="text-[#D98F8F]" />
+                </div>
+                <h2 className="text-[18px] font-semibold text-white">API Settings</h2>
+              </div>
+              <button onClick={() => setIsApiModalOpen(false)} className="text-[#A69697] hover:text-white">
+                <X size={18} />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <p className="text-[13px] text-[#A69697] leading-relaxed">
+                Generate an API key for <strong className="text-white">{apiOrg.companyDetails?.name || apiOrg.name}</strong>. 
+                This key allows external systems to integrate with their Aura Finance account.
+              </p>
+
+              {generatedApiKey ? (
+                <div className="space-y-3">
+                  <div className="bg-green-500/10 border border-green-500/20 text-green-400 p-3 rounded-lg text-[13px]">
+                    API Key generated successfully! Please copy it now, as you won't be able to see it again.
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="text" 
+                      value={generatedApiKey} 
+                      readOnly 
+                      className="w-full bg-[#1E0A0B] border border-white/5 rounded-lg px-3 py-2.5 text-white font-mono text-[13px] outline-none"
+                    />
+                    <button 
+                      onClick={handleCopyApi}
+                      className="p-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-white transition-colors"
+                    >
+                      <Copy size={16} />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="pt-2">
+                  <button 
+                    onClick={handleGenerateApiKey}
+                    disabled={isGeneratingApi}
+                    className="w-full bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white py-2.5 rounded-lg text-[13px] font-semibold flex justify-center items-center gap-2 disabled:opacity-50 transition-all"
+                  >
+                    {isGeneratingApi ? <Loader size={16} className="animate-spin" /> : <><Key size={16} /> Generate New API Key</>}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

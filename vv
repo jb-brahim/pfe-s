@@ -1,0 +1,31 @@
+[
+    {
+        "_id": "6a1d564600babc202964d466",
+        "status": "APPROVED",
+        "createdAt": "2026-06-01T09:52:06.676Z",
+        "fileUrl": "uploads/invoiceFile-1780307526573.jpg",
+        "extractedData": {
+            "companyName": "PEREIRA S.A.R.L.",
+            "invoiceNumber": "rgba(255, 14, 111, 1)-2024-3032",
+            "date": "2026-02-12T00:00:00.000Z",
+            "totalAmount": 36218.118,
+            "totalHT": 30434.889,
+            "tvaAmount": 5782.629,
+            "client": "Astrid de Meunier",
+            "lineItems": [
+                {
+                    "description": "Produit Chaise Standard",
+                    "quantity": 3,
+                    "unitPrice": 152.26,
+                    "totalPrice": 456.78
+                },
+                {
+                    "description": "Produit Parti Plus",
+                    "quantity": 20,
+                    "unitPrice": 724.705,
+                    "totalPrice": 14494.1
+                }
+            ]
+        }
+    }
+]

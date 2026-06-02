@@ -12,7 +12,8 @@
     "team": "Équipe",
     "settings": "Paramètres",
     "account_settings": "Paramètres du Compte",
-    "logout": "Se Déconnecter"
+    "logout": "Se Déconnecter",
+    "subscription": "Abonnement"
   },
   "dashboard": {
     "total_revenue": "Revenu Total",

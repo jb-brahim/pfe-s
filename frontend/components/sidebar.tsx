@@ -19,7 +19,8 @@ import {
   X,
   ChevronDown,
   Bell,
-  Building2
+  Building2,
+  Key
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -40,6 +41,7 @@ export function Sidebar() {
   const managementItems = [
     { href: '/suppliers', label: t('sidebar.suppliers'), icon: Building2, adminOnly: true },
     { href: '/team', label: t('sidebar.team'), icon: Users, adminOnly: true },
+    { href: '/subscription', label: t('sidebar.subscription') || 'Subscription', icon: Key, adminOnly: true },
     { href: '/settings', label: t('sidebar.settings'), icon: Settings, adminOnly: false },
   ];
 

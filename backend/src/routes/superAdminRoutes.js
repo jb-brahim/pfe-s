@@ -16,7 +16,9 @@ const {
   getAuditLogs,
   getSystemSettings,
   updateSystemSettings,
-  getCompanies
+  getCompanies,
+  sendSubscriptionReminder,
+  generateApiKey
 } = require('../controllers/superAdminController');
 
 // All routes here are protected and require SUPER_ADMIN role
@@ -30,7 +32,10 @@ router.post('/users', createUser);
 router.put('/users/:id', updateUser);
 router.delete('/users/:id', deleteUser);
 router.put('/users/:id/lock', toggleUserLock);
-router.post('/users/:id/send-reminder', require('../controllers/superAdminController').sendSubscriptionReminder);
+router.post('/users/:id/send-reminder', sendSubscriptionReminder);
+
+// Generate API Key
+router.post('/users/:id/generate-api-key', generateApiKey);
 
 router.get('/billing-stats', getBillingStats);
 

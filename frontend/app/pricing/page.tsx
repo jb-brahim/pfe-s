@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { LandingNavbar } from '@/components/landing-navbar';
+import { LandingFooter } from '@/components/landing-footer';
 import { ChevronDown, CheckCircle2, XCircle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -130,6 +131,7 @@ export default function PricingPage() {
           </div>
         </div>
       </main>
+      <LandingFooter />
     </div>
   );
 }
