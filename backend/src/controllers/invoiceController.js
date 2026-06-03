@@ -824,6 +824,82 @@ const rejectInvoice = async (req, res, next) => {
   }
 };
 
+// ──────────────────────────────────────────────
+// 12. DEMO EXTRACT INVOICE (No DB Saving)
+// ──────────────────────────────────────────────
+const demoExtractInvoice = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    console.log('🔍 Starting DEMO AI Extraction...');
+    const aiResponse = await extractInvoiceData(req.file.path);
+    console.log('✅ DEMO AI Extraction Done.');
+
+    // Delete the file after extraction to save disk space
+    const fs = require('fs');
+    if (fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+
+    res.status(200).json({
+      message: 'Demo extraction successful',
+      data: {
+        extractedData: aiResponse
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Demo Extraction Error:', error.message);
+    
+    // Attempt to delete file even on error to prevent leaks
+    const fs = require('fs');
+    if (req.file && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (e) {
+        console.error('Failed to delete temp file:', e.message);
+      }
+    }
+
+    // Graceful fallback: If it's a rate limit or API error during DEMO, return mock data 
+    // so the landing page UI still looks good for presentations
+    if (error.message.includes('429') || error.message.includes('quota') || error.message.includes('exhausted')) {
+      console.log('⚠️ Returning mock data due to API Rate Limit (429) for Demo route.');
+      return res.status(200).json({
+        message: 'Demo extraction successful (Mock Data fallback due to API limits)',
+        data: {
+          extractedData: {
+            companyName: 'Aura Demo Vendor (Mock Data)',
+            invoiceNumber: `DEMO-${Math.floor(Math.random() * 10000)}`,
+            matriculeFiscal: '0000000/A/M/000',
+            date: new Date(),
+            client: 'SmartFacture User',
+            totalHT: 1500.00,
+            tva: 19,
+            tvaAmount: 285.00,
+            timbre: 1.000,
+            totalAmount: 1786.000,
+            rawText: 'This is fallback mock data generated because the AI API limit was reached.',
+            lineItems: [
+              { description: "Consulting Services (Demo)", quantity: 1, unitPrice: 1000, totalPrice: 1000 },
+              { description: "Software License (Demo)", quantity: 1, unitPrice: 500, totalPrice: 500 }
+            ],
+            confidenceScores: { overall: 0.99 }
+          }
+        }
+      });
+    }
+
+    // Return JSON error response for other severe errors
+    res.status(500).json({ 
+      message: 'Failed to extract invoice data. Make sure the image is clear and try again.',
+      error: error.message 
+    });
+  }
+};
+
 module.exports = {
   uploadInvoice,
   manualEntry,
@@ -835,5 +911,6 @@ module.exports = {
   batchUpload,
   submitInvoice,
   approveInvoice,
-  rejectInvoice
+  rejectInvoice,
+  demoExtractInvoice
 };

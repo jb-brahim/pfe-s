@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Announcement = require('../models/Announcement');
 const SystemSettings = require('../models/SystemSettings');
 const AuditLog = require('../models/AuditLog');
+const Invoice = require('../models/Invoice');
 const bcrypt = require('bcryptjs');
 
 const os = require('os');
@@ -21,6 +22,14 @@ exports.getSystemStats = async (req, res) => {
     const serverLoad = memUsage.toFixed(0) + '%';
     const systemStatus = mongoose.connection.readyState === 1 ? 'Healthy' : 'Degraded';
     const securityAlerts = await User.countDocuments({ status: 'Locked' });
+
+    const ttnLinked = await User.countDocuments({
+      $or: [
+        { 'integrations.ttnAccountId': { $ne: '', $exists: true } },
+        { 'integrations.ttnIntegrationKey': { $ne: '', $exists: true } }
+      ]
+    });
+    const totalInvoices = await Invoice.countDocuments({ status: { $nin: ['DRAFT', 'PROCESSING', 'FAILED'] } });
 
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
@@ -51,6 +60,8 @@ exports.getSystemStats = async (req, res) => {
         systemStatus,
         serverLoad,
         securityAlerts,
+        ttnLinked,
+        totalInvoices,
         chartData,
         lastUpdated: new Date()
       }
@@ -92,6 +103,33 @@ exports.getCompanies = async (req, res) => {
   }
 };
 
+exports.getInvoicesByEnterprise = async (req, res) => {
+  try {
+    const admins = await User.find({ role: 'ADMIN' }, 'name companyDetails email');
+    const result = [];
+    
+    for (const admin of admins) {
+      const employees = await User.find({ managedBy: admin._id }, '_id');
+      const userIds = [admin._id, ...employees.map(e => e._id)];
+      const invoiceCount = await Invoice.countDocuments({ 
+        userId: { $in: userIds },
+        status: { $nin: ['DRAFT', 'PROCESSING', 'FAILED'] }
+      });
+      
+      result.push({
+        enterpriseName: admin.companyDetails?.name || admin.name || 'Unnamed Enterprise',
+        email: admin.email,
+        invoiceCount
+      });
+    }
+
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    console.error('Error fetching invoices by enterprise:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
 exports.createUser = async (req, res) => {
   try {
     const { name, email, plan } = req.body;
@@ -125,13 +163,14 @@ exports.createUser = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   try {
-    const { plan, amount, status } = req.body;
+    const { plan, amount, status, renewalDate } = req.body;
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ success: false, message: 'Not found' });
 
     if (plan) user.billing.plan = plan;
     if (amount !== undefined) user.billing.amount = amount;
     if (status) user.status = status;
+    if (renewalDate) user.billing.renewalDate = renewalDate;
 
     await user.save();
     res.status(200).json({ success: true, data: user });
@@ -250,13 +289,13 @@ exports.getBillingStats = async (req, res) => {
   try {
     const orgs = await User.find({ role: 'ADMIN' });
     let totalMRR = 0;
-    const planCounts = { Enterprise: 0, Pro: 0, Basic: 0 };
+    const planCounts = { Ultra: 0, Pro: 0, Basic: 0 };
 
     orgs.forEach(org => {
       const plan = org.billing?.plan || 'Basic';
-      if (plan.includes('Enterprise')) { totalMRR += 299; planCounts.Enterprise++; }
-      else if (plan.includes('Pro')) { totalMRR += 99; planCounts.Pro++; }
-      else { planCounts.Basic++; }
+      if (plan.includes('Ultra') || plan.includes('Enterprise')) { totalMRR += 89; planCounts.Ultra++; }
+      else if (plan.includes('Pro')) { totalMRR += 49; planCounts.Pro++; }
+      else { totalMRR += 19; planCounts.Basic++; }
     });
 
     res.status(200).json({

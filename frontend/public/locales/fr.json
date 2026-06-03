@@ -516,6 +516,14 @@
       "hero_subtitle": "Automatisez, optimisez et évoluez avec la plateforme d'entreprise d'Aura Finance.",
       "explore_features": "Découvrir les Fonctionnalités"
     },
+    "home_sections": {
+      "demo_title": "Démo d'Automatisation de Factures par IA",
+      "drag_drop": "Glisser-Déposer les Factures Ici",
+      "extracted_data": "Cartes de Données Extraites",
+      "ocr_preview": "Aperçu de l'Extraction OCR",
+      "analytics_title": "Aperçu des Analyses",
+      "smart_stats": "Statistiques Intelligentes"
+    },
     "features": {
       "title": "Des fonctionnalités puissantes pour la finance moderne",
       "subtitle": "Tout ce dont vous avez besoin pour automatiser, suivre et faire évoluer vos opérations financières avec une sécurité de niveau entreprise et des capacités d'IA avancées.",

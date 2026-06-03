@@ -17,6 +17,7 @@ const {
   getSystemSettings,
   updateSystemSettings,
   getCompanies,
+  getInvoicesByEnterprise,
   sendSubscriptionReminder,
   generateApiKey
 } = require('../controllers/superAdminController');
@@ -28,6 +29,7 @@ router.use(authorize('SUPER_ADMIN'));
 router.get('/stats', getSystemStats);
 router.get('/users', getAllUsers);
 router.get('/companies', getCompanies);
+router.get('/invoices-by-enterprise', getInvoicesByEnterprise);
 router.post('/users', createUser);
 router.put('/users/:id', updateUser);
 router.delete('/users/:id', deleteUser);

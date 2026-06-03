@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Building, Loader, Trash2, Edit2, X, ChevronDown, ChevronRight, Users, MoreVertical, Key, Copy } from 'lucide-react';
+import { Search, Building, Loader, Trash2, Edit2, X, ChevronDown, ChevronRight, Users, MoreVertical, Key, Copy, CheckCircle2, Calendar, Shield, Zap } from 'lucide-react';
 import axios from 'axios';
 import { useLanguage } from '@/lib/i18n-context';
 
@@ -15,7 +15,16 @@ export default function OrganizationsPage() {
   const [expandedOrgs, setExpandedOrgs] = useState<Record<string, boolean>>({});
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editOrgForm, setEditOrgForm] = useState({ id: '', name: '', email: '', plan: 'Pro', status: 'Active', amount: 49 });
+  const [editOrgForm, setEditOrgForm] = useState({ 
+    id: '', 
+    name: '', 
+    email: '', 
+    plan: 'Pro', 
+    status: 'Active', 
+    amount: 49,
+    durationMonths: 0,
+    currentRenewalDate: '' 
+  });
 
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [messageForm, setMessageForm] = useState({ id: '', email: '', subject: '', message: '' });
@@ -65,9 +74,11 @@ export default function OrganizationsPage() {
       id: org._id,
       name: org.companyDetails?.name || '',
       email: org.email,
-      plan: org.billing?.plan || 'Enterprise',
+      plan: org.billing?.plan || 'Ultra',
       status: org.status || 'Active',
-      amount: org.billing?.amount || 49
+      amount: org.billing?.amount || 49,
+      durationMonths: 0,
+      currentRenewalDate: org.billing?.renewalDate || new Date().toISOString()
     });
     setIsEditModalOpen(true);
   };
@@ -76,10 +87,19 @@ export default function OrganizationsPage() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('authToken');
+      
+      let newRenewalDate = editOrgForm.currentRenewalDate;
+      if (editOrgForm.durationMonths > 0) {
+        const d = new Date(editOrgForm.currentRenewalDate);
+        d.setMonth(d.getMonth() + editOrgForm.durationMonths);
+        newRenewalDate = d.toISOString();
+      }
+
       await axios.put(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/super-admin/users/${editOrgForm.id}`, {
         plan: editOrgForm.plan,
         amount: editOrgForm.amount,
-        status: editOrgForm.status
+        status: editOrgForm.status,
+        renewalDate: newRenewalDate
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -132,7 +152,7 @@ export default function OrganizationsPage() {
       id: org._id,
       email: org.email,
       subject: `Urgent: Your Subscription to Aura Finance is ending soon!`,
-      message: `Hello ${org.companyDetails?.name || org.name || 'Admin'},\n\nYour subscription plan (${org.billing?.plan || 'Enterprise'}) is set to expire in ${daysLeft} days. Please renew your subscription to avoid service interruption.\n\nThank you,\nAura Finance Team`
+      message: `Hello ${org.companyDetails?.name || org.name || 'Admin'},\n\nYour subscription plan (${org.billing?.plan || 'Ultra'}) is set to expire in ${daysLeft} days. Please renew your subscription to avoid service interruption.\n\nThank you,\nAura Finance Team`
     });
     setIsMessageModalOpen(true);
   };
@@ -196,7 +216,7 @@ export default function OrganizationsPage() {
     filteredOrgs.forEach(org => {
       const name = org.companyDetails?.name || org.name || 'Unnamed Org';
       const email = org.email || 'N/A';
-      const plan = org.billing?.plan || 'Enterprise';
+      const plan = org.billing?.plan || 'Ultra';
       const amount = org.billing?.amount || 49;
       const status = org.status || 'Active';
       const renewal = org.billing?.renewalDate ? new Date(org.billing?.renewalDate).toLocaleDateString() : 'N/A';
@@ -310,7 +330,7 @@ export default function OrganizationsPage() {
                 </tr>
               ) : (
                 filteredOrgs.map((org) => {
-                  const plan = org.billing?.plan || 'Enterprise';
+                  const plan = org.billing?.plan || 'Ultra';
                   const price = org.billing?.amount || 49;
                   const daysRemaining = getDaysRemaining(org.billing?.renewalDate);
                   
@@ -436,50 +456,91 @@ export default function OrganizationsPage() {
       {/* Edit Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1A050A] border border-white/10 rounded-xl w-full max-w-md shadow-2xl p-6">
+          <div className="bg-[#1A050A] border border-white/10 rounded-xl w-full max-w-2xl shadow-2xl p-6 overflow-y-auto max-h-[90vh]">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-[18px] font-semibold text-white">{t('organizations.manage')}</h2>
+              <h2 className="text-[18px] font-semibold text-white">{t('organizations.manage')} Subscription</h2>
               <button onClick={() => setIsEditModalOpen(false)} className="text-[#A69697] hover:text-white">
                 <X size={18} />
               </button>
             </div>
             
-            <form onSubmit={handleEditOrg} className="space-y-5">
+            <form onSubmit={handleEditOrg} className="space-y-6">
               {/* Read-Only Info */}
-              <div className="p-3 rounded-md bg-[#1E0A0B] border border-white/5 space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-[11px] text-[#A69697] uppercase tracking-wider">Company</span>
-                  <span className="text-[12px] font-medium text-white">{editOrgForm.name}</span>
+              <div className="p-4 rounded-lg bg-[#1E0A0B] border border-white/5 flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
+                <div>
+                  <span className="text-[11px] text-[#A69697] uppercase tracking-wider block mb-1">Company</span>
+                  <span className="text-[14px] font-medium text-white">{editOrgForm.name}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[11px] text-[#A69697] uppercase tracking-wider">Owner Email</span>
-                  <span className="text-[12px] font-medium text-white">{editOrgForm.email}</span>
+                <div>
+                  <span className="text-[11px] text-[#A69697] uppercase tracking-wider block mb-1">Owner Email</span>
+                  <span className="text-[14px] font-medium text-white">{editOrgForm.email}</span>
+                </div>
+                <div>
+                  <span className="text-[11px] text-[#A69697] uppercase tracking-wider block mb-1">Current Expiry</span>
+                  <span className="text-[14px] font-medium text-white">
+                    {editOrgForm.currentRenewalDate ? new Date(editOrgForm.currentRenewalDate).toLocaleDateString() : 'N/A'}
+                  </span>
                 </div>
               </div>
 
-              {/* Editable Fields */}
-              <div className="space-y-4 pt-2 border-t border-white/5">
-                <div>
-                  <label className="block text-[12px] text-[#A69697] mb-1.5 font-medium">Subscription Plan</label>
-                  <select 
-                    value={editOrgForm.plan}
-                    onChange={(e) => setEditOrgForm({...editOrgForm, plan: e.target.value})}
-                    className="w-full px-3 py-2 rounded-md bg-[#1E0A0B] border border-white/5 text-white text-[13px] focus:border-[#D98F8F]/50 outline-none appearance-none"
-                  >
-                    <option value="Basic">Basic</option>
-                    <option value="Pro">Pro</option>
-                    <option value="Enterprise">Enterprise</option>
-                  </select>
+              <div className="space-y-4">
+                <label className="block text-[13px] text-white font-medium">Select Plan</label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[
+                    { id: 'Basic', name: 'Basic', price: 19, icon: <Shield size={16} />, desc: 'Core features' },
+                    { id: 'Pro', name: 'Pro', price: 49, icon: <Zap size={16} />, desc: 'Advanced tools' },
+                    { id: 'Ultra', name: 'Ultra', price: 89, icon: <Building size={16} />, desc: 'Unlimited usage' }
+                  ].map(plan => (
+                    <div 
+                      key={plan.id}
+                      onClick={() => setEditOrgForm({...editOrgForm, plan: plan.id, amount: plan.price})}
+                      className={`relative p-4 rounded-xl border cursor-pointer transition-all ${editOrgForm.plan === plan.id ? 'border-[#D98F8F] bg-[#D98F8F]/10' : 'border-white/5 bg-[#1E0A0B] hover:border-white/20'}`}
+                    >
+                      {editOrgForm.plan === plan.id && (
+                        <div className="absolute top-3 right-3 text-[#D98F8F]">
+                          <CheckCircle2 size={18} className="fill-[#D98F8F]/20" />
+                        </div>
+                      )}
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-3 ${editOrgForm.plan === plan.id ? 'bg-[#D98F8F]/20 text-[#D98F8F]' : 'bg-white/5 text-[#A69697]'}`}>
+                        {plan.icon}
+                      </div>
+                      <h3 className="text-white font-medium text-[14px] mb-1">{plan.name}</h3>
+                      <p className="text-[#A69697] text-[11px] mb-3">{plan.desc}</p>
+                      <div className="text-white font-semibold">{plan.price} TND <span className="text-[#A69697] text-[11px] font-normal">/mo</span></div>
+                    </div>
+                  ))}
                 </div>
+              </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2 border-t border-white/5">
                 <div>
-                  <label className="block text-[12px] text-[#A69697] mb-1.5 font-medium">Monthly Amount (TND)</label>
-                  <input 
-                    type="number"
-                    value={editOrgForm.amount}
-                    onChange={(e) => setEditOrgForm({...editOrgForm, amount: parseInt(e.target.value) || 0})}
-                    className="w-full px-3 py-2 rounded-md bg-[#1E0A0B] border border-white/5 text-white text-[13px] focus:border-[#D98F8F]/50 outline-none"
-                  />
+                  <label className="block text-[12px] text-[#A69697] mb-1.5 font-medium flex items-center gap-1.5"><Calendar size={14} /> Add Duration</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { label: 'None', val: 0 },
+                      { label: '1M', val: 1 },
+                      { label: '6M', val: 6 },
+                      { label: '1Y', val: 12 }
+                    ].map(dur => (
+                      <button
+                        type="button"
+                        key={dur.label}
+                        onClick={() => setEditOrgForm({...editOrgForm, durationMonths: dur.val})}
+                        className={`py-2 text-[12px] rounded-md font-medium transition-colors border ${editOrgForm.durationMonths === dur.val ? 'bg-[#D98F8F] text-[#1E0A0B] border-[#D98F8F]' : 'bg-[#1E0A0B] text-[#A69697] border-white/5 hover:border-white/20'}`}
+                      >
+                        {dur.label}
+                      </button>
+                    ))}
+                  </div>
+                  {editOrgForm.durationMonths > 0 && editOrgForm.currentRenewalDate && (
+                    <p className="text-[11px] text-[#D98F8F] mt-2">
+                      New expiry: {(() => {
+                        const d = new Date(editOrgForm.currentRenewalDate);
+                        d.setMonth(d.getMonth() + editOrgForm.durationMonths);
+                        return d.toLocaleDateString();
+                      })()}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -487,7 +548,7 @@ export default function OrganizationsPage() {
                   <select 
                     value={editOrgForm.status}
                     onChange={(e) => setEditOrgForm({...editOrgForm, status: e.target.value})}
-                    className="w-full px-3 py-2 rounded-md bg-[#1E0A0B] border border-white/5 text-white text-[13px] focus:border-[#D98F8F]/50 outline-none appearance-none"
+                    className="w-full px-3 py-2 rounded-md bg-[#1E0A0B] border border-white/5 text-white text-[13px] focus:border-[#D98F8F]/50 outline-none appearance-none h-[38px]"
                   >
                     <option value="Active">Active</option>
                     <option value="Suspended">Suspended</option>
@@ -496,19 +557,19 @@ export default function OrganizationsPage() {
                 </div>
               </div>
               
-              <div className="pt-4 flex gap-3 justify-end">
+              <div className="pt-4 border-t border-white/5 flex justify-end gap-3">
                 <button 
                   type="button" 
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 rounded-md text-[13px] font-medium text-[#A69697] hover:text-white transition-colors"
+                  className="px-5 py-2.5 rounded-lg text-[13px] font-medium text-[#A69697] hover:text-white transition-colors"
                 >
-                  {t('organizations.cancel')}
+                  Cancel
                 </button>
                 <button 
                   type="submit"
-                  className="px-4 py-2 rounded-md text-[13px] font-medium bg-[#D98F8F] text-[#1E0A0B] hover:bg-[#D98F8F]/90 transition-colors"
+                  className="px-5 py-2.5 rounded-lg text-[13px] font-semibold bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white shadow-lg hover:shadow-xl hover:opacity-90 transition-all"
                 >
-                  {t('organizations.apply_changes')}
+                  Apply Subscription Updates
                 </button>
               </div>
             </form>

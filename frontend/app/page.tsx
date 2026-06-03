@@ -1,17 +1,53 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Sparkles, ArrowRight, Zap, ShieldCheck, BarChart3, Users, CheckCircle2, ChevronDown, Network, FileText, ChevronRight, Search, Upload, LineChart as LineChartIcon, ArrowUpRight } from 'lucide-react';
+import { Sparkles, ArrowRight, Zap, ShieldCheck, BarChart3, Users, CheckCircle2, ChevronDown, Network, FileText, ChevronRight, Search, Upload, LineChart as LineChartIcon, ArrowUpRight, Loader } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis } from 'recharts';
 import { LandingNavbar } from '@/components/landing-navbar';
 import { LandingFooter } from '@/components/landing-footer';
 import { useLanguage } from '@/lib/i18n-context';
+import { toast } from 'sonner';
 
 export default function LandingPage() {
   const { t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [demoData, setDemoData] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (file: File) => {
+    if (!file) return;
+    setIsExtracting(true);
+    setDemoData(null);
+    try {
+      const formData = new FormData();
+      formData.append('invoiceFile', file);
+      
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const res = await axios.post(`${API_URL}/api/invoices/demo-extract`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      if (res.data?.data?.extractedData) {
+        setDemoData(res.data.data.extractedData);
+      }
+    } catch (err: any) {
+      console.error('Demo extraction failed', err);
+      const errorMessage = err.response?.data?.message || err.message || 'Demo extraction failed';
+      toast.error(errorMessage);
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileUpload(file);
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -93,33 +129,85 @@ export default function LandingPage() {
                {/* Left: Drag & Drop + OCR Preview */}
                <div className="space-y-6">
                  {/* Drag & Drop */}
-                 <div className="bg-[#1A0A0B]/80 border border-white/10 rounded-[20px] p-8 text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[200px] group border-dashed hover:border-[#D98F8F]/50 cursor-pointer">
+                 <div 
+                    className="bg-[#1A0A0B]/80 border border-white/10 rounded-[20px] p-8 text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[200px] group border-dashed hover:border-[#D98F8F]/50 cursor-pointer"
+                    onClick={() => fileInputRef.current?.click()}
+                    onDrop={onDrop}
+                    onDragOver={(e) => e.preventDefault()}
+                  >
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      ref={fileInputRef} 
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          handleFileUpload(e.target.files[0]);
+                        }
+                      }}
+                      accept=".pdf,.png,.jpg,.jpeg"
+                    />
                     <div className="absolute right-0 top-0 w-32 h-32 bg-[#D98F8F] rounded-full blur-[60px] opacity-10"></div>
-                    <Upload className="text-[#D98F8F] mb-4" size={32} />
-                    <p className="text-white font-bold">{t('landing.home_sections.drag_drop') || 'Drag & Drop Invoices Here'}</p>
+                    {isExtracting ? (
+                      <div className="flex flex-col items-center">
+                        <Loader className="text-[#D98F8F] mb-4 animate-spin" size={32} />
+                        <p className="text-[#D98F8F] font-bold animate-pulse">Extracting Data...</p>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload className="text-[#D98F8F] mb-4" size={32} />
+                        <p className="text-white font-bold">
+                          {t('landing.home_sections.drag_drop') || 'Drag & Drop Invoices Here'}
+                        </p>
+                      </>
+                    )}
                  </div>
                  
                  {/* OCR Preview */}
                  <div className="bg-[#1A0A0B]/80 border border-white/10 rounded-[20px] p-6 relative">
-                    <p className="text-[#A69697] text-[13px] mb-4 flex justify-between items-center">
-                      <span>{t('landing.home_sections.ocr_preview') || 'OCR Extraction Preview'}</span>
-                      <span className="flex gap-1"><span className="w-2 h-2 rounded-full bg-white/20"></span><span className="w-2 h-2 rounded-full bg-white/20"></span><span className="w-2 h-2 rounded-full bg-white/20"></span></span>
-                    </p>
-                    <div className="w-full h-[180px] bg-gradient-to-br from-[#EBD8D8] to-[#D98F8F] rounded-[12px] p-4 flex flex-col">
-                       <div className="flex justify-between items-start border-b border-[#8E1B3A]/20 pb-2 mb-2">
-                         <div className="flex items-center gap-2">
-                           <Sparkles size={16} className="text-[#8E1B3A]" /> <span className="font-bold text-[#8E1B3A]">Aura</span>
+
+                    <div className="w-full min-h-[180px] bg-gradient-to-br from-[#EBD8D8] to-[#D98F8F] rounded-[12px] p-4 flex flex-col">
+                       {demoData ? (
+                         <div className="animate-fade-in">
+                           <div className="flex justify-between items-start border-b border-[#8E1B3A]/20 pb-2 mb-2">
+                             <div className="flex flex-col gap-1">
+                               <div className="flex items-center gap-2">
+                                 <Sparkles size={16} className="text-[#8E1B3A]" /> 
+                                 <span className="font-bold text-[#8E1B3A]">{demoData.companyName || 'Unknown Vendor'}</span>
+                               </div>
+                               {demoData.matriculeFiscal && <span className="text-[#8E1B3A] text-[10px]">MF: {demoData.matriculeFiscal}</span>}
+                             </div>
+                             <div className="text-right text-[#8E1B3A] text-[10px]">
+                               <p className="font-bold text-[14px]">{demoData.invoiceNumber || 'INVOICE'}</p>
+                               <p>{demoData.date ? new Date(demoData.date).toLocaleDateString() : 'No Date'}</p>
+                             </div>
+                           </div>
+                           <div className="flex flex-col gap-1 mt-2 text-[#8E1B3A] text-[12px]">
+                             {demoData.lineItems && demoData.lineItems.map((item: any, i: number) => (
+                               <div key={i} className="flex justify-between border-b border-[#8E1B3A]/10 pb-1">
+                                 <span className="truncate w-[60%]">{item.description}</span>
+                                 <span>{item.total || item.totalPrice}</span>
+                               </div>
+                             ))}
+                           </div>
                          </div>
-                         <div className="text-right text-[#8E1B3A] text-[10px]">
-                           <p className="font-bold text-[14px]">INVOICE</p>
-                           <p>Oct 15, 2023</p>
-                         </div>
-                       </div>
-                       <div className="space-y-2 mt-2">
-                         <div className="w-full h-2 bg-[#8E1B3A]/20 rounded"></div>
-                         <div className="w-full h-2 bg-[#8E1B3A]/20 rounded"></div>
-                         <div className="w-1/2 h-2 bg-[#8E1B3A]/20 rounded"></div>
-                       </div>
+                       ) : (
+                         <>
+                           <div className="flex justify-between items-start border-b border-[#8E1B3A]/20 pb-2 mb-2">
+                             <div className="flex items-center gap-2">
+                               <Sparkles size={16} className="text-[#8E1B3A]" /> <span className="font-bold text-[#8E1B3A]">Aura</span>
+                             </div>
+                             <div className="text-right text-[#8E1B3A] text-[10px]">
+                               <p className="font-bold text-[14px]">INVOICE</p>
+                               <p>Oct 15, 2023</p>
+                             </div>
+                           </div>
+                           <div className="space-y-2 mt-2">
+                             <div className="w-full h-2 bg-[#8E1B3A]/20 rounded"></div>
+                             <div className="w-full h-2 bg-[#8E1B3A]/20 rounded"></div>
+                             <div className="w-1/2 h-2 bg-[#8E1B3A]/20 rounded"></div>
+                           </div>
+                         </>
+                       )}
                     </div>
                  </div>
                </div>
@@ -131,27 +219,32 @@ export default function LandingPage() {
                  <div className="space-y-4">
                    <div className="bg-[rgba(255,255,255,0.03)] border border-white/5 rounded-[16px] p-5 flex justify-between items-center">
                      <div>
-                       <p className="text-[#A69697] text-[12px] mb-1">Amount</p>
-                       <p className="text-white font-bold">5,000.00 TND</p>
+                       <p className="text-[#A69697] text-[12px] mb-1">Amount HT</p>
+                       <p className="text-white font-bold">{demoData ? (demoData.totalHT || 0).toFixed(2) : '5,000.00'} TND</p>
                      </div>
                      <div className="text-right">
-                       <p className="text-[#A69697] text-[12px] mb-1">Tax</p>
-                       <p className="text-white font-bold">500.00 TND</p>
+                       <p className="text-[#A69697] text-[12px] mb-1">Tax (TVA)</p>
+                       <p className="text-white font-bold">{demoData ? (demoData.tvaAmount || 0).toFixed(2) : '500.00'} TND</p>
                      </div>
                    </div>
 
                    <div className="bg-[rgba(255,255,255,0.03)] border border-white/5 rounded-[16px] p-5">
-                     <p className="text-[#A69697] text-[12px] mb-1">Total</p>
-                     <p className="text-[#D98F8F] text-[24px] font-bold">5,500.00 TND</p>
+                     <p className="text-[#A69697] text-[12px] mb-1">Total TTC</p>
+                     <p className="text-[#D98F8F] text-[24px] font-bold">{demoData ? (demoData.totalAmount || 0).toFixed(2) : '5,500.00'} TND</p>
                    </div>
 
                    <div className="bg-[rgba(255,255,255,0.03)] border border-white/5 rounded-[16px] p-5">
                      <div className="flex justify-between items-center mb-2">
-                       <span className="text-[#A69697] text-[12px]">Totals</span>
-                       <span className="text-white font-bold text-[12px]">7,500 TND</span>
+                       <span className="text-[#A69697] text-[12px]">Confidence Score</span>
+                       <span className="text-white font-bold text-[12px]">
+                         {demoData ? Math.round((demoData.confidenceScores?.overall || 0.95) * 100) : '95'}%
+                       </span>
                      </div>
                      <div className="w-full h-1.5 bg-[#1A0A0B] rounded-full overflow-hidden">
-                       <div className="w-[80%] h-full bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] rounded-full"></div>
+                       <div 
+                         className="h-full bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] rounded-full transition-all duration-1000"
+                         style={{ width: `${demoData ? Math.round((demoData.confidenceScores?.overall || 0.95) * 100) : 95}%` }}
+                       ></div>
                      </div>
                    </div>
                  </div>
@@ -161,77 +254,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 3. ANALYTICS PREVIEW */}
-        <section className="px-6 md:px-12 max-w-[1400px] mx-auto w-full mb-20">
-          <div className="mb-8 flex justify-between items-center">
-            <h2 className="text-[28px] font-bold text-white">{t('landing.home_sections.analytics_title') || 'Analytics Preview'}</h2>
-            <button className="bg-[rgba(255,255,255,0.05)] border border-white/10 rounded-full px-4 py-1.5 text-[12px] text-white">{t('landing.home_sections.smart_stats') || 'Smart Statistics'}</button>
-          </div>
-          
-          <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-[rgba(255,255,255,0.05)] rounded-[30px] p-6 shadow-2xl grid lg:grid-cols-2 gap-6">
-            
-            {/* Main Chart */}
-            <div className="bg-[#1A0A0B]/80 border border-white/10 rounded-[24px] p-8 flex flex-col relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[#D98F8F] blur-[100px] opacity-10"></div>
-              <p className="text-[#A69697] text-[14px] mb-2">Revenue</p>
-              <h3 className="text-[36px] font-bold text-white mb-1">$1,066.37</h3>
-              <p className="text-[#4CAF50] text-[12px] font-bold mb-8 flex items-center gap-1">Dynamic <ArrowUpRight size={14}/> 70.0%</p>
-              
-              <div className="flex-1 min-h-[250px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={mockChartData}>
-                    <defs>
-                      <linearGradient id="colorVal" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#D98F8F" stopOpacity={0.5}/>
-                        <stop offset="95%" stopColor="#D98F8F" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="name" stroke="#A69697" fontSize={11} tickLine={false} axisLine={false} dy={10} />
-                    <Area type="monotone" dataKey="val" stroke="#D98F8F" strokeWidth={3} fillOpacity={1} fill="url(#colorVal)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
 
-            {/* Side Widgets */}
-            <div className="grid grid-rows-2 gap-6">
-              <div className="grid grid-cols-2 gap-6">
-                <div className="bg-[#1A0A0B]/80 border border-white/10 rounded-[24px] p-6 flex flex-col justify-between">
-                  <p className="text-[#A69697] text-[14px]">Revenue</p>
-                  <div className="h-[60px] my-2">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={mockChartData}><Line type="monotone" dataKey="val" stroke="#D98F8F" strokeWidth={2} dot={false} /></LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <button className="w-full bg-[rgba(255,255,255,0.05)] text-white py-2 rounded-[10px] text-[12px]">Quick View</button>
-                </div>
-                <div className="bg-[#1A0A0B]/80 border border-white/10 rounded-[24px] p-6 flex flex-col justify-between">
-                  <p className="text-[#A69697] text-[14px]">Expenses</p>
-                  <div className="h-[60px] my-2">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={mockChartData}><Bar dataKey="val" fill="#8E1B3A" radius={[2,2,0,0]} /></BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <button className="w-full bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white py-2 rounded-[10px] text-[12px] font-bold">Add Expense</button>
-                </div>
-              </div>
-
-              <div className="bg-[#1A0A0B]/80 border border-white/10 rounded-[24px] p-6">
-                <p className="text-[#A69697] text-[14px] mb-6">Cash Flow</p>
-                <div className="grid grid-cols-2 gap-8">
-                  <div>
-                    <p className="text-[#A69697] text-[11px] mb-1">Revenue</p>
-                    <div className="flex items-center gap-2"><span className="text-white font-bold">$30K</span> <span className="bg-[#8E1B3A]/30 text-[#D98F8F] px-1.5 py-0.5 rounded text-[10px]">-7.0%</span></div>
-                  </div>
-                  <div>
-                    <p className="text-[#A69697] text-[11px] mb-1">Total</p>
-                    <div className="flex items-center gap-2"><span className="text-white font-bold">$53,100</span> <span className="bg-[#4CAF50]/10 text-[#4CAF50] px-1.5 py-0.5 rounded text-[10px]">+1.25%</span></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
 
       </main>
 

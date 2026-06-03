@@ -11,7 +11,8 @@ const {
   batchUpload,
   submitInvoice,
   approveInvoice,
-  rejectInvoice
+  rejectInvoice,
+  demoExtractInvoice
 } = require('../controllers/invoiceController');
 const { protect } = require('../middlewares/authMiddleware');
 const { authorize } = require('../middlewares/roleMiddleware');
@@ -19,6 +20,9 @@ const upload = require('../middlewares/uploadMiddleware');
 
 // Upload invoice (AI extraction)
 router.post('/upload', protect, upload.single('invoiceFile'), uploadInvoice);
+
+// Demo upload invoice (No DB saving)
+router.post('/demo-extract', upload.single('invoiceFile'), demoExtractInvoice);
 
 // Batch upload
 router.post('/batch-upload', protect, upload.array('invoiceFiles', 10), batchUpload);

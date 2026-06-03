@@ -30,8 +30,6 @@ export function LandingNavbar() {
           <Link href="/features" className="hover:text-white transition-colors">{t('landing.navbar.features') || 'Features'}</Link>
           <Link href="/pricing" className="hover:text-white transition-colors">{t('landing.navbar.pricing') || 'Pricing'}</Link>
           <Link href="/ttn" className="hover:text-white transition-colors">{t('landing.navbar.ttn') || 'TTN Integration'}</Link>
-          <Link href="/about" className="hover:text-white transition-colors">{t('landing.navbar.about') || 'About Us'}</Link>
-          <Link href="/contact" className="hover:text-white transition-colors">{t('landing.navbar.contact') || 'Contact Us'}</Link>
         </div>
 
         <div className="flex items-center gap-4">

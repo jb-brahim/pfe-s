@@ -38,8 +38,6 @@ export function LandingFooter() {
               <h4 className="text-white font-bold mb-6">{t('landing.footer.resources')}</h4>
               <ul className="space-y-4">
                 <li><Link href="/ttn" className="text-[#A69697] hover:text-[#D98F8F] text-sm transition-colors">{t('landing.navbar.ttn')}</Link></li>
-                <li><Link href="/about" className="text-[#A69697] hover:text-[#D98F8F] text-sm transition-colors">{t('landing.navbar.about')}</Link></li>
-                <li><Link href="/contact" className="text-[#A69697] hover:text-[#D98F8F] text-sm transition-colors">{t('landing.navbar.contact')}</Link></li>
               </ul>
             </div>
 

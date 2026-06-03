@@ -516,6 +516,14 @@
       "hero_subtitle": "Automate, Optimize, and Scale with Aura Finance's enterprise-grade platform.",
       "explore_features": "Explore Features"
     },
+    "home_sections": {
+      "demo_title": "AI Invoice Automation Demo",
+      "drag_drop": "Drag & Drop Invoices Here",
+      "extracted_data": "Extracted Data Cards",
+      "ocr_preview": "OCR Extraction Preview",
+      "analytics_title": "Analytics Preview",
+      "smart_stats": "Smart Statistics"
+    },
     "features": {
       "title": "Powerful Features for Modern Finance",
       "subtitle": "Everything you need to automate, track, and scale your financial operations with enterprise-grade security and advanced AI capabilities.",
