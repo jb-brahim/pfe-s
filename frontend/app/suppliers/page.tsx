@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { Building2, Search, ChevronDown, ChevronUp, FileText, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
@@ -133,133 +133,140 @@ export default function SuppliersPage() {
           />
         </div>
 
-        {/* Suppliers List */}
-        <div className="flex flex-col gap-3 mt-4">
-          {filteredSuppliers.length === 0 && !loading ? (
-            <div className="flex flex-col items-center justify-center p-12 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[24px] text-center">
-              <div className="w-16 h-16 rounded-full bg-[#1A0A0B] flex items-center justify-center text-[#A69697] mb-4 shadow-inner">
-                <Building2 size={32} />
-              </div>
-              <h3 className="text-white text-[18px] font-bold mb-2">{t('suppliers.no_suppliers')}</h3>
-              <p className="text-[#A69697] text-[14px] max-w-[400px]">
-                {t('suppliers.no_suppliers_desc')}
-              </p>
-            </div>
-          ) : (
-            filteredSuppliers.map((supplier) => {
-              const isExpanded = expandedId === supplier.id;
-              
-              return (
-                <div 
-                  key={supplier.id} 
-                  className={`group relative backdrop-blur-xl border rounded-[24px] transition-all duration-400 overflow-hidden ${
-                    isExpanded 
-                      ? 'bg-[rgba(255,255,255,0.05)] border-[#D98F8F]/40 shadow-[0_20px_50px_rgba(0,0,0,0.5)]' 
-                      : 'bg-[rgba(255,255,255,0.02)] border-[rgba(255,255,255,0.05)] hover:border-[#D98F8F]/20 hover:bg-[rgba(255,255,255,0.04)] hover:shadow-[0_15px_40px_rgba(0,0,0,0.4)]'
-                  }`}
-                >
-                  {/* Accent Line */}
-                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-[#D98F8F] to-[#8E1B3A] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-
-                  {/* Main Card Header */}
-                  <div 
-                    className="p-5 md:p-6 flex flex-col md:flex-row md:items-center gap-5 cursor-pointer pl-6 md:pl-8"
-                    onClick={() => setExpandedId(isExpanded ? null : supplier.id)}
-                  >
-                    {/* Avatar/Icon */}
-                    <div className="w-14 h-14 rounded-[16px] bg-[#1A0A0B] border border-white/5 flex items-center justify-center flex-shrink-0 text-[#A69697] group-hover:text-[#D98F8F] group-hover:border-[#D98F8F]/30 transition-all shadow-inner">
-                      <Building2 size={24} />
-                    </div>
-
-                    {/* Supplier Info */}
-                    <div className="flex-1 min-w-0">
-                      <h2 className="text-white text-[18px] font-bold truncate mb-1">{supplier.name}</h2>
-                      <p className="text-[#A69697] text-[13px]">{supplier.category}</p>
-                    </div>
-
-                    {/* Stats */}
-                    <div className="flex items-center gap-8 md:pr-4">
-                      <div className="text-right hidden sm:block w-[140px]">
-                        <p className="text-[#A69697] text-[11px] uppercase tracking-wider mb-1 font-bold">{t('suppliers.total_spent')}</p>
-                        <p className="text-white text-[18px] font-bold tracking-tight">{supplier.totalSpend.toLocaleString()} TND</p>
+        {/* Suppliers Table */}
+        <div className="mt-6 bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-[rgba(255,255,255,0.05)] rounded-[16px] overflow-hidden shadow-lg">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[800px]">
+              <thead>
+                <tr className="border-b border-white/5 bg-white/5 text-[#A69697] text-[11px] font-semibold uppercase tracking-wider">
+                  <th className="py-4 px-6">{t('suppliers.supplier')}</th>
+                  <th className="py-4 px-6">{t('suppliers.category')}</th>
+                  <th className="py-4 px-6 text-right">{t('suppliers.total_spent')}</th>
+                  <th className="py-4 px-6 text-center">{t('suppliers.invoices')}</th>
+                  <th className="py-4 px-6 text-center w-[80px]"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredSuppliers.length === 0 && !loading ? (
+                  <tr>
+                    <td colSpan={5} className="py-16 text-center">
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="w-14 h-14 rounded-full bg-[#1A0A0B] flex items-center justify-center text-[#A69697] mb-4 shadow-inner">
+                          <Building2 size={24} />
+                        </div>
+                        <h3 className="text-white text-[16px] font-semibold mb-2">{t('suppliers.no_suppliers')}</h3>
+                        <p className="text-[#A69697] text-[14px] max-w-[400px]">
+                          {t('suppliers.no_suppliers_desc')}
+                        </p>
                       </div>
-                      <div className="text-right hidden sm:block w-[80px]">
-                        <p className="text-[#A69697] text-[11px] uppercase tracking-wider mb-1 font-bold">{t('suppliers.invoices')}</p>
-                        <p className="text-white text-[18px] font-bold tracking-tight">{supplier.invoiceCount}</p>
-                      </div>
-                      <div className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all ${
-                        isExpanded ? 'bg-white/10 border-white/20 text-white' : 'bg-[#1A0A0B] border-white/5 text-[#A69697] group-hover:border-white/20 group-hover:text-white'
-                      }`}>
-                        {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Expanded Section */}
-                  <div 
-                    className={`transition-all duration-500 ease-in-out ${
-                      isExpanded ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'
-                    }`}
-                  >
-                    <div className="p-6 md:p-8 pt-0 pl-6 md:pl-8 border-t border-white/5">
-                      <div className="flex items-center justify-between mb-4 mt-2">
-                        <h4 className="text-white text-[15px] font-semibold flex items-center gap-2">
-                          {t('suppliers.recent_invoices')}
-                        </h4>
-                        <button className="text-[#A69697] hover:text-white text-[13px] transition-colors flex items-center gap-1 font-medium">
-                          {t('suppliers.view_all')} <ArrowUpRight size={14} />
-                        </button>
-                      </div>
-
-                      <div className="flex flex-col gap-3">
-                        {supplier.recentInvoices && supplier.recentInvoices.length > 0 ? (
-                          supplier.recentInvoices.map((inv: any) => (
-                            <Link 
-                              href={`/invoices/${inv.id}`}
-                              key={inv.id} 
-                              className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-[16px] bg-[#1A0A0B]/40 border border-white/5 hover:border-white/10 hover:bg-[#1A0A0B]/80 transition-all group"
-                            >
-                              <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-[12px] bg-white/5 flex items-center justify-center text-[#A69697] group-hover:text-[#D98F8F] transition-colors">
-                                  <FileText size={16} />
-                                </div>
-                                <div>
-                                  <p className="text-white font-bold text-[14px]">{inv.id.substring(0, 8).toUpperCase()}</p>
-                                  <p className="text-[#A69697] text-[12px]">{new Date(inv.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
-                                </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredSuppliers.map((supplier) => {
+                    const isExpanded = expandedId === supplier.id;
+                    
+                    return (
+                      <Fragment key={supplier.id}>
+                        <tr 
+                          onClick={() => setExpandedId(isExpanded ? null : supplier.id)}
+                          className={`group cursor-pointer transition-all border-b border-white/5 last:border-0 ${
+                            isExpanded ? 'bg-white/5' : 'hover:bg-white/[0.03]'
+                          }`}
+                        >
+                          <td className="py-4 px-6">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-[10px] bg-[#1A0A0B] border border-white/10 flex items-center justify-center flex-shrink-0 text-[#A69697] group-hover:text-[#D98F8F] group-hover:border-[#D98F8F]/30 transition-all shadow-sm">
+                                <Building2 size={18} />
                               </div>
-                              
-                              <div className="flex items-center gap-6 mt-3 sm:mt-0">
-                                <p className="text-white font-bold text-[15px]">{inv.amount.toLocaleString()} TND</p>
-                                <div className="w-24 flex justify-end">
-                                  {getStatusBadge(inv.status)}
-                                </div>
-                                <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[#A69697] group-hover:bg-[#D98F8F] group-hover:text-[#1A0A0B] transition-all">
-                                  <ArrowUpRight size={14} />
-                                </div>
-                              </div>
-                            </Link>
-                          ))
-                        ) : (
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-[#1A0A0B]/20 rounded-[12px] border border-white/5">
-                            <div>
-                              <p className="text-white text-[14px] font-medium mb-1">{t('suppliers.no_invoices')}</p>
-                              <p className="text-[#A69697] text-[13px]">{t('suppliers.no_invoices_desc')}</p>
+                              <span className="text-white text-[14px] font-medium">{supplier.name}</span>
                             </div>
-                            <Link href="/invoices/manual" className="mt-4 sm:mt-0 px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-[13px] font-medium rounded-lg border border-white/10 transition-colors">
-                              {t('suppliers.add_manual')}
-                            </Link>
-                          </div>
+                          </td>
+                          <td className="py-4 px-6">
+                            <span className="text-[#A69697] text-[13px]">{supplier.category}</span>
+                          </td>
+                          <td className="py-4 px-6 text-right">
+                            <span className="text-white text-[14px] font-medium">{supplier.totalSpend.toLocaleString()} TND</span>
+                          </td>
+                          <td className="py-4 px-6 text-center">
+                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/5 text-[#A69697] text-[12px] font-medium group-hover:text-white group-hover:bg-white/10 transition-colors">
+                              {supplier.invoiceCount}
+                            </span>
+                          </td>
+                          <td className="py-4 px-6 text-center">
+                            <div className="flex items-center justify-center">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                                isExpanded ? 'bg-white/10 text-white' : 'text-[#A69697] group-hover:text-white group-hover:bg-white/5'
+                              }`}>
+                                {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        
+                        {/* Expanded Row */}
+                        {isExpanded && (
+                          <tr className="bg-white/[0.01] border-b border-white/5 last:border-0">
+                            <td colSpan={5} className="p-0">
+                              <div className="px-6 py-5 border-l-2 border-[#D98F8F] ml-[2px]">
+                                <div className="flex items-center justify-between mb-4">
+                                  <h4 className="text-white text-[13px] font-semibold flex items-center gap-2">
+                                    {t('suppliers.recent_invoices')}
+                                  </h4>
+                                  <button className="text-[#A69697] hover:text-white text-[12px] transition-colors flex items-center gap-1 font-medium">
+                                    {t('suppliers.view_all')} <ArrowUpRight size={14} />
+                                  </button>
+                                </div>
+                                <div className="grid gap-2">
+                                  {supplier.recentInvoices && supplier.recentInvoices.length > 0 ? (
+                                    supplier.recentInvoices.map((inv: any) => (
+                                      <Link 
+                                        href={`/invoices/${inv.id}`}
+                                        key={inv.id} 
+                                        className="flex flex-col sm:flex-row sm:items-center justify-between p-3 px-4 rounded-[10px] bg-[#1A0A0B]/40 border border-white/5 hover:border-white/10 hover:bg-[#1A0A0B]/60 transition-all group"
+                                      >
+                                        <div className="flex items-center gap-4">
+                                          <div className="w-8 h-8 rounded-[8px] bg-white/5 flex items-center justify-center text-[#A69697] group-hover:text-[#D98F8F] transition-colors">
+                                            <FileText size={14} />
+                                          </div>
+                                          <div>
+                                            <p className="text-white font-medium text-[13px]">{inv.id.substring(0, 8).toUpperCase()}</p>
+                                            <p className="text-[#A69697] text-[11px] mt-0.5">{new Date(inv.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                                          </div>
+                                        </div>
+                                        <div className="flex items-center gap-5 mt-2 sm:mt-0">
+                                          <p className="text-white font-medium text-[13px]">{inv.amount.toLocaleString()} TND</p>
+                                          <div className="w-[88px] flex justify-end">
+                                            {getStatusBadge(inv.status)}
+                                          </div>
+                                          <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-[#A69697] group-hover:bg-[#D98F8F] group-hover:text-[#1A0A0B] transition-all">
+                                            <ArrowUpRight size={12} />
+                                          </div>
+                                        </div>
+                                      </Link>
+                                    ))
+                                  ) : (
+                                    <div className="flex items-center justify-between p-4 bg-[#1A0A0B]/20 rounded-[10px] border border-white/5">
+                                      <div>
+                                        <p className="text-white text-[13px] font-medium mb-0.5">{t('suppliers.no_invoices')}</p>
+                                        <p className="text-[#A69697] text-[12px]">{t('suppliers.no_invoices_desc')}</p>
+                                      </div>
+                                      <Link href="/invoices/manual" className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-[12px] font-medium rounded-md border border-white/10 transition-colors">
+                                        {t('suppliers.add_manual')}
+                                      </Link>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
                         )}
-                      </div>
-
-                    </div>
-                  </div>
-
-                </div>
-              );
-            })
-          )}
+                      </Fragment>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
       </div>

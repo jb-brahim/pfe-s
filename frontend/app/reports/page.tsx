@@ -248,31 +248,29 @@ export default function ReportsPage() {
         </div>
 
         {/* Report Generation Engine */}
-        <div className="bg-[rgba(255,255,255,0.03)] backdrop-blur-[10px] border border-white/10 rounded-[30px] p-8 shadow-lg relative z-20 overflow-visible">
-          <div className="absolute top-[-50%] right-[-10%] w-[500px] h-[500px] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#8E1B3A]/30 to-transparent blur-[80px] rounded-full pointer-events-none"></div>
-          
-          <h3 className="text-white text-[20px] font-bold flex items-center gap-2 mb-8 relative z-10">
+        <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-white/5 rounded-[16px] p-6 relative z-20">
+          <h3 className="text-white text-[15px] font-semibold mb-5">
             {t('reports.engine_title')}
           </h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-20">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative z-20">
             {/* Type selector */}
-            <div className="flex flex-col gap-2 relative" ref={typeRef}>
-              <label className="text-[#A69697] text-[13px] ml-1">{t('reports.report_type')}</label>
+            <div className="flex flex-col gap-1.5 relative" ref={typeRef}>
+              <label className="text-[#A69697] text-[12px] ml-1">{t('reports.report_type')}</label>
               <div 
                 onClick={() => setOpenType(!openType)}
-                className="bg-white/[0.12] backdrop-blur-md border border-white/20 rounded-[16px] p-4 flex items-center justify-between cursor-pointer hover:border-[#D98F8F]/50 hover:bg-white/[0.15] transition-colors shadow-inner"
+                className="bg-[rgba(0,0,0,0.2)] border border-white/10 rounded-[10px] p-2.5 flex items-center justify-between cursor-pointer hover:border-white/20 transition-colors"
               >
-                 <span className="text-white text-[14px] truncate">{typeMap[selectedType] ? t(`reports.types.${typeMap[selectedType]}`) : selectedType}</span>
-                 <ChevronDown size={16} className={`text-[#A69697] transition-transform duration-200 ${openType ? 'rotate-180' : ''}`} />
+                 <span className="text-white text-[13px] truncate">{typeMap[selectedType] ? t(`reports.types.${typeMap[selectedType]}`) : selectedType}</span>
+                 <ChevronDown size={14} className={`text-[#A69697] transition-transform duration-200 ${openType ? 'rotate-180' : ''}`} />
               </div>
               {openType && (
-                <div className="absolute top-[80px] left-0 w-full bg-[#2A0808] backdrop-blur-lg border border-white/20 rounded-[16px] shadow-2xl z-50 overflow-hidden py-1">
+                <div className="absolute top-[60px] left-0 w-full bg-[#1A0A0B] border border-white/10 rounded-[10px] shadow-xl z-50 overflow-hidden py-1">
                   {reportTypes.map((t_type) => (
                     <div 
                       key={t_type}
                       onClick={() => { setSelectedType(t_type); setOpenType(false); }}
-                      className={`px-4 py-3 text-[14px] cursor-pointer transition-colors ${selectedType === t_type ? 'text-[#D98F8F] bg-[#8E1B3A]/20 font-medium' : 'text-white/80 hover:bg-white/5 hover:text-white'}`}
+                      className={`px-3 py-2 text-[13px] cursor-pointer transition-colors ${selectedType === t_type ? 'bg-white/10 text-white font-medium' : 'text-[#A69697] hover:bg-white/5 hover:text-white'}`}
                     >
                       {typeMap[t_type] ? t(`reports.types.${typeMap[t_type]}`) : t_type}
                     </div>
@@ -282,25 +280,25 @@ export default function ReportsPage() {
             </div>
 
             {/* Date Range selector */}
-            <div className="flex flex-col gap-2 relative" ref={rangeRef}>
-              <label className="text-[#A69697] text-[13px] ml-1">{t('reports.date_range')}</label>
+            <div className="flex flex-col gap-1.5 relative" ref={rangeRef}>
+              <label className="text-[#A69697] text-[12px] ml-1">{t('reports.date_range')}</label>
               <div 
                 onClick={() => setOpenRange(!openRange)}
-                className="bg-white/[0.06] backdrop-blur-md border border-white/15 rounded-[16px] p-4 flex items-center justify-between cursor-pointer hover:border-[#D98F8F]/50 hover:bg-white/[0.09] transition-colors shadow-inner"
+                className="bg-[rgba(0,0,0,0.2)] border border-white/10 rounded-[10px] p-2.5 flex items-center justify-between cursor-pointer hover:border-white/20 transition-colors"
               >
-                 <div className="flex items-center gap-2 text-white text-[14px] truncate">
-                   <Calendar size={16} className="text-[#D98F8F] shrink-0" />
+                 <div className="flex items-center gap-2 text-white text-[13px] truncate">
+                   <Calendar size={14} className="text-[#A69697]" />
                    <span className="truncate">{rangeMap[selectedRange] ? t(`reports.ranges.${rangeMap[selectedRange]}`) : selectedRange}</span>
                  </div>
-                 <ChevronDown size={16} className={`text-[#A69697] transition-transform duration-200 ${openRange ? 'rotate-180' : ''}`} />
+                 <ChevronDown size={14} className={`text-[#A69697] transition-transform duration-200 ${openRange ? 'rotate-180' : ''}`} />
               </div>
               {openRange && (
-                <div className="absolute top-[80px] left-0 w-full bg-[#2A0808] backdrop-blur-lg border border-white/20 rounded-[16px] shadow-2xl z-50 overflow-hidden py-1">
+                <div className="absolute top-[60px] left-0 w-full bg-[#1A0A0B] border border-white/10 rounded-[10px] shadow-xl z-50 overflow-hidden py-1">
                   {dateRanges.map((r) => (
                     <div 
                       key={r}
                       onClick={() => { setSelectedRange(r); setOpenRange(false); }}
-                      className={`px-4 py-3 text-[14px] cursor-pointer transition-colors ${selectedRange === r ? 'text-[#D98F8F] bg-[#8E1B3A]/20 font-medium' : 'text-white/80 hover:bg-white/5 hover:text-white'}`}
+                      className={`px-3 py-2 text-[13px] cursor-pointer transition-colors ${selectedRange === r ? 'bg-white/10 text-white font-medium' : 'text-[#A69697] hover:bg-white/5 hover:text-white'}`}
                     >
                       {rangeMap[r] ? t(`reports.ranges.${rangeMap[r]}`) : r}
                     </div>
@@ -310,22 +308,22 @@ export default function ReportsPage() {
             </div>
 
             {/* Format selector */}
-            <div className="flex flex-col gap-2 relative" ref={formatRef}>
-              <label className="text-[#A69697] text-[13px] ml-1">{t('reports.format')}</label>
+            <div className="flex flex-col gap-1.5 relative" ref={formatRef}>
+              <label className="text-[#A69697] text-[12px] ml-1">{t('reports.format')}</label>
               <div 
                 onClick={() => setOpenFormat(!openFormat)}
-                className="bg-white/[0.06] backdrop-blur-md border border-white/15 rounded-[16px] p-4 flex items-center justify-between cursor-pointer hover:border-[#D98F8F]/50 hover:bg-white/[0.09] transition-colors shadow-inner"
+                className="bg-[rgba(0,0,0,0.2)] border border-white/10 rounded-[10px] p-2.5 flex items-center justify-between cursor-pointer hover:border-white/20 transition-colors"
               >
-                 <span className="text-white text-[14px]">{selectedFormat}</span>
-                 <ChevronDown size={16} className={`text-[#A69697] transition-transform duration-200 ${openFormat ? 'rotate-180' : ''}`} />
+                 <span className="text-white text-[13px]">{selectedFormat}</span>
+                 <ChevronDown size={14} className={`text-[#A69697] transition-transform duration-200 ${openFormat ? 'rotate-180' : ''}`} />
               </div>
               {openFormat && (
-                <div className="absolute top-[80px] left-0 w-full bg-[#2A0808] backdrop-blur-lg border border-white/20 rounded-[16px] shadow-2xl z-50 overflow-hidden py-1">
+                <div className="absolute top-[60px] left-0 w-full bg-[#1A0A0B] border border-white/10 rounded-[10px] shadow-xl z-50 overflow-hidden py-1">
                   {formats.map((f) => (
                     <div 
                       key={f}
                       onClick={() => { setSelectedFormat(f); setOpenFormat(false); }}
-                      className={`px-4 py-3 text-[14px] cursor-pointer transition-colors ${selectedFormat === f ? 'text-[#D98F8F] bg-[#8E1B3A]/20 font-medium' : 'text-white/80 hover:bg-white/5 hover:text-white'}`}
+                      className={`px-3 py-2 text-[13px] cursor-pointer transition-colors ${selectedFormat === f ? 'bg-white/10 text-white font-medium' : 'text-[#A69697] hover:bg-white/5 hover:text-white'}`}
                     >
                       {f}
                     </div>
@@ -338,15 +336,15 @@ export default function ReportsPage() {
               <button 
                 onClick={handleGenerateReport}
                 disabled={generating}
-                className="h-[54px] rounded-[16px] bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white font-bold shadow-[0_0_20px_rgba(142,27,58,0.4)] hover:shadow-[0_0_30px_rgba(217,143,143,0.5)] transition-all hover:scale-[1.02] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-[40px] rounded-[10px] bg-white/10 text-white text-[13px] font-medium hover:bg-white/20 border border-white/10 transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {generating ? (
                   <>
-                    <RefreshCw size={18} className="animate-spin" /> {t('reports.generating')}
+                    <RefreshCw size={14} className="animate-spin" /> {t('reports.generating')}
                   </>
                 ) : (
                   <>
-                    {t('reports.generate_report')} <ChevronDown className="rotate-[-90deg]" size={18} />
+                    <FileText size={14} /> {t('reports.generate_report')}
                   </>
                 )}
               </button>
@@ -354,23 +352,23 @@ export default function ReportsPage() {
             
             {/* Custom Date Inputs Row */}
             {selectedRange === 'Custom Range' && (
-              <div className="col-span-1 md:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-6 mt-[-10px] mb-4">
-                <div className="flex flex-col gap-2">
-                  <label className="text-[#A69697] text-[13px] ml-1">{t('reports.start_date')}</label>
+              <div className="col-span-1 md:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[#A69697] text-[12px] ml-1">{t('reports.start_date')}</label>
                   <input 
                     type="date" 
                     value={customStartDate} 
                     onChange={(e) => setCustomStartDate(e.target.value)} 
-                    className="bg-white/[0.06] backdrop-blur-md border border-white/15 rounded-[16px] p-3 text-[14px] text-white focus:outline-none focus:border-[#D98F8F]/50 shadow-inner [color-scheme:dark]"
+                    className="bg-[rgba(0,0,0,0.2)] border border-white/10 rounded-[10px] p-2 text-[13px] text-white focus:outline-none focus:border-white/30 [color-scheme:dark]"
                   />
                 </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-[#A69697] text-[13px] ml-1">{t('reports.end_date')}</label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[#A69697] text-[12px] ml-1">{t('reports.end_date')}</label>
                   <input 
                     type="date" 
                     value={customEndDate} 
                     onChange={(e) => setCustomEndDate(e.target.value)} 
-                    className="bg-white/[0.06] backdrop-blur-md border border-white/15 rounded-[16px] p-3 text-[14px] text-white focus:outline-none focus:border-[#D98F8F]/50 shadow-inner [color-scheme:dark]"
+                    className="bg-[rgba(0,0,0,0.2)] border border-white/10 rounded-[10px] p-2 text-[13px] text-white focus:outline-none focus:border-white/30 [color-scheme:dark]"
                   />
                 </div>
               </div>
@@ -429,60 +427,67 @@ export default function ReportsPage() {
           </div>
 
           {filteredReports.length === 0 ? (
-            <div className="bg-[rgba(255,255,255,0.01)] border border-white/5 rounded-[24px] p-16 text-center">
-              <Folder className="mx-auto text-white/20 mb-4" size={48} />
-              <p className="text-white/60 font-semibold text-[16px]">{t('reports.no_reports')}</p>
-              <p className="text-[#A69697] text-[14px] mt-1">{t('reports.no_reports_desc')}</p>
+            <div className="bg-[rgba(255,255,255,0.01)] border border-white/5 rounded-[16px] p-16 text-center">
+              <Folder className="mx-auto text-white/20 mb-4" size={40} />
+              <p className="text-white/60 font-medium text-[15px]">{t('reports.no_reports')}</p>
+              <p className="text-[#A69697] text-[13px] mt-1">{t('reports.no_reports_desc')}</p>
             </div>
           ) : (
-            <div className="flex flex-col gap-4">
-              {filteredReports.map((report) => {
-                const Icon = iconMap[report.type] || FileText;
-                return (
-                  <div key={report._id} className="group relative bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-white/5 rounded-[24px] p-5 transition-all duration-300 hover:bg-[rgba(255,255,255,0.04)] hover:border-[#D98F8F]/30 hover:shadow-[0_10px_30px_rgba(142,27,58,0.15)] flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden">
-                    {/* Left Accent Line */}
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#D98F8F] to-[#8E1B3A] scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
-                    
-                    <div className="flex flex-col md:flex-row md:items-center gap-5 flex-1">
-                      <div className="w-14 h-14 rounded-[16px] shrink-0 bg-[#3C0D0D] border border-white/10 flex items-center justify-center group-hover:bg-[#8E1B3A]/20 transition-colors shadow-inner">
-                        <Icon size={26} className="text-[#A69697] group-hover:text-[#D98F8F] transition-colors" />
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-white text-[16px] font-bold mb-1.5 leading-tight truncate">{typeMap[report.type] ? t(`reports.types.${typeMap[report.type]}`) : report.title}</h4>
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[#A69697] text-[13px]">
-                          <span>{formatDate(report.createdAt)}</span>
-                          <span className="w-1 h-1 rounded-full bg-white/20"></span>
-                          <span>{report.size}</span>
-                          <span className="w-1 h-1 rounded-full bg-white/20"></span>
-                          <span className="font-mono bg-white/5 px-2 py-0.5 rounded text-[10px]">{report.format}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-row items-center gap-6 md:w-auto w-full justify-between md:justify-end shrink-0 pl-1">
-
-                      
-                      <div className="flex items-center gap-3">
-                        <button 
-                          onClick={() => handleDownload(report)}
-                          className="px-6 py-2.5 rounded-[12px] bg-[#3C0D0D] border border-white/10 text-[#A69697] font-bold text-[13px] flex items-center justify-center gap-2 group-hover:bg-gradient-to-r group-hover:from-[#D98F8F] group-hover:to-[#8E1B3A] group-hover:text-white group-hover:border-transparent transition-all duration-300 shadow-lg cursor-pointer whitespace-nowrap"
-                        >
-                          <Download size={16} /> {t('reports.download')}
-                        </button>
-                        
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleDeleteReport(report._id); }}
-                          className="w-10 h-10 flex items-center justify-center rounded-[12px] bg-red-950/20 text-red-400 border border-red-900/30 hover:bg-red-900/40 hover:text-red-200 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer shrink-0"
-                          title="Delete Report"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-white/5 rounded-[16px] overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-white/5 text-[11px] text-[#A69697] uppercase tracking-wider bg-white/5">
+                    <th className="px-6 py-3 font-medium">{t('reports.report_type')}</th>
+                    <th className="px-6 py-3 font-medium">{t('reports.date')}</th>
+                    <th className="px-6 py-3 font-medium">{t('reports.format')}</th>
+                    <th className="px-6 py-3 font-medium">{t('reports.size')}</th>
+                    <th className="px-6 py-3 text-right font-medium">{t('reports.actions')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 text-[13px] text-white">
+                  {filteredReports.map((report) => {
+                    const Icon = iconMap[report.type] || FileText;
+                    return (
+                      <tr key={report._id} className="group hover:bg-white/[0.03] transition-colors">
+                        <td className="px-6 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-7 h-7 rounded-[6px] bg-white/5 flex items-center justify-center shrink-0">
+                              <Icon size={14} className="text-[#A69697]" />
+                            </div>
+                            <span className="font-medium text-[13px] truncate">{typeMap[report.type] ? t(`reports.types.${typeMap[report.type]}`) : report.title}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-3 text-[#A69697] whitespace-nowrap">
+                          {formatDate(report.createdAt)}
+                        </td>
+                        <td className="px-6 py-3">
+                          <span className="bg-white/10 text-white/80 px-2 py-0.5 rounded text-[11px] font-mono">{report.format}</span>
+                        </td>
+                        <td className="px-6 py-3 text-[#A69697] whitespace-nowrap">
+                          {report.size}
+                        </td>
+                        <td className="px-6 py-3 text-right">
+                          <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button 
+                              onClick={() => handleDownload(report)}
+                              className="px-3 py-1.5 rounded-[6px] bg-white/5 border border-white/10 text-[#A69697] hover:text-white hover:bg-white/10 transition-colors text-[12px] flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <Download size={13} /> {t('reports.download')}
+                            </button>
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); handleDeleteReport(report._id); }}
+                              className="w-7 h-7 flex items-center justify-center rounded-[6px] hover:bg-red-900/40 text-[#A69697] hover:text-red-400 transition-colors cursor-pointer"
+                              title="Delete Report"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

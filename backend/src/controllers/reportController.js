@@ -7,9 +7,12 @@ const Invoice = require('../models/Invoice');
 const ExtractedData = require('../models/ExtractedData');
 const { getTeamUserIds } = require('../utils/tenant');
 
-// Helper to format currency
+// Helper to format currency (ASCII-safe for pdf-lib - no non-breaking spaces)
 const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount || 0);
+  const num = parseFloat(amount || 0).toFixed(3);
+  const [intPart, decPart] = num.split('.');
+  const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return `${formattedInt}.${decPart} TND`;
 };
 
 // Helper to format date

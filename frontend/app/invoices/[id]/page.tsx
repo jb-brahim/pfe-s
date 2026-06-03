@@ -186,96 +186,67 @@ export default function InvoiceDetailsPage() {
           {/* RIGHT: Main Dashboard Grid */}
           <div className="flex flex-col gap-4">
             
-            {/* Top Row: Analytics & Tax */}
-            <div className="grid grid-cols-2 gap-4">
-
-              {/* Analytics: Verification */}
-              <div className="bg-[rgba(255,255,255,0.05)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.1)] rounded-[16px] p-5 flex flex-col justify-between">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-[#FFFFFF] text-[14px] font-medium truncate">AI Confidence</h3>
-                  <MoreHorizontal size={16} className="text-[#A69697] flex-shrink-0" />
+            {/* Top Row: Analytics, Tax, Extracted */}
+            <div className="grid grid-cols-[1fr_2fr] gap-4">
+              
+              {/* Left Column: Stacked AI & Tax */}
+              <div className="flex flex-col gap-4">
+                {/* Analytics: Verification */}
+                <div className="bg-[rgba(255,255,255,0.05)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.1)] rounded-[16px] p-4 flex flex-col justify-between h-full">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-[#FFFFFF] text-[14px] font-medium truncate">AI Confidence</h3>
+                    <MoreHorizontal size={16} className="text-[#A69697] flex-shrink-0" />
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <ConfidenceRing score={extractedData.confidenceScores?.overall || 0.9} />
+                    <div className="text-[11px] text-[#A69697]">Overall Confidence</div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-center gap-6 h-[80px]">
-                  <ConfidenceRing score={extractedData.confidenceScores?.overall || 0.9} />
-                  <div className="flex flex-col gap-1 text-[12px]">
-                    <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-[#4CAF50]"></span> High Match</div>
-                    <div className="text-[#A69697] text-[11px]">Score: {Math.round((extractedData.confidenceScores?.overall || 0.9) * 100)}%</div>
+
+                {/* Tax Details */}
+                <div className="bg-[rgba(255,255,255,0.05)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.1)] rounded-[16px] p-4 flex flex-col justify-between h-full">
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-[#FFFFFF] text-[14px] font-medium">Tax Details</h3>
+                      <MoreHorizontal size={16} className="text-[#A69697]" />
+                    </div>
+                    <div className="flex justify-between text-[12px] text-[#A69697] mb-2 border-b border-white/10 pb-2">
+                      <span>Tax Line</span>
+                      <span>Amount</span>
+                    </div>
+                    <div className="flex justify-between text-[13px] font-medium">
+                      <span>TVA Amount</span>
+                      <span>{extractedData.tvaAmount?.toLocaleString('fr-FR')} TND</span>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex items-center gap-2 text-[#4CAF50] text-[12px] font-medium">
+                    <CheckCircle2 size={14} /> Tax Compliance Checked
                   </div>
                 </div>
               </div>
 
-              {/* Tax Details */}
-              <div className="bg-[rgba(255,255,255,0.05)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.1)] rounded-[16px] p-5 flex flex-col">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-[#FFFFFF] text-[14px] font-medium">Tax Details</h3>
-                  <MoreHorizontal size={16} className="text-[#A69697]" />
+              {/* Right Column: Extracted Information */}
+              <div className="bg-[rgba(255,255,255,0.05)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.1)] rounded-[16px] p-4 flex flex-col justify-between h-full">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-[#FFFFFF] text-[14px] font-medium">Extracted Information</h3>
+                    <MoreHorizontal size={16} className="text-[#A69697]" />
+                  </div>
+                  <div className="space-y-1.5 text-[13px] mb-4">
+                    <div className="flex justify-between border-b border-white/5 pb-1"><span className="text-[#A69697]">Vendor</span> <span className="font-medium truncate max-w-[120px]">{extractedData.companyName || 'N/A'}</span></div>
+                    <div className="flex justify-between border-b border-white/5 pb-1"><span className="text-[#A69697]">Date:</span> <span className="font-medium">{extractedData.date ? new Date(extractedData.date).toLocaleDateString() : 'N/A'}</span></div>
+                    <div className="flex justify-between border-b border-white/5 pb-1"><span className="text-[#A69697]">Amount H.T.</span> <span className="font-medium">{extractedData.totalHT?.toLocaleString('fr-FR')} TND</span></div>
+                    <div className="flex justify-between border-b border-white/5 pb-1"><span className="text-[#A69697]">Tax</span> <span className="font-medium">{extractedData.tvaAmount?.toLocaleString('fr-FR')} TND</span></div>
+                    <div className="flex justify-between pt-1 font-bold text-[14px]"><span>Total:</span> <span>{extractedData.totalAmount?.toLocaleString('fr-FR')} TND</span></div>
+                  </div>
                 </div>
-                <div className="flex justify-between text-[12px] text-[#A69697] mb-2 border-b border-white/10 pb-2">
-                  <span>Tax Line</span>
-                  <span>Amount</span>
-                </div>
-                <div className="flex justify-between text-[13px] mb-4 font-medium">
-                  <span>TVA Amount</span>
-                  <span>{extractedData.tvaAmount?.toLocaleString('fr-FR')} TND</span>
-                </div>
-                <div className="mt-auto flex items-center gap-2 text-[#4CAF50] text-[12px] font-medium">
-                  <CheckCircle2 size={14} /> Tax Compliance Checked
-                </div>
-              </div>
-            </div>
-
-            {/* Middle Row: Extracted, Vendor, Signature */}
-            <div className="grid grid-cols-3 gap-4">
-              {/* Extracted Information */}
-              <div className="bg-[rgba(255,255,255,0.05)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.1)] rounded-[16px] p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-[#FFFFFF] text-[14px] font-medium">Extracted Information</h3>
-                  <MoreHorizontal size={16} className="text-[#A69697]" />
-                </div>
-                <div className="space-y-2 text-[13px] mb-4">
-                  <div className="flex justify-between border-b border-white/5 pb-1"><span className="text-[#A69697]">Vendor</span> <span className="font-medium truncate max-w-[120px]">{extractedData.companyName || 'N/A'}</span></div>
-                  <div className="flex justify-between border-b border-white/5 pb-1"><span className="text-[#A69697]">Date:</span> <span className="font-medium">{extractedData.date ? new Date(extractedData.date).toLocaleDateString() : 'N/A'}</span></div>
-                  <div className="flex justify-between border-b border-white/5 pb-1"><span className="text-[#A69697]">Amount H.T.</span> <span className="font-medium">{extractedData.totalHT?.toLocaleString('fr-FR')} TND</span></div>
-                  <div className="flex justify-between border-b border-white/5 pb-1"><span className="text-[#A69697]">Tax</span> <span className="font-medium">{extractedData.tvaAmount?.toLocaleString('fr-FR')} TND</span></div>
-                  <div className="flex justify-between pt-1 font-bold text-[14px]"><span>Total:</span> <span>{extractedData.totalAmount?.toLocaleString('fr-FR')} TND</span></div>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <div className="bg-[#4CAF50]/10 border border-[#4CAF50]/30 text-[#4CAF50] px-3 py-1.5 rounded-[8px] text-[12px] font-medium flex items-center gap-2 shadow-[inset_0_0_10px_rgba(76,175,80,0.1)]">
+                <div className="flex flex-col gap-2 mt-auto">
+                  <div className="bg-[#4CAF50]/10 border border-[#4CAF50]/30 text-[#4CAF50] px-3 py-1.5 rounded-[8px] text-[12px] font-medium flex items-center gap-2 shadow-[inset_0_0_10px_rgba(76,175,80,0.1)] w-full">
                     <CheckCircle2 size={14} /> Status: {invoice.status}
                   </div>
                 </div>
               </div>
 
-              {/* Vendor Information */}
-              <div className="bg-[rgba(255,255,255,0.05)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.1)] rounded-[16px] p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-[#FFFFFF] text-[14px] font-medium">Vendor Information</h3>
-                  <MoreHorizontal size={16} className="text-[#A69697]" />
-                </div>
-                <div className="flex gap-3 mb-4">
-                  <div className="text-[12px] text-[#A69697] flex-1 leading-relaxed">
-                    <span className="font-bold text-white text-[13px]">{extractedData.companyName || 'N/A'}</span><br/>
-                    Address: Non spécifiée<br/>
-                    Contact: N/A
-                  </div>
-                  <div className="bg-[rgba(255,255,255,0.05)] border border-white/10 p-3 rounded-[12px] flex flex-col justify-center items-center text-center">
-                    <span className="text-[10px] text-[#A69697] mb-1">Risk<br/>Assessment:</span>
-                    <span className="text-[#4CAF50] font-bold text-[16px]">Low</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* TTN Signature Status */}
-              <div className="bg-[#2D0A0A] backdrop-blur-[10px] border border-[#D98F8F]/10 rounded-[16px] p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-[#FFFFFF] text-[14px] font-medium">Digital Signature Status</h3>
-                  <MoreHorizontal size={16} className="text-[#A69697]" />
-                </div>
-                <div className="bg-[#3C0D0D]/50 border border-[#D98F8F]/10 rounded-[16px] py-3 pl-10 pr-4 text-[14px] text-[#FFFFFF] outline-none focus:border-[#D98F8F]/50 focus:bg-[#3C0D0D] transition-all placeholder:text-[#A69697]">
-                  <CheckCircle2 size={32} className="text-[#4CAF50]" />
-                  <p className="text-[#4CAF50] font-medium text-[13px]">Signature Valide</p>
-                </div>
-              </div>
             </div>
 
             {/* Products / Line Items Row */}
@@ -312,51 +283,59 @@ export default function InvoiceDetailsPage() {
 
             {/* Bottom Row: Workflow */}
             <div className="bg-[rgba(255,255,255,0.05)] backdrop-blur-[10px] border border-[rgba(255,255,255,0.1)] rounded-[16px] p-5">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-8">
                 <h3 className="text-[#FFFFFF] text-[14px] font-medium">Approval Workflow Timeline</h3>
                 <MoreHorizontal size={16} className="text-[#A69697]" />
               </div>
               
-              <div className="relative">
+              <div className="relative px-2">
                 {/* Connecting Line */}
-                <div className="absolute top-4 left-4 right-4 h-0.5 bg-white/10 z-0">
+                <div className="absolute top-4 left-12 right-12 h-0.5 bg-white/10 z-0">
                   {/* Dynamic Progress Line */}
                   <div className="h-full bg-[#4CAF50] transition-all" style={{ width: invoice.status === 'APPROVED' ? '100%' : invoice.status === 'SUBMITTED' || invoice.status === 'VERIFIED' ? '50%' : '0%' }}></div>
                 </div>
                 
                 <div className="flex justify-between relative z-10">
-                  <div className="flex flex-col items-center">
-                    <div className={`px-3 py-1.5 rounded-full text-[12px] font-medium mb-3 whitespace-nowrap ${
-                      invoice.status === 'FAILED' ? 'bg-[#D98F8F]/10 border border-[#D98F8F] text-[#D98F8F]' : 'bg-[#4CAF50]/10 border border-[#4CAF50] text-[#4CAF50]'
-                    }`}>1. Scan & Extract</div>
-                    <p className="text-[11px] text-[#A69697]">{invoice.status === 'FAILED' ? 'Failed' : 'Completed'}</p>
+                  
+                  {/* Step 1 */}
+                  <div className="flex flex-col items-center w-28">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold mb-3 z-10 bg-[#1A0A0B] ${
+                      invoice.status === 'FAILED' ? 'border-2 border-[#D98F8F] text-[#D98F8F]' : 'border-2 border-[#4CAF50] text-[#4CAF50]'
+                    }`}>1</div>
+                    <div className="text-[12px] font-medium text-center text-white mb-1 leading-tight">Scan & Extract</div>
+                    <p className="text-[11px] text-[#A69697] text-center">{invoice.status === 'FAILED' ? 'Failed' : 'Completed'}</p>
                   </div>
                   
-                  <div className="flex flex-col items-center">
-                    <div className={`px-3 py-1.5 rounded-full text-[12px] font-medium mb-3 whitespace-nowrap ${
-                      ['APPROVED', 'SUBMITTED', 'VERIFIED'].includes(invoice.status) ? 'bg-[#4CAF50]/10 border border-[#4CAF50] text-[#4CAF50]' :
-                      invoice.status === 'REJECTED' ? 'bg-[#D98F8F]/10 border border-[#D98F8F] text-[#D98F8F]' :
-                      'bg-[#FFC107]/10 border border-[#FFC107] text-[#FFC107]'
-                    }`}>2. Verification</div>
-                    <p className="text-[11px] text-[#A69697]">{
+                  {/* Step 2 */}
+                  <div className="flex flex-col items-center w-28">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold mb-3 z-10 bg-[#1A0A0B] ${
+                      ['APPROVED', 'SUBMITTED', 'VERIFIED'].includes(invoice.status) ? 'border-2 border-[#4CAF50] text-[#4CAF50]' :
+                      invoice.status === 'REJECTED' ? 'border-2 border-[#D98F8F] text-[#D98F8F]' :
+                      'border-2 border-[#FFC107] text-[#FFC107]'
+                    }`}>2</div>
+                    <div className="text-[12px] font-medium text-center text-white mb-1 leading-tight">Verification</div>
+                    <p className="text-[11px] text-[#A69697] text-center">{
                       ['APPROVED', 'SUBMITTED', 'VERIFIED'].includes(invoice.status) ? 'Completed' :
                       invoice.status === 'REJECTED' ? 'Failed' : 'In Progress'
                     }</p>
                   </div>
 
-                  <div className="flex flex-col items-center">
-                    <div className={`px-3 py-1.5 rounded-full text-[12px] font-medium mb-3 whitespace-nowrap ${
-                      invoice.status === 'APPROVED' ? 'bg-[#4CAF50]/10 border border-[#4CAF50] text-[#4CAF50]' :
-                      invoice.status === 'REJECTED' ? 'bg-[#D98F8F]/10 border border-[#D98F8F] text-[#D98F8F]' :
-                      invoice.status === 'SUBMITTED' ? 'bg-[#FFC107]/10 border border-[#FFC107] text-[#FFC107]' :
-                      'bg-white/5 border border-white/10 text-[#A69697]'
-                    }`}>3. Final Approval</div>
-                    <p className="text-[11px] text-[#A69697]">{
+                  {/* Step 3 */}
+                  <div className="flex flex-col items-center w-28">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold mb-3 z-10 bg-[#1A0A0B] ${
+                      invoice.status === 'APPROVED' ? 'border-2 border-[#4CAF50] text-[#4CAF50]' :
+                      invoice.status === 'REJECTED' ? 'border-2 border-[#D98F8F] text-[#D98F8F]' :
+                      invoice.status === 'SUBMITTED' ? 'border-2 border-[#FFC107] text-[#FFC107]' :
+                      'border-2 border-white/20 text-[#A69697]'
+                    }`}>3</div>
+                    <div className="text-[12px] font-medium text-center text-white mb-1 leading-tight">Final Approval</div>
+                    <p className="text-[11px] text-[#A69697] text-center">{
                       invoice.status === 'APPROVED' ? 'Approved' :
                       invoice.status === 'REJECTED' ? 'Rejected' :
                       invoice.status === 'SUBMITTED' ? 'Pending' : 'Pending'
                     }</p>
                   </div>
+
                 </div>
               </div>
             </div>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
-import { Users, Server, Activity, ShieldAlert, BarChart3, ArrowUpRight, FileText, Link as LinkIcon, Percent } from 'lucide-react';
+import { Users, Server, Activity, ShieldAlert, BarChart3, ArrowUpRight, FileText, Link as LinkIcon, Percent, Key } from 'lucide-react';
 import axios from 'axios';
 import { useLanguage } from '@/lib/i18n-context';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -57,12 +57,34 @@ export default function SuperAdminDashboard() {
     fetchStats();
   }, []);
 
-  const cardClasses = "bg-[#1A050A] border border-white/5 rounded-lg p-5";
+  const cardClasses = "bg-[#1A050A] border border-white/5 rounded-xl p-5 transition-all hover:bg-[#1f0a10]";
 
   const statCards = [
-    { title: 'TTN Linked Apps', value: stats.ttnLinked, icon: LinkIcon, color: 'text-[#60A5FA]', trend: 'Active integrations' },
-    { title: 'Invoices Extracted', value: stats.totalInvoices, icon: FileText, color: 'text-[#D98F8F]', trend: 'Total processed', href: '/super-admin/invoices' },
-    { title: 'TTN Adoption', value: stats.admins > 0 ? `${((stats.ttnLinked / stats.admins) * 100).toFixed(0)}%` : '0%', icon: Percent, color: 'text-[#4ADE80]', trend: 'Of total enterprises' },
+    { 
+      title: 'Applications connected with Aura', 
+      value: stats.admins, 
+      icon: Key, 
+      color: 'text-[#F59E0B]', 
+      trend: 'Revenue generating', 
+      description: 'API keys issued to enterprises for external integrations. This drives the core revenue stream.' 
+    },
+    { 
+      title: 'TTN Linked Apps', 
+      value: stats.ttnLinked, 
+      icon: LinkIcon, 
+      color: 'text-[#60A5FA]', 
+      trend: 'Active integrations',
+      description: 'External enterprise systems successfully linked into the TTN network.'
+    },
+    { 
+      title: 'Invoices Extracted', 
+      value: stats.totalInvoices, 
+      icon: FileText, 
+      color: 'text-[#D98F8F]', 
+      trend: 'Total processed', 
+      href: '/super-admin/invoices',
+      description: 'Total volume of invoices processed by the AI extraction engine.'
+    }
   ];
 
   return (
@@ -79,24 +101,40 @@ export default function SuperAdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         {statCards.map((stat, i) => {
           const CardContent = (
-            <>
-              <div className="flex justify-between items-start mb-4">
-                <p className="text-[12px] font-medium text-[#A69697] uppercase tracking-wider">{stat.title}</p>
-                <stat.icon size={16} className={stat.color} />
+            <div className="flex flex-col h-full">
+              <div className="flex justify-between items-start mb-3">
+                <p className="text-[12px] font-bold text-[#A69697] uppercase tracking-wider">{stat.title}</p>
+                <div className={`p-1.5 rounded-md bg-white/5 ${stat.color}`}>
+                  <stat.icon size={16} />
+                </div>
               </div>
-              <h3 className="text-[28px] font-semibold text-white mb-2 leading-none">
-                {isLoading ? <span className="animate-pulse bg-white/10 h-8 w-16 rounded block"></span> : stat.value}
-              </h3>
-              <div className="flex items-center text-[11px] font-medium text-[#A69697]">
-                <ArrowUpRight size={12} className="mr-1 text-[#D98F8F]" />
-                {stat.trend}
+              
+              <div className="flex-grow">
+                <h3 className="text-[28px] font-bold text-white mb-2 leading-none tracking-tight">
+                  {isLoading ? <span className="animate-pulse bg-white/10 h-8 w-20 rounded block"></span> : stat.value}
+                </h3>
+                <p className="text-[#A69697] text-[12px] leading-snug mb-4">
+                  {stat.description}
+                </p>
               </div>
-            </>
+
+              <div className="flex items-center justify-between pt-3 border-t border-white/5 mt-auto">
+                <div className="flex items-center text-[11px] font-medium text-[#A69697]">
+                  <ArrowUpRight size={12} className={`mr-1 ${stat.color}`} />
+                  {stat.trend}
+                </div>
+                {stat.href && (
+                  <span className="text-[11px] font-medium text-white opacity-50 hover:opacity-100 transition-opacity">
+                    View Details &rarr;
+                  </span>
+                )}
+              </div>
+            </div>
           );
 
           if (stat.href) {
             return (
-              <Link href={stat.href} key={i} className={`${cardClasses} block hover:border-[#D98F8F]/50 transition-colors cursor-pointer`}>
+              <Link href={stat.href} key={i} className={`${cardClasses} block border-white/5 hover:border-[#D98F8F]/50 cursor-pointer`}>
                 {CardContent}
               </Link>
             );
