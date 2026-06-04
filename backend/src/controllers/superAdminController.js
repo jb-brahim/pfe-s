@@ -52,6 +52,39 @@ exports.getSystemStats = async (req, res) => {
       users: d.count
     }));
 
+    // Calculate real trends & extra stats
+    const now = new Date();
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+    const adminsThisMonth = await User.countDocuments({ role: 'ADMIN', createdAt: { $gte: startOfThisMonth } });
+    const adminsLastMonth = await User.countDocuments({ role: 'ADMIN', createdAt: { $gte: startOfLastMonth, $lt: startOfThisMonth } });
+    const adminGrowth = adminsLastMonth === 0 ? (adminsThisMonth > 0 ? 100 : 0) : Math.round(((adminsThisMonth - adminsLastMonth) / adminsLastMonth) * 100);
+
+    const invoicesThisMonth = await Invoice.countDocuments({ createdAt: { $gte: startOfThisMonth }, status: { $nin: ['DRAFT', 'PROCESSING', 'FAILED'] } });
+    const invoicesLastMonth = await Invoice.countDocuments({ createdAt: { $gte: startOfLastMonth, $lt: startOfThisMonth }, status: { $nin: ['DRAFT', 'PROCESSING', 'FAILED'] } });
+    const invoiceGrowth = invoicesLastMonth === 0 ? (invoicesThisMonth > 0 ? 100 : 0) : Math.round(((invoicesThisMonth - invoicesLastMonth) / invoicesLastMonth) * 100);
+
+    const activeTokens = await User.countDocuments({ 'apiKeys.0': { $exists: true } });
+    const ttnPending = adminUsers - ttnLinked;
+
+    const invoicesWithScores = await Invoice.aggregate([
+      { $match: { 'confidenceScores.overall': { $exists: true } } },
+      { $group: { _id: null, avgScore: { $avg: '$confidenceScores.overall' } } }
+    ]);
+    const avgAccuracy = invoicesWithScores.length > 0 ? (invoicesWithScores[0].avgScore * 100).toFixed(1) + '%' : 'N/A';
+
+    // Calculate Subscriptions & MRR
+    const orgs = await User.find({ role: 'ADMIN' });
+    let totalMRR = 0;
+    const planCounts = { Premium: 0, Pro: 0, Basic: 0 };
+    orgs.forEach(org => {
+      const plan = org.billing?.plan || 'Basic';
+      if (plan.includes('Premium') || plan.includes('Primum') || plan.includes('Enterprise')) { totalMRR += 89; planCounts.Premium++; }
+      else if (plan.includes('Pro')) { totalMRR += 49; planCounts.Pro++; }
+      else { totalMRR += 19; planCounts.Basic++; }
+    });
+
     res.status(200).json({
       success: true,
       data: {
@@ -63,7 +96,16 @@ exports.getSystemStats = async (req, res) => {
         ttnLinked,
         totalInvoices,
         chartData,
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
+        advanced: {
+          adminGrowth,
+          invoiceGrowth,
+          activeTokens,
+          ttnPending,
+          avgAccuracy,
+          totalMRR,
+          planCounts
+        }
       }
     });
   } catch (error) {
@@ -289,13 +331,24 @@ exports.getBillingStats = async (req, res) => {
   try {
     const orgs = await User.find({ role: 'ADMIN' });
     let totalMRR = 0;
-    const planCounts = { Ultra: 0, Pro: 0, Basic: 0 };
+    const planCounts = { Premium: 0, Pro: 0, Basic: 0 };
+    const orgDetails = [];
 
     orgs.forEach(org => {
       const plan = org.billing?.plan || 'Basic';
-      if (plan.includes('Ultra') || plan.includes('Enterprise')) { totalMRR += 89; planCounts.Ultra++; }
-      else if (plan.includes('Pro')) { totalMRR += 49; planCounts.Pro++; }
-      else { totalMRR += 19; planCounts.Basic++; }
+      let planMRR = 0;
+      if (plan.includes('Premium') || plan.includes('Primum') || plan.includes('Enterprise')) { planMRR = 89; totalMRR += planMRR; planCounts.Premium++; }
+      else if (plan.includes('Pro')) { planMRR = 49; totalMRR += planMRR; planCounts.Pro++; }
+      else { planMRR = 19; totalMRR += planMRR; planCounts.Basic++; }
+
+      orgDetails.push({
+        id: org._id,
+        name: org.companyDetails?.name || org.name,
+        email: org.email,
+        plan: plan,
+        mrr: planMRR,
+        renewalDate: org.billing?.renewalDate || null
+      });
     });
 
     res.status(200).json({
@@ -304,7 +357,8 @@ exports.getBillingStats = async (req, res) => {
         mrr: totalMRR,
         activeSubscriptions: orgs.length,
         avgRevenuePerUser: orgs.length ? (totalMRR / orgs.length).toFixed(2) : 0,
-        distribution: planCounts
+        distribution: planCounts,
+        organizations: orgDetails
       }
     });
   } catch (error) {

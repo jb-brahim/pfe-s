@@ -14,6 +14,8 @@ export default function OrganizationsPage() {
   
   // Expanded rows
   const [expandedOrgs, setExpandedOrgs] = useState<Record<string, boolean>>({});
+  const [selectedOrgs, setSelectedOrgs] = useState<string[]>([]);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editOrgForm, setEditOrgForm] = useState({ 
@@ -189,7 +191,11 @@ export default function OrganizationsPage() {
   };
 
   const handleExportCSV = () => {
-    if (filteredOrgs.length === 0) return alert('No organizations to export');
+    const orgsToExport = selectedOrgs.length > 0 
+      ? filteredOrgs.filter(org => selectedOrgs.includes(org._id))
+      : filteredOrgs;
+
+    if (orgsToExport.length === 0) return alert('No organizations to export');
     
     // Professional header structure including employee details
     const headers = [
@@ -214,7 +220,7 @@ export default function OrganizationsPage() {
     const rows: string[] = [];
     rows.push(headers.join(','));
 
-    filteredOrgs.forEach(org => {
+    orgsToExport.forEach(org => {
       const name = org.companyDetails?.name || org.name || 'Unnamed Org';
       const email = org.email || 'N/A';
       const plan = org.billing?.plan || 'Ultra';
@@ -295,14 +301,9 @@ export default function OrganizationsPage() {
           </div>
           <div className="flex gap-2">
             <button 
-              onClick={async () => {
+              onClick={() => {
                 if (filteredOrgs.length === 0) return alert('No organizations to export');
-                try {
-                  await exportOrgsPDF(filteredOrgs);
-                } catch (error) {
-                  console.error('Error generating PDF:', error);
-                  alert('Failed to generate PDF');
-                }
+                setIsExportModalOpen(true);
               }}
               className="px-3 py-1.5 rounded-md text-[12px] font-medium transition-colors bg-[#D98F8F]/10 hover:bg-[#D98F8F]/20 border border-[#D98F8F]/30 text-[#D98F8F]"
             >
@@ -703,6 +704,86 @@ export default function OrganizationsPage() {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export Selection Modal */}
+      {isExportModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#1A050A] border border-white/10 rounded-xl w-full max-w-lg shadow-2xl p-6 flex flex-col max-h-[80vh]">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-[18px] font-semibold text-white">Export Organizations</h2>
+              <button onClick={() => setIsExportModalOpen(false)} className="text-[#A69697] hover:text-white">
+                <X size={18} />
+              </button>
+            </div>
+            
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-[13px] text-[#A69697]">Select organizations to export:</span>
+              <button 
+                onClick={() => {
+                  if (selectedOrgs.length === filteredOrgs.length) {
+                    setSelectedOrgs([]);
+                  } else {
+                    setSelectedOrgs(filteredOrgs.map(org => org._id));
+                  }
+                }}
+                className="text-[12px] text-[#D98F8F] hover:underline"
+              >
+                {selectedOrgs.length === filteredOrgs.length ? 'Deselect All' : 'Select All'}
+              </button>
+            </div>
+
+            <div className="overflow-y-auto border border-white/5 rounded-md mb-6 flex-1 bg-white/[0.02]">
+              {filteredOrgs.map(org => (
+                <div key={org._id} className="flex items-center gap-3 p-3 border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                  <input 
+                    type="checkbox"
+                    id={`export-${org._id}`}
+                    checked={selectedOrgs.includes(org._id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedOrgs([...selectedOrgs, org._id]);
+                      } else {
+                        setSelectedOrgs(selectedOrgs.filter(id => id !== org._id));
+                      }
+                    }}
+                    className="rounded border-white/10 bg-[#1E0A0B] text-[#D98F8F] cursor-pointer"
+                  />
+                  <label htmlFor={`export-${org._id}`} className="cursor-pointer flex-1 text-[13px] text-white">
+                    {org.companyDetails?.name || org.name || 'Unnamed Org'} <span className="text-[#A69697] text-[11px]">({org.email})</span>
+                  </label>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button 
+                onClick={() => setIsExportModalOpen(false)}
+                className="px-4 py-2 rounded-md text-[13px] font-medium text-[#A69697] hover:text-white transition-colors border border-white/10"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={async () => {
+                  const orgsToExport = selectedOrgs.length > 0 
+                    ? filteredOrgs.filter(org => selectedOrgs.includes(org._id))
+                    : filteredOrgs;
+                  
+                  try {
+                    await exportOrgsPDF(orgsToExport);
+                    setIsExportModalOpen(false);
+                  } catch (error) {
+                    console.error('Error generating PDF:', error);
+                    alert('Failed to generate PDF');
+                  }
+                }}
+                className="px-4 py-2 rounded-md text-[13px] font-medium bg-[#D98F8F] text-[#1E0A0B] hover:bg-[#D98F8F]/90 transition-colors"
+              >
+                Export PDF {selectedOrgs.length > 0 ? `(${selectedOrgs.length})` : '(All)'}
+              </button>
             </div>
           </div>
         </div>

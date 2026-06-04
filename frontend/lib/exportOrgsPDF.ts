@@ -52,10 +52,12 @@ export async function exportOrgsPDF(orgs: any[], filename?: string) {
   let startY = 45;
 
   orgs.forEach((org, index) => {
-    // Page break check
-    if (startY > doc.internal.pageSize.getHeight() - 70) {
+    // Each organization on a new page (except the first one)
+    if (index > 0) {
       doc.addPage();
       startY = 20;
+    } else {
+      startY = 45;
     }
 
     const name = org.companyDetails?.name || org.name || 'Inconnu';

@@ -20,6 +20,7 @@ const reportRoutes = require('./src/routes/reportRoutes');
 const superAdminRoutes = require('./src/routes/superAdminRoutes');
 const subscriptionRoutes = require('./src/routes/subscriptionRoutes');
 const externalRoutes = require('./src/routes/externalRoutes');
+const messageRoutes = require('./src/routes/messageRoutes');
 
 // Middlewares
 const { errorHandler } = require('./src/middlewares/errorMiddleware');
@@ -68,6 +69,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/super-admin', superAdminRoutes);
 app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/external', externalRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Error logic
 app.use((req, res, next) => {

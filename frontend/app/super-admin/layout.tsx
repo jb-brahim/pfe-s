@@ -3,10 +3,11 @@
 import { useAuth } from '@/lib/auth-context';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Loader, ShieldCheck, LogOut, Settings, Users, LayoutDashboard, Menu, X, ChevronDown, Building, CreditCard, Megaphone, Activity, Globe } from 'lucide-react';
+import { Loader, ShieldCheck, LogOut, Settings, Users, LayoutDashboard, Menu, X, ChevronDown, Building, CreditCard, Megaphone, Activity, Globe, Bell, Check } from 'lucide-react';
 import Link from 'next/link';
 import { Logo } from '@/components/logo';
 import { useLanguage } from '@/lib/i18n-context';
+import { notificationAPI } from '@/lib/api';
 
 export default function SuperAdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
@@ -16,6 +17,51 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showLanguages, setShowLanguages] = useState(false);
   const { language, setLanguage, t } = useLanguage();
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await notificationAPI.getAll();
+        setNotifications(response.data || []);
+      } catch (error) {
+        console.log('Failed to fetch notifications');
+      }
+    };
+
+    if (isAuthenticated && user?.role === 'SUPER_ADMIN') {
+      fetchNotifications();
+      const interval = setInterval(fetchNotifications, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, user]);
+
+  const unreadCount = notifications.filter((n) => !n.isRead && !n.read).length;
+
+  const handleMarkAsRead = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true, read: true } : n));
+    await notificationAPI.markAsRead(id);
+  };
+
+  const handleMarkAllRead = async () => {
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true, read: true })));
+    await notificationAPI.markAllAsRead();
+  };
+
+  const handleNotifClick = async (notif: any) => {
+    if (!notif.isRead && !notif.read) {
+      setNotifications(prev => prev.map(n => n._id === notif._id ? { ...n, isRead: true, read: true } : n));
+      await notificationAPI.markAsRead(notif._id);
+    }
+    setShowNotifications(false);
+    
+    // Super admin routing for notifs
+    if (notif.type === 'NEW_MESSAGE') {
+      router.push('/super-admin/messages');
+    }
+  };
 
   const handleLanguageChange = (l: any) => {
     setLanguage(l);
@@ -54,6 +100,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
     {
       category: t('superadmin.configuration'),
       items: [
+        { name: t('sidebar.messages') || 'Messages', href: '/super-admin/messages', icon: Megaphone },
         { name: t('superadmin.system_settings'), href: '/super-admin/settings', icon: Settings },
         { name: t('superadmin.announcements'), href: '/super-admin/announcements', icon: Megaphone },
       ]
@@ -168,6 +215,72 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
             {t('superadmin.system_admin')}
           </div>
           <div className="flex items-center gap-4">
+            {/* Notifications */}
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="w-9 h-9 flex items-center justify-center rounded-xl bg-transparent border border-transparent text-[#A69697] hover:text-[#FFFFFF] hover:bg-white/[0.04] transition-colors relative"
+              >
+                <Bell className="w-4 h-4" strokeWidth={1.5} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#B34E56] rounded-full" />
+                )}
+              </button>
+
+              {showNotifications && (
+                <div className="absolute top-12 right-0 w-80 bg-[#1A0A0B] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-white text-[14px]">Notifications</h3>
+                      {unreadCount > 0 && (
+                        <span className="text-[10px] bg-[#B34E56] text-white px-1.5 py-0.5 rounded-full font-bold">{unreadCount}</span>
+                      )}
+                    </div>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={handleMarkAllRead}
+                        className="text-[11px] text-[#D98F8F] hover:text-white transition-colors font-medium flex items-center gap-1"
+                      >
+                        <Check size={10} /> Mark all read
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="max-h-80 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <p className="text-[#A69697] text-[13px] px-4 py-6 text-center">No notifications yet</p>
+                    ) : (
+                      notifications.slice(0, 10).map((notif) => {
+                        const isUnread = !notif.isRead && !notif.read;
+                        return (
+                          <div
+                            key={notif._id}
+                            onClick={() => handleNotifClick(notif)}
+                            className={`group px-4 py-3 transition-colors cursor-pointer border-b border-white/[0.03] last:border-0 ${
+                              isUnread ? 'bg-white/[0.03] hover:bg-white/[0.06]' : 'hover:bg-white/[0.02]'
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
+                                notif.type === 'NEW_MESSAGE' ? 'bg-[#D98F8F]' : 'bg-white/40'
+                              } ${!isUnread ? 'opacity-30' : ''}`} />
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-[13px] leading-tight truncate ${
+                                  isUnread ? 'text-white font-medium' : 'text-[#A69697]'
+                                }`}>
+                                  {notif.title || notif.message}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Language Switcher */}
             <div className="relative">
               <button

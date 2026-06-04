@@ -13,7 +13,8 @@
     "settings": "Paramètres",
     "account_settings": "Paramètres du Compte",
     "logout": "Se Déconnecter",
-    "subscription": "Abonnement"
+    "subscription": "Abonnement",
+    "messages": "Messages"
   },
   "dashboard": {
     "total_revenue": "Revenu Total",
@@ -638,7 +639,15 @@
       "get_started": "Commencer",
       "start_trial": "Essai gratuit de 14 jours",
       "contact_sales": "Contacter les Ventes",
-      "most_popular": "LE PLUS POPULAIRE"
+      "most_popular": "LE PLUS POPULAIRE",
+      "premium": "Premium",
+      "f_basic_1": "Module d'extraction 200 scans/mois",
+      "f_basic_2": "Module d'intégration TTN",
+      "f_pro_1": "Module d'extraction 5000 scans/mois",
+      "f_pro_2": "Module d'intégration TTN disponible",
+      "f_pro_3": "Module de connexion avec votre application",
+      "f_premium_1": "Module d'extraction illimité",
+      "f_premium_4": "Module de comparaison des prix avec les concurrents"
     }
   }
 }

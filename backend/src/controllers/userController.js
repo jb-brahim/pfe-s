@@ -37,7 +37,7 @@ const getAllUsers = async (req, res, next) => {
 // ──────────────────────────────────────────────
 const createUser = async (req, res, next) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, level } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'name, email, and password are required' });
@@ -56,6 +56,7 @@ const createUser = async (req, res, next) => {
       email,
       passwordHash,
       role: role || 'ACCOUNTANT',
+      approvalLevel: level || 1,
       managedBy: req.user._id,
       isEmailVerified: true
     });

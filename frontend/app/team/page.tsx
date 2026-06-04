@@ -42,7 +42,7 @@ export default function TeamPage() {
   // Invite modal fields
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
-  const [inviteRole, setInviteRole] = useState('Analyst');
+  const [inviteRole, setInviteRole] = useState('Accountant L1');
 
   // Action menu tracking
   const [actionMenuUserId, setActionMenuUserId] = useState<string | null>(null);
@@ -103,11 +103,11 @@ export default function TeamPage() {
       generatedPassword += chars.charAt(Math.floor(Math.random() * chars.length));
     }
 
-    // Map UI role to backend DB role enum
     const apiRole: 'ADMIN' | 'ACCOUNTANT' = inviteRole === 'Admin' ? 'ADMIN' : 'ACCOUNTANT';
+    const apiLevel = inviteRole === 'Accountant L2' ? 2 : 1;
 
     try {
-      const res = await userAPI.invite(inviteEmail, apiRole, inviteName, generatedPassword);
+      const res = await userAPI.invite(inviteEmail, apiRole, inviteName, generatedPassword, apiLevel);
       if (res.success) {
         toast.success(t('team.toast.invite_sent').replace('{{name}}', inviteName));
 
@@ -116,7 +116,7 @@ export default function TeamPage() {
 
         setInviteEmail('');
         setInviteName('');
-        setInviteRole('Analyst');
+        setInviteRole('Accountant L1');
         loadEmployees();
       } else {
         toast.error(t('team.toast.invite_failed'));
@@ -259,8 +259,8 @@ export default function TeamPage() {
                       onChange={(e) => setInviteRole(e.target.value)}
                       className="w-full bg-[#1A0A0B] border border-white/10 rounded-[12px] py-2.5 px-4 text-[13px] text-white outline-none focus:border-[#D98F8F] transition-colors appearance-none cursor-pointer"
                     >
-                      <option className="bg-[#1A0A0B]">{t('team.analyst')}</option>
-                      <option className="bg-[#1A0A0B]">{t('team.admin')}</option>
+                      <option className="bg-[#1A0A0B]" value="Accountant L1">{t('team.accountant')} L1</option>
+                      <option className="bg-[#1A0A0B]" value="Accountant L2">{t('team.accountant')} L2</option>
                     </select>
                   </div>
                 </div>
@@ -330,7 +330,7 @@ export default function TeamPage() {
                             )}
                             <div>
                               <p className="font-bold text-[14px] text-white">{emp.name}</p>
-                              <p className="text-[#A69697] text-[12px]">{getTitle(emp.name, emp.role)}</p>
+                              <p className="text-[#A69697] text-[12px]">{emp.email}</p>
                             </div>
                           </div>
                         </td>
@@ -411,54 +411,63 @@ export default function TeamPage() {
               <Activity className="text-[#D98F8F]" size={16} /> {t('team.activity_logs')}
             </h3>
 
-            <div className="flex flex-col gap-5 max-h-[320px] overflow-y-auto pr-4 custom-scrollbar">
-              {activityLogs.length === 0 ? (
-                <p className="text-[#A69697] text-[13px] text-center py-4">{t('team.no_activity')}</p>
-              ) : (
-                activityLogs.map((log) => (
-                  <div key={log.id} className="flex gap-4 items-center justify-between p-4 rounded-[12px] bg-[#1A0A0B]/30 border border-white/5 hover:border-white/10 transition-colors">
-                    <div className="flex gap-4 items-center">
-                      {log.profileImage ? (
-                        <img src={log.profileImage} className="w-10 h-10 rounded-full border border-white/10 shrink-0 object-cover" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-[#A69697] shrink-0">
-                          <User size={18} />
-                        </div>
-                      )}
-                      <div>
-                        <p className="text-[14px] text-white leading-snug">
-                          <span className="font-bold">{log.user}</span> {log.action}
-                        </p>
-                        <p className="text-[12px] text-[#A69697] flex items-center gap-1 mt-1">
-                          <Clock size={12} /> {log.time}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-8 pr-4 hidden md:flex">
-                      <div className="flex flex-col items-end">
-                        <span className="text-[#A69697] text-[11px] uppercase tracking-wider font-bold">{t('team.doc_id')}</span>
-                        <span className="text-white text-[13px] font-mono mt-0.5">#{log.entityId.substring(0, 8).toUpperCase()}</span>
-                      </div>
-                      <div className="flex flex-col items-end w-24">
-                        <span className="text-[#A69697] text-[11px] uppercase tracking-wider font-bold">{t('team.type')}</span>
-                        <span className="text-[#D98F8F] text-[13px] font-medium mt-0.5">{log.entityType}</span>
-                      </div>
-                      <div className="w-24 flex justify-end">
-                        {log.rawAction === 'APPROVE' ? (
-                          <span className="bg-[#4CAF50]/10 text-[#4CAF50] border border-[#4CAF50]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">APPROVED</span>
-                        ) : log.rawAction === 'REJECT' ? (
-                          <span className="bg-[#D98F8F]/10 text-[#D98F8F] border border-[#D98F8F]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">REJECTED</span>
-                        ) : log.rawAction === 'VERIFICATION' ? (
-                          <span className="bg-[#FFC107]/10 text-[#FFC107] border border-[#FFC107]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">VERIFIED</span>
-                        ) : (
-                          <span className="bg-white/5 text-[#A69697] border border-white/10 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">{log.rawAction}</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
+            <div className="overflow-x-auto mt-4 max-h-[400px] custom-scrollbar">
+              <table className="w-full text-left border-collapse">
+                <thead className="sticky top-0 z-10 bg-[#1E0A0B] backdrop-blur-xl shadow-md">
+                  <tr className="text-[#A69697] text-[11px] uppercase tracking-wider">
+                    <th className="py-4 px-6 font-semibold border-b border-white/5">User</th>
+                    <th className="py-4 px-6 font-semibold border-b border-white/5">Document</th>
+                    <th className="py-4 px-6 font-semibold border-b border-white/5">Date & Time</th>
+                    <th className="py-4 px-6 font-semibold border-b border-white/5 text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="text-[#FFFFFF] text-[13px]">
+                  {activityLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-10 text-center text-[#A69697]">{t('team.no_activity')}</td>
+                    </tr>
+                  ) : (
+                    activityLogs.map((log) => (
+                      <tr key={log.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-3">
+                            {log.profileImage ? (
+                              <img src={log.profileImage} className="w-8 h-8 rounded-full border border-white/10 shrink-0 object-cover" />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-[#A69697] shrink-0">
+                                <User size={14} />
+                              </div>
+                            )}
+                            <span className="font-bold text-white">{log.user}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex flex-col">
+                            <span className="font-mono text-white">#{log.entityId.substring(0, 8).toUpperCase()}</span>
+                            <span className="text-[11px] text-[#D98F8F]">{log.entityType}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6 text-[#A69697] whitespace-nowrap">
+                          <div className="flex items-center gap-1.5">
+                            <Clock size={12} /> {log.time}
+                          </div>
+                        </td>
+                        <td className="py-4 px-6 text-right">
+                          {log.rawAction === 'APPROVE' ? (
+                            <span className="bg-[#4CAF50]/10 text-[#4CAF50] border border-[#4CAF50]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">APPROVED</span>
+                          ) : log.rawAction === 'REJECT' ? (
+                            <span className="bg-[#D98F8F]/10 text-[#D98F8F] border border-[#D98F8F]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">REJECTED</span>
+                          ) : log.rawAction === 'VERIFICATION' ? (
+                            <span className="bg-[#FFC107]/10 text-[#FFC107] border border-[#FFC107]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">VERIFIED</span>
+                          ) : (
+                            <span className="bg-white/5 text-[#A69697] border border-white/10 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">{log.rawAction}</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
 

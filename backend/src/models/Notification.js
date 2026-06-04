@@ -4,11 +4,12 @@ const notificationSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   type: {
     type: String,
-    enum: ['INVOICE_UPLOADED', 'INVOICE_PROCESSED', 'INVOICE_APPROVED', 'INVOICE_REJECTED', 'INVOICE_FAILED', 'NEEDS_REVIEW'],
+    enum: ['INVOICE_UPLOADED', 'INVOICE_PROCESSED', 'INVOICE_APPROVED', 'INVOICE_REJECTED', 'INVOICE_FAILED', 'NEEDS_REVIEW', 'NEW_MESSAGE'],
     required: true
   },
   message: { type: String, required: true },
   invoiceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Invoice' },
+  messageId: { type: mongoose.Schema.Types.ObjectId, ref: 'Message' },
   isRead: { type: Boolean, default: false }
 }, { timestamps: true });
 

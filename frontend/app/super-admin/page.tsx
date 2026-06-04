@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
-import { Users, Server, Activity, ShieldAlert, BarChart3, ArrowUpRight, FileText, Link as LinkIcon, Percent, Key } from 'lucide-react';
+import { Users, Server, Activity, ShieldAlert, BarChart3, ArrowUpRight, FileText, Link as LinkIcon, Percent, Key, CreditCard } from 'lucide-react';
 import axios from 'axios';
 import { useLanguage } from '@/lib/i18n-context';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -21,7 +21,16 @@ export default function SuperAdminDashboard() {
     securityAlerts: 0,
     ttnLinked: 0,
     totalInvoices: 0,
-    chartData: []
+    chartData: [],
+    advanced: {
+      adminGrowth: 0,
+      invoiceGrowth: 0,
+      activeTokens: 0,
+      ttnPending: 0,
+      avgAccuracy: 'N/A',
+      totalMRR: 0,
+      planCounts: { Premium: 0, Pro: 0, Basic: 0 }
+    }
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -43,7 +52,10 @@ export default function SuperAdminDashboard() {
             securityAlerts: res.data.data.securityAlerts || 0,
             ttnLinked: res.data.data.ttnLinked || 0,
             totalInvoices: res.data.data.totalInvoices || 0,
-            chartData: res.data.data.chartData || []
+            chartData: res.data.data.chartData || [],
+            advanced: res.data.data.advanced || {
+              adminGrowth: 0, invoiceGrowth: 0, activeTokens: 0, ttnPending: 0, avgAccuracy: 'N/A', totalMRR: 0, planCounts: { Premium: 0, Pro: 0, Basic: 0 }
+            }
           });
         }
       } catch (error) {
@@ -57,7 +69,7 @@ export default function SuperAdminDashboard() {
     fetchStats();
   }, []);
 
-  const cardClasses = "bg-[#1A050A] border border-white/5 rounded-xl p-5 transition-all hover:bg-[#1f0a10]";
+  const cardClasses = "glass-card p-8 transition-all hover:bg-white/[0.05] hover:border-white/[0.08] shadow-xl relative overflow-hidden group flex flex-col h-full min-h-[320px] cursor-pointer";
 
   const statCards = [
     {
@@ -65,82 +77,108 @@ export default function SuperAdminDashboard() {
       value: stats.admins,
       icon: Key,
       color: 'text-[#F59E0B]',
-      trend: 'Revenue generating',
-      description: 'API keys issued to enterprises for external integrations. This drives the core revenue stream.'
+      iconBg: 'bg-[#F59E0B]/10',
+      trend: stats.advanced.adminGrowth > 0 ? `+${stats.advanced.adminGrowth}% this month` : `${stats.advanced.adminGrowth}% this month`,
+      trendUp: stats.advanced.adminGrowth >= 0,
+      href: '/super-admin/organizations',
+      description: 'API keys issued to enterprises for external system integrations. This represents the core usage of our developer API and drives B2B revenue streams.'
     },
     {
-      title: 'Applications connectées au TTNadd',
+      title: 'Applications connectées au TTN',
       value: stats.ttnLinked,
       icon: LinkIcon,
       color: 'text-[#60A5FA]',
-      trend: 'Active integrations',
-      description: 'External enterprise systems successfully linked into the TTN network.'
+      iconBg: 'bg-[#60A5FA]/10',
+      trend: stats.advanced.ttnPending === 0 ? 'All Linked' : `${stats.advanced.ttnPending} Pending`,
+      trendUp: stats.advanced.ttnPending === 0,
+      description: 'Enterprise ERP systems successfully linked to the Tunisian TradeNet (TTN) network for automated e-invoicing and tax compliance.'
     },
     {
-      title: 'Invoices Extracted',
+      title: 'Invoices Extracted via AI',
       value: stats.totalInvoices,
       icon: FileText,
       color: 'text-[#D98F8F]',
-      trend: 'Total processed',
+      iconBg: 'bg-[#D98F8F]/10',
+      trend: stats.advanced.invoiceGrowth > 0 ? `+${stats.advanced.invoiceGrowth}% this month` : `${stats.advanced.invoiceGrowth}% this month`,
+      trendUp: stats.advanced.invoiceGrowth >= 0,
       href: '/super-admin/invoices',
-      description: 'Total volume of invoices processed by the AI extraction engine.'
+      description: 'Total volume of invoices processed automatically by the Aura proprietary AI extraction engine across all tenant organizations.'
+    },
+    {
+      title: 'Monthly Recurring Revenue',
+      value: `${stats.advanced.totalMRR} TND`,
+      icon: CreditCard,
+      color: 'text-[#10B981]',
+      iconBg: 'bg-[#10B981]/10',
+      trend: `${stats.advanced.planCounts?.Premium || 0} Premium`,
+      trendUp: true,
+      href: '/super-admin/billing',
+      description: 'Calculated Monthly Recurring Revenue (MRR) driven by active tenant subscriptions across our Basic, Pro, and Premium tiers.'
     }
   ];
 
   return (
-    <div className="animate-in fade-in duration-500">
+    <div className="animate-in fade-in duration-500 pb-20">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-[24px] font-semibold text-white tracking-tight">{t('superadmin.dashboard.system_overview')}</h1>
-        <p className="text-[13px] text-[#A69697] mt-1">
-          {t('superadmin.dashboard.system_overview_desc')}
+      <div className="mb-10">
+        <h1 className="text-[32px] font-bold text-white tracking-tight mb-2">System Overview</h1>
+        <p className="text-[15px] text-[#A69697] max-w-2xl leading-relaxed">
+          Global platform metrics and infrastructure status. Monitor global API consumption, external integrations, and AI extraction volumes in real-time.
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-12">
         {statCards.map((stat, i) => {
           const CardContent = (
-            <div className="flex flex-col h-full">
-              <div className="flex justify-between items-start mb-3">
-                <p className="text-[12px] font-bold text-[#A69697] uppercase tracking-wider">{stat.title}</p>
-                <div className={`p-1.5 rounded-md bg-white/5 ${stat.color}`}>
-                  <stat.icon size={16} />
-                </div>
-              </div>
-
-              <div className="flex-grow">
-                <h3 className="text-[28px] font-bold text-white mb-2 leading-none tracking-tight">
-                  {isLoading ? <span className="animate-pulse bg-white/10 h-8 w-20 rounded block"></span> : stat.value}
-                </h3>
-                <p className="text-[#A69697] text-[12px] leading-snug mb-4">
-                  {stat.description}
+            <>
+              {/* Background Glow */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none transform translate-x-10 -translate-y-10"></div>
+              
+              <div className="flex justify-between items-start mb-6 relative z-10">
+                <p className="text-[11px] font-bold text-[#A69697] uppercase tracking-widest max-w-[140px] leading-relaxed">
+                  {stat.title}
                 </p>
+                <div className={`p-3 rounded-xl ${stat.iconBg} border border-white/5 shadow-inner transition-transform group-hover:scale-110`}>
+                  <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                </div>
               </div>
 
-              <div className="flex items-center justify-between pt-3 border-t border-white/5 mt-auto">
-                <div className="flex items-center text-[11px] font-medium text-[#A69697]">
-                  <ArrowUpRight size={12} className={`mr-1 ${stat.color}`} />
-                  {stat.trend}
+              <div className="flex-grow relative z-10 flex flex-col justify-center mb-6">
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-[42px] font-extrabold text-white leading-none tracking-tighter">
+                    {isLoading ? <span className="animate-pulse bg-white/10 h-10 w-24 rounded-lg block"></span> : stat.value}
+                  </h3>
+                  {!isLoading && stat.trend && (
+                    <div className="flex items-center mt-1">
+                      <span className={`inline-flex items-center text-[12px] font-bold px-2.5 py-1 rounded-md border ${stat.trendUp ? 'bg-[#4CAF50]/10 text-[#4CAF50] border-[#4CAF50]/20' : 'bg-[#F44336]/10 text-[#F44336] border-[#F44336]/20'}`}>
+                        {stat.trend}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                {stat.href && (
-                  <span className="text-[11px] font-medium text-white opacity-50 hover:opacity-100 transition-opacity">
-                    View Details &rarr;
-                  </span>
-                )}
               </div>
-            </div>
+              
+              <p className="text-[#A69697] text-[13px] leading-relaxed mb-6 relative z-10 line-clamp-3">
+                {stat.description}
+              </p>
+
+              {/* Footer Link if available */}
+              {stat.href && (
+                <div className="absolute top-8 right-8 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+                  <div className="bg-white/10 p-2 rounded-full border border-white/20">
+                    <ArrowUpRight size={16} className="text-white" />
+                  </div>
+                </div>
+              )}
+            </>
           );
 
-          if (stat.href) {
-            return (
-              <Link href={stat.href} key={i} className={`${cardClasses} block border-white/5 hover:border-[#D98F8F]/50 cursor-pointer`}>
-                {CardContent}
-              </Link>
-            );
-          }
-
-          return (
+          return stat.href ? (
+            <Link href={stat.href} key={i} className={cardClasses}>
+              {CardContent}
+            </Link>
+          ) : (
             <div key={i} className={cardClasses}>
               {CardContent}
             </div>

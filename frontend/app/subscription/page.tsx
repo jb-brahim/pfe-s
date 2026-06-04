@@ -62,17 +62,29 @@ export default function SubscriptionPage() {
                 { 
                   name: 'Basic',  
                   price: '19 TND', 
-                  features: ["Modul d'extration 200 scan/mon", "Modul d'intégration ttn"] 
+                  features: [
+                    t('landing.pricing_cards.f_basic_1') || "Module d'extraction 200 scans/mois", 
+                    t('landing.pricing_cards.f_basic_2') || "Module d'intégration TTN"
+                  ] 
                 },
                 { 
                   name: 'Pro',    
                   price: '49 TND', 
-                  features: ["Module d'extraction 5000 scan/mon", "Modul intégration. Ttn disponible", "Modul de connexion avec ton app"] 
+                  features: [
+                    t('landing.pricing_cards.f_pro_1') || "Module d'extraction 5000 scans/mois", 
+                    t('landing.pricing_cards.f_pro_2') || "Module d'intégration TTN disponible", 
+                    t('landing.pricing_cards.f_pro_3') || "Module de connexion avec votre application"
+                  ] 
                 },
                 { 
-                  name: 'Primum',  
+                  name: t('landing.pricing_cards.premium') || 'Premium',
                   price: '89 TND', 
-                  features: ["Module d'extraction illimité", "Modul intégration. Ttn disponible", "Modul de connexion avec ton app", "Modul de comparaison des pris avec les concurrents"] 
+                  features: [
+                    t('landing.pricing_cards.f_premium_1') || "Module d'extraction illimité", 
+                    t('landing.pricing_cards.f_pro_2') || "Module d'intégration TTN disponible", 
+                    t('landing.pricing_cards.f_pro_3') || "Module de connexion avec votre application", 
+                    t('landing.pricing_cards.f_premium_4') || "Module de comparaison des prix avec les concurrents"
+                  ] 
                 },
               ].map(({ name, price, features }) => (
                 <div key={name} className={`border ${user?.billing?.plan === name ? 'border-[#D98F8F] bg-[#D98F8F]/5' : 'border-white/10 bg-white/5'} rounded-[24px] p-6 lg:p-8 flex flex-col hover:border-white/20 transition-colors`}>

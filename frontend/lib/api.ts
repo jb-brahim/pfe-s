@@ -467,9 +467,9 @@ export const userAPI = {
     }
   },
 
-  invite: async (email: string, role: string, fullName: string, password?: string) => {
+  invite: async (email: string, role: string, fullName: string, password?: string, level?: number) => {
     const payloadPassword = password || 'TempPassword123!';
-    const response = await apiClient.post('users', { name: fullName, email, password: payloadPassword, role });
+    const response = await apiClient.post('users', { name: fullName, email, password: payloadPassword, role, level });
     return { success: true, data: response.data.data || response.data };
   },
 
@@ -577,6 +577,45 @@ export const subscriptionAPI = {
   checkout: async (plan: string) => {
     const response = await apiClient.post('subscription/checkout', { plan });
     return response.data;
+  }
+};
+
+export const messageAPI = {
+  sendMessage: async (receiverIds: string[], subject: string, body: string) => {
+    const response = await apiClient.post('messages/send', { receiverIds, subject, body });
+    return response.data;
+  },
+  getInbox: async () => {
+    try {
+      const response = await apiClient.get('messages/inbox');
+      return response.data;
+    } catch (error) {
+      return { data: [] };
+    }
+  },
+  getOutbox: async () => {
+    try {
+      const response = await apiClient.get('messages/outbox');
+      return response.data;
+    } catch (error) {
+      return { data: [] };
+    }
+  },
+  getContacts: async () => {
+    try {
+      const response = await apiClient.get('messages/contacts');
+      return response.data;
+    } catch (error) {
+      return { data: [] };
+    }
+  },
+  markAsRead: async (id: string) => {
+    try {
+      const response = await apiClient.put(`messages/${id}/read`);
+      return response.data;
+    } catch (error) {
+      return null;
+    }
   }
 };
 
