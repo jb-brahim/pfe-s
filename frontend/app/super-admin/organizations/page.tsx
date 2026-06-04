@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Building, Loader, Trash2, Edit2, X, ChevronDown, ChevronRight, Users, MoreVertical, Key, Copy, CheckCircle2, Calendar, Shield, Zap } from 'lucide-react';
 import axios from 'axios';
 import { useLanguage } from '@/lib/i18n-context';
+import { exportOrgsPDF } from '@/lib/exportOrgsPDF';
 
 export default function OrganizationsPage() {
   const [organizations, setOrganizations] = useState<any[]>([]);
@@ -294,10 +295,24 @@ export default function OrganizationsPage() {
           </div>
           <div className="flex gap-2">
             <button 
+              onClick={async () => {
+                if (filteredOrgs.length === 0) return alert('No organizations to export');
+                try {
+                  await exportOrgsPDF(filteredOrgs);
+                } catch (error) {
+                  console.error('Error generating PDF:', error);
+                  alert('Failed to generate PDF');
+                }
+              }}
+              className="px-3 py-1.5 rounded-md text-[12px] font-medium transition-colors bg-[#D98F8F]/10 hover:bg-[#D98F8F]/20 border border-[#D98F8F]/30 text-[#D98F8F]"
+            >
+              Export PDF
+            </button>
+            <button 
               onClick={handleExportCSV}
               className="px-3 py-1.5 rounded-md text-[12px] font-medium transition-colors bg-white/5 hover:bg-white/10 border border-white/5 text-[#A69697] hover:text-white"
             >
-              {t('organizations.export')}
+              Export CSV
             </button>
           </div>
         </div>

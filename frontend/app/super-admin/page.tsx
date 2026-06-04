@@ -60,28 +60,28 @@ export default function SuperAdminDashboard() {
   const cardClasses = "bg-[#1A050A] border border-white/5 rounded-xl p-5 transition-all hover:bg-[#1f0a10]";
 
   const statCards = [
-    { 
-      title: 'Applications connected with Aura', 
-      value: stats.admins, 
-      icon: Key, 
-      color: 'text-[#F59E0B]', 
-      trend: 'Revenue generating', 
-      description: 'API keys issued to enterprises for external integrations. This drives the core revenue stream.' 
+    {
+      title: 'Applications connected with Aura',
+      value: stats.admins,
+      icon: Key,
+      color: 'text-[#F59E0B]',
+      trend: 'Revenue generating',
+      description: 'API keys issued to enterprises for external integrations. This drives the core revenue stream.'
     },
-    { 
-      title: 'TTN Linked Apps', 
-      value: stats.ttnLinked, 
-      icon: LinkIcon, 
-      color: 'text-[#60A5FA]', 
+    {
+      title: 'Applications connectées au TTNadd',
+      value: stats.ttnLinked,
+      icon: LinkIcon,
+      color: 'text-[#60A5FA]',
       trend: 'Active integrations',
       description: 'External enterprise systems successfully linked into the TTN network.'
     },
-    { 
-      title: 'Invoices Extracted', 
-      value: stats.totalInvoices, 
-      icon: FileText, 
-      color: 'text-[#D98F8F]', 
-      trend: 'Total processed', 
+    {
+      title: 'Invoices Extracted',
+      value: stats.totalInvoices,
+      icon: FileText,
+      color: 'text-[#D98F8F]',
+      trend: 'Total processed',
       href: '/super-admin/invoices',
       description: 'Total volume of invoices processed by the AI extraction engine.'
     }
@@ -108,7 +108,7 @@ export default function SuperAdminDashboard() {
                   <stat.icon size={16} />
                 </div>
               </div>
-              
+
               <div className="flex-grow">
                 <h3 className="text-[28px] font-bold text-white mb-2 leading-none tracking-tight">
                   {isLoading ? <span className="animate-pulse bg-white/10 h-8 w-20 rounded block"></span> : stat.value}

@@ -1,31 +1,42 @@
 'use client';
 
-import { Activity, ShieldAlert, KeyRound, UserMinus, Search, Loader, Users, LogIn } from 'lucide-react';
+import { Activity, ShieldAlert, KeyRound, UserMinus, Search, Loader, Users, LogIn, Building, Shield, FileText, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 export default function AuditLogsPage() {
   const [logs, setLogs] = useState<any[]>([]);
+  const [companies, setCompanies] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'ALL' | 'SUPER_ADMIN' | 'ORGS'>('ALL');
 
   useEffect(() => {
-    const fetchLogs = async () => {
+    const fetchLogsAndCompanies = async () => {
       try {
         const token = localStorage.getItem('authToken');
-        const res = await axios.get(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/super-admin/audit-logs`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.data && res.data.success) {
-          setLogs(res.data.data);
+        const [logsRes, compRes] = await Promise.all([
+          axios.get(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/super-admin/audit-logs`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/super-admin/companies`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        ]);
+
+        if (logsRes.data && logsRes.data.success) {
+          setLogs(logsRes.data.data);
+        }
+        if (compRes.data && compRes.data.success) {
+          setCompanies(compRes.data.data);
         }
       } catch (error) {
-        console.error('Error fetching audit logs:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchLogs();
+    fetchLogsAndCompanies();
   }, []);
 
   const getLogIcon = (action: string) => {
@@ -37,9 +48,123 @@ export default function AuditLogsPage() {
     return { icon: Activity, color: 'text-gray-400' };
   };
 
+  const getCompanyName = (user: any) => {
+    if (!user) return 'System';
+    if (user.role === 'SUPER_ADMIN') return 'Super Admin';
+    if (user.role === 'ADMIN') return user.companyDetails?.name || user.name || 'Organization';
+    
+    // If accountant, find their company via the companies array
+    const company = companies.find(c => 
+      c._id === user.managedBy || c.employees?.some((e: any) => e._id === user._id)
+    );
+    if (company) return company.companyDetails?.name || company.name || 'Organization';
+    
+    return 'Unknown Organization';
+  };
+
+  const getEntityBadge = (type: string, id: string) => {
+    let icon = Activity;
+    let bg = 'bg-gray-500/10';
+    let text = 'text-gray-400';
+    let label = type || 'Unknown';
+
+    if (label.includes('User')) {
+      icon = Users;
+      bg = 'bg-blue-500/10 border border-blue-500/20';
+      text = 'text-blue-400';
+    } else if (label.includes('Invoice')) {
+      icon = FileText;
+      bg = 'bg-emerald-500/10 border border-emerald-500/20';
+      text = 'text-emerald-400';
+    } else if (label.includes('Setting') || label.includes('System')) {
+      icon = Settings;
+      bg = 'bg-purple-500/10 border border-purple-500/20';
+      text = 'text-purple-400';
+    }
+
+    const Icon = icon;
+
+    return (
+      <div className="flex items-center gap-2.5">
+        <div className={`px-2 py-0.5 rounded flex items-center gap-1.5 ${bg} ${text}`}>
+          <Icon size={12} />
+          <span className="text-[10px] font-bold uppercase tracking-wider">{label}</span>
+        </div>
+        {id && <span className="text-[11px] text-[#A69697] font-mono">#{id.substring(0,6)}</span>}
+      </div>
+    );
+  };
+
   const filteredLogs = logs.filter(log => 
     (log.action || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (log.entityType || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (log.entityType || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (log.userId?.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  let displayedLogs = filteredLogs;
+  if (activeTab === 'SUPER_ADMIN') {
+    displayedLogs = filteredLogs.filter(log => log.userId?.role === 'SUPER_ADMIN');
+  } else if (activeTab === 'ORGS') {
+    displayedLogs = filteredLogs.filter(log => log.userId?.role !== 'SUPER_ADMIN' && log.userId !== null);
+  }
+
+  // If in ORGS tab, group logs by organization
+  const groupedByOrg: Record<string, any[]> = {};
+  if (activeTab === 'ORGS') {
+    displayedLogs.forEach(log => {
+      const orgName = getCompanyName(log.userId);
+      if (!groupedByOrg[orgName]) groupedByOrg[orgName] = [];
+      groupedByOrg[orgName].push(log);
+    });
+  }
+
+  const renderLogTable = (logsToRender: any[]) => (
+    <table className="w-full text-left border-collapse">
+      <thead>
+        <tr className="border-b border-white/5 bg-white/[0.02]">
+          <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">Action</th>
+          <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">Target Entity</th>
+          <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">Actor</th>
+          <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">Timestamp</th>
+        </tr>
+      </thead>
+      <tbody>
+        {logsToRender.length === 0 ? (
+          <tr>
+            <td colSpan={4} className="py-12 text-center text-[#A69697] text-[12px]">
+              No audit logs match your search.
+            </td>
+          </tr>
+        ) : (
+          logsToRender.map((log) => {
+            const { icon: Icon, color } = getLogIcon(log.action);
+            const orgName = getCompanyName(log.userId);
+            return (
+              <tr key={log._id} className="border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors">
+                <td className="py-3 px-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-7 h-7 rounded bg-[#1E0A0B] border border-white/5 flex items-center justify-center">
+                      <Icon size={12} className={color} />
+                    </div>
+                    <span className="text-[13px] font-medium text-white">{log.action}</span>
+                  </div>
+                </td>
+                <td className="py-3 px-5">{getEntityBadge(log.entityType, log.entityId)}</td>
+                <td className="py-3 px-5">
+                  <div className="flex flex-col">
+                    <span className="text-[13px] text-white">{log.userId?.email || 'System'}</span>
+                    {activeTab === 'ALL' && log.userId?.role !== 'SUPER_ADMIN' && log.userId && (
+                      <span className="text-[10px] text-[#A69697]">{orgName}</span>
+                    )}
+                  </div>
+                </td>
+                <td className="py-3 px-5 text-[12px] text-[#A69697]">{new Date(log.timestamp).toLocaleString()}</td>
+              </tr>
+            );
+          })
+        )}
+      </tbody>
+    </table>
   );
 
   return (
@@ -52,7 +177,37 @@ export default function AuditLogsPage() {
         </p>
       </div>
 
-      <div className="bg-[#1A050A] border border-white/5 rounded-lg flex-1 flex flex-col">
+      {/* Tabs Navigation */}
+      <div className="flex gap-6 mb-6 border-b border-white/10">
+        <button
+          onClick={() => setActiveTab('ALL')}
+          className={`pb-3 text-[13px] font-medium transition-all ${
+            activeTab === 'ALL' ? 'text-white border-b-2 border-[#D98F8F]' : 'text-[#A69697] hover:text-white border-b-2 border-transparent'
+          }`}
+        >
+          All Activity
+        </button>
+        <button
+          onClick={() => setActiveTab('SUPER_ADMIN')}
+          className={`pb-3 text-[13px] font-medium transition-all flex items-center gap-2 ${
+            activeTab === 'SUPER_ADMIN' ? 'text-white border-b-2 border-[#D98F8F]' : 'text-[#A69697] hover:text-white border-b-2 border-transparent'
+          }`}
+        >
+          <Shield size={14} className={activeTab === 'SUPER_ADMIN' ? 'text-[#D98F8F]' : ''} />
+          Super Admin
+        </button>
+        <button
+          onClick={() => setActiveTab('ORGS')}
+          className={`pb-3 text-[13px] font-medium transition-all flex items-center gap-2 ${
+            activeTab === 'ORGS' ? 'text-white border-b-2 border-[#D98F8F]' : 'text-[#A69697] hover:text-white border-b-2 border-transparent'
+          }`}
+        >
+          <Building size={14} className={activeTab === 'ORGS' ? 'text-[#D98F8F]' : ''} />
+          Organizations
+        </button>
+      </div>
+
+      <div className="bg-[#1A050A] border border-white/5 rounded-lg flex-1 flex flex-col overflow-hidden">
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-4 border-b border-white/5">
           <div className="relative w-full max-w-sm">
@@ -61,7 +216,7 @@ export default function AuditLogsPage() {
               type="text" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search logs by actor, IP, or action..." 
+              placeholder="Search logs by actor, email, or action..." 
               className="w-full pl-9 pr-4 py-2 rounded-md border outline-none text-[12px] transition-colors bg-[#1E0A0B] border-white/5 text-white focus:border-[#D98F8F]/50 placeholder:text-[#A69697]"
             />
           </div>
@@ -72,52 +227,34 @@ export default function AuditLogsPage() {
           </div>
         </div>
 
-        {/* Log Table */}
-        <div className="overflow-x-auto flex-1">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-white/5 bg-white/[0.02]">
-                <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">Action</th>
-                <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">Target Entity</th>
-                <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">Actor</th>
-                <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">Timestamp</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={4} className="py-12 text-center">
-                    <Loader size={20} className="animate-spin text-[#A69697] mx-auto" />
-                  </td>
-                </tr>
-              ) : filteredLogs.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="py-12 text-center text-[#A69697] text-[12px]">
-                    No audit logs match your search.
-                  </td>
-                </tr>
-              ) : (
-                filteredLogs.map((log) => {
-                  const { icon: Icon, color } = getLogIcon(log.action);
-                  return (
-                    <tr key={log._id} className="border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors">
-                      <td className="py-3 px-5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-7 h-7 rounded bg-[#1E0A0B] border border-white/5 flex items-center justify-center">
-                            <Icon size={12} className={color} />
-                          </div>
-                          <span className="text-[13px] font-medium text-white">{log.action}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-5 text-[13px] text-[#A69697]">{log.entityType} ({log.entityId?.substring(0,6)})</td>
-                      <td className="py-3 px-5 text-[13px] text-white">{log.userId?.email || 'System'}</td>
-                      <td className="py-3 px-5 text-[12px] text-[#A69697]">{new Date(log.timestamp).toLocaleString()}</td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+        {/* Log Table Container */}
+        <div className="overflow-y-auto flex-1 h-[500px]">
+          {isLoading ? (
+            <div className="py-12 flex justify-center">
+              <Loader size={20} className="animate-spin text-[#A69697]" />
+            </div>
+          ) : activeTab === 'ORGS' ? (
+            // Grouped by Organizations View
+            Object.keys(groupedByOrg).length === 0 ? (
+              <div className="py-12 text-center text-[#A69697] text-[12px]">No organization logs found.</div>
+            ) : (
+              Object.keys(groupedByOrg).sort().map(orgName => (
+                <div key={orgName} className="mb-6">
+                  <div className="bg-[#1E0A0B] px-5 py-3 border-b border-y border-white/5 sticky top-0 z-10 flex items-center gap-2">
+                    <Building size={14} className="text-[#A69697]" />
+                    <h3 className="text-[13px] font-semibold text-white">{orgName}</h3>
+                    <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full ml-2">
+                      {groupedByOrg[orgName].length} events
+                    </span>
+                  </div>
+                  {renderLogTable(groupedByOrg[orgName])}
+                </div>
+              ))
+            )
+          ) : (
+            // Default View
+            renderLogTable(displayedLogs)
+          )}
         </div>
       </div>
     </div>

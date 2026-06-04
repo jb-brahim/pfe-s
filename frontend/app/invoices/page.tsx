@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { invoiceAPI } from '@/lib/api';
-import { Upload, Loader, Eye, Edit, Trash2, Search, FileText, Zap, Sparkles, CheckCircle2, ChevronRight, AlertTriangle, Download } from 'lucide-react';
+import { Upload, Loader, Eye, Edit, Trash2, Search, FileText, Zap, Sparkles, CheckCircle2, ChevronRight, AlertTriangle, Download, FileDown } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/i18n-context';
+import { exportInvoicesPDF } from '@/lib/exportPDF';
 
 type InvoiceStatus = 'ALL' | 'DRAFT' | 'EXTRACTED' | 'VERIFIED' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'FAILED';
 
@@ -85,7 +86,8 @@ export default function InvoicesPage() {
             taxAmount: newInvoice.extractedData?.tvaAmount || 0,
             confidence: newInvoice.extractedData?.confidenceScores?.overall || 0.92,
             createdAt: newInvoice.createdAt || new Date().toISOString(),
-            extractedData: newInvoice.extractedData || {}
+            extractedData: newInvoice.extractedData || {},
+            userId: newInvoice.userId || { name: 'You' }
           };
           setInvoices((prev) => [mappedInvoice, ...prev]);
         } else {
@@ -98,7 +100,8 @@ export default function InvoicesPage() {
             taxAmount: 0,
             confidence: 0.92,
             createdAt: new Date().toISOString(),
-            extractedData: {}
+            extractedData: {},
+            userId: { name: 'You' }
           }, ...prev]);
         }
       } catch (error: any) {
@@ -227,6 +230,17 @@ export default function InvoicesPage() {
     toast.success(t('invoices.export_success'));
   };
 
+  const handleExportPDF = async () => {
+    if (invoices.length === 0) return toast.error(t('invoices.export_empty'));
+    try {
+      await exportInvoicesPDF(filteredInvoices.length > 0 ? filteredInvoices : invoices);
+      toast.success('PDF exporté avec succès !');
+    } catch (err) {
+      console.error(err);
+      toast.error('Échec de la génération du PDF. Veuillez réessayer.');
+    }
+  };
+
   const getStatusStyle = (status: string) => {
     switch (status) {
       case 'APPROVED':
@@ -260,12 +274,20 @@ export default function InvoicesPage() {
             <h1 className="text-[28px] font-bold text-white tracking-tight">{t('invoices.title')}</h1>
             <p className="text-[#A69697] text-[14px]">{t('invoices.subtitle')}</p>
           </div>
-          <button 
-            onClick={handleExportCSV}
-            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 rounded-[8px] text-[13px] font-medium transition-colors text-white"
-          >
-            <Download size={16} /> {t('invoices.export_csv')}
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={handleExportCSV}
+              className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 rounded-[8px] text-[13px] font-medium transition-colors text-white"
+            >
+              <Download size={16} /> {t('invoices.export_csv')}
+            </button>
+            <button 
+              onClick={handleExportPDF}
+              className="flex items-center gap-2 px-4 py-2 bg-[#8E1B3A]/20 border border-[#8E1B3A]/40 hover:bg-[#8E1B3A]/30 rounded-[8px] text-[13px] font-medium transition-colors text-[#D98F8F]"
+            >
+              <FileDown size={16} /> Export PDF
+            </button>
+          </div>
         </div>
 
         {/* Action Cards */}
@@ -410,8 +432,9 @@ export default function InvoicesPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-[#A69697]">
-                          {new Date(invoice.createdAt || new Date()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        <td className="px-6 py-4">
+                          <p className="text-white text-[13px]">{new Date(invoice.createdAt || new Date()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                          <p className="text-[#A69697] text-[11px] mt-0.5">By: {invoice.userId?.name || invoice.userId?.email || 'System'}</p>
                         </td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase border ${style.bg} ${style.text} ${style.border}`}>
@@ -441,7 +464,7 @@ export default function InvoicesPage() {
                           <p className="text-[#A69697] text-[11px] mt-0.5">{t('invoices.tax')}: {invoice.taxAmount?.toLocaleString() || '0'} TND</p>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center justify-center gap-1">
                             <button 
                               onClick={(e) => { e.stopPropagation(); router.push(`/invoices/${invoice._id}`); }}
                               className="p-2 rounded-md hover:bg-white/10 text-[#A69697] hover:text-white transition-colors"

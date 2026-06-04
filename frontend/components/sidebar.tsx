@@ -121,37 +121,10 @@ export function Sidebar() {
         </nav>
 
         {/* User Profile Footer */}
-        <div className="p-4 mt-auto relative">
-          
-          {/* Dropdown Menu */}
-          {profileOpen && (
-            <div className="absolute bottom-[72px] left-4 right-4 bg-[#1A0A0B] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
-              <div className="px-4 py-3 border-b border-white/5">
-                <p className="text-white text-[13px] font-semibold">{user?.name || 'User'}</p>
-                <p className="text-[#A69697] text-[11px]">{user?.email || ''}</p>
-              </div>
-              <div className="p-1.5">
-                <Link href="/settings" className="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#A69697] hover:text-white hover:bg-white/5 rounded-lg transition-colors">
-                  <Settings size={14} /> {t('sidebar.account_settings')}
-                </Link>
-                <button 
-                  onClick={() => {
-                    logout();
-                    setProfileOpen(false);
-                  }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#D98F8F] hover:text-white hover:bg-[#8E1B3A]/20 rounded-lg transition-colors"
-                >
-                  <LogOut size={14} /> {t('sidebar.logout')}
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div 
-            onClick={() => setProfileOpen(!profileOpen)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-all ${
-              profileOpen ? 'bg-white/[0.06] border-white/10' : 'bg-transparent border-transparent hover:bg-white/[0.04]'
-            }`}
+        <div className="p-4 mt-auto">
+          <button 
+            onClick={() => logout()}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-transparent border border-transparent hover:bg-white/[0.04] transition-all group cursor-pointer"
           >
             <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-[#8E1B3A] flex items-center justify-center">
               {user?.profileImage ? (
@@ -160,11 +133,12 @@ export function Sidebar() {
                 <span className="text-white text-[12px] font-semibold">{user?.name?.charAt(0)?.toUpperCase() || 'U'}</span>
               )}
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 text-left">
               <p className="text-[13px] font-medium text-[#FFFFFF] truncate">{user?.name || 'User'}</p>
+              <p className="text-[11px] text-[#A69697] group-hover:text-[#D98F8F] transition-colors">{t('sidebar.logout')}</p>
             </div>
-            <ChevronDown size={14} className={`text-[#A69697] transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`} />
-          </div>
+            <LogOut size={16} className="text-[#A69697] group-hover:text-[#D98F8F] transition-colors" />
+          </button>
         </div>
       </aside>
     </>

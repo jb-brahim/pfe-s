@@ -11,22 +11,19 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'SmartFacture IDP | AI-Powered Invoice & Document Processing',
-  description: 'Intelligent document processing and financial accounting platform with AI-powered invoice extraction and budget management',
+  title: 'Aura Finance | AI-Powered Invoice & Document Processing',
+  description: 'Aura Finance — Intelligent document processing and financial accounting platform with AI-powered invoice extraction and budget management',
   generator: 'v0.app',
   icons: {
     icon: [
       {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
         url: '/icon.svg',
         type: 'image/svg+xml',
+      },
+      {
+        url: '/icon-32x32.png',
+        sizes: '32x32',
+        type: 'image/png',
       },
     ],
     apple: '/apple-icon.png',

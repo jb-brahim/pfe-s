@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const SystemSettings = require('../models/SystemSettings');
 
 const protect = async (req, res, next) => {
   let token;
@@ -49,6 +50,13 @@ const protect = async (req, res, next) => {
       if (!req.user) {
         return res.status(401).json({ message: 'User no longer exists' });
       }
+
+      // Check Maintenance Mode
+      const settings = await SystemSettings.findOne();
+      if (settings && settings.maintenanceMode && req.user.role !== 'SUPER_ADMIN') {
+        return res.status(503).json({ message: 'Platform under maintenance', maintenance: true });
+      }
+
       return next();
     } catch (error) {
       console.error(error);
@@ -92,6 +100,13 @@ const apiKeyProtect = async (req, res, next) => {
     }
 
     req.user = user;
+
+    // Check Maintenance Mode
+    const settings = await SystemSettings.findOne();
+    if (settings && settings.maintenanceMode && req.user.role !== 'SUPER_ADMIN') {
+      return res.status(503).json({ success: false, message: 'Platform under maintenance', maintenance: true });
+    }
+
     next();
   } catch (error) {
     console.error('API Key validation error:', error);

@@ -13,12 +13,15 @@ export default function SettingsPage() {
   const [platformName, setPlatformName] = useState("Aura Finance");
   const [maintenanceMode, setMaintenanceMode] = useState(false);
 
-  // API Keys
-  const [googleVisionApiKey, setGoogleVisionApiKey] = useState('');
+  // Security
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const [isSaving, setIsSaving] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -31,7 +34,6 @@ export default function SettingsPage() {
           const d = res.data.data;
           if (d.platformName) setPlatformName(d.platformName);
           if (d.maintenanceMode !== undefined) setMaintenanceMode(d.maintenanceMode);
-          if (d.googleVisionApiKey) setGoogleVisionApiKey(d.googleVisionApiKey);
         }
       } catch (error) {
         console.error('Error fetching settings:', error);
@@ -50,11 +52,11 @@ export default function SettingsPage() {
       const token = localStorage.getItem('authToken');
       await axios.put(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/super-admin/settings`, {
         platformName,
-        maintenanceMode,
-        googleVisionApiKey
+        maintenanceMode
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      setSuccessMessage(t('superadmin.settings_page.toast_success'));
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
@@ -62,6 +64,33 @@ export default function SettingsPage() {
       alert('Failed to save settings.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      alert("New passwords don't match");
+      return;
+    }
+    setIsChangingPassword(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      await axios.put(`${process.env.NODE_ENV === 'production' ? 'https://pfe-s.onrender.com' : 'http://localhost:5000'}/api/auth/change-password`, {
+        newPassword
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNewPassword('');
+      setConfirmPassword('');
+      setSuccessMessage("Mot de passe modifié avec succès !");
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (error: any) {
+      console.error('Error changing password:', error);
+      alert(error.response?.data?.message || 'Failed to change password.');
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -77,7 +106,7 @@ export default function SettingsPage() {
         <div className="w-5 h-5 rounded-full bg-[#4ADE80] flex items-center justify-center">
           <Check size={12} className="text-black" />
         </div>
-        <span className="text-[13px] font-medium">{t('superadmin.settings_page.toast_success')}</span>
+        <span className="text-[13px] font-medium">{successMessage}</span>
       </div>
 
       {/* Header */}
@@ -88,14 +117,16 @@ export default function SettingsPage() {
             {t('superadmin.settings_page.subtitle')}
           </p>
         </div>
-        <button 
-          onClick={handleSave}
-          disabled={isSaving}
-          className="flex items-center gap-2 px-4 py-2 rounded-md text-[12px] font-medium bg-white text-[#1A0A0B] hover:bg-white/90 transition-colors disabled:opacity-50"
-        >
-          {isSaving ? <Loader size={14} className="animate-spin"/> : <Save size={14} />}
-          {isSaving ? t('superadmin.settings_page.saving_btn') : t('superadmin.settings_page.save_btn')}
-        </button>
+        {activeTab === 'General' && (
+          <button 
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex items-center gap-2 px-4 py-2 rounded-md text-[12px] font-medium bg-white text-[#1A0A0B] hover:bg-white/90 transition-colors disabled:opacity-50"
+          >
+            {isSaving ? <Loader size={14} className="animate-spin"/> : <Save size={14} />}
+            {isSaving ? t('superadmin.settings_page.saving_btn') : t('superadmin.settings_page.save_btn')}
+          </button>
+        )}
       </div>
 
       <div className="flex flex-col md:flex-row gap-6">
@@ -104,7 +135,7 @@ export default function SettingsPage() {
         <div className="w-full md:w-56 flex-shrink-0 space-y-1">
           {[
             { name: 'General', label: t('superadmin.settings_page.tab_general'), icon: Globe },
-            { name: 'API Keys', label: t('superadmin.settings_page.tab_api'), icon: Key },
+            { name: 'Security', label: "Sécurité", icon: Key },
           ].map((item, i) => (
             <button 
               key={i} 
@@ -158,24 +189,45 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {activeTab === 'API Keys' && (
+          {activeTab === 'Security' && (
             <div className={cardClasses}>
               <h2 className="text-[14px] font-semibold text-white mb-5 border-b border-white/5 pb-3">
-                {t('superadmin.settings_page.api_title')}
+                Changer le Mot de Passe
               </h2>
-              <div className="space-y-5 max-w-lg">
+              <form onSubmit={handleChangePassword} className="space-y-5 max-w-md">
                 <div>
-                  <label className="block text-[11px] font-medium text-[#A69697] mb-1.5 uppercase tracking-wider">{t('superadmin.settings_page.google_vision_key')}</label>
+                  <label className="block text-[11px] font-medium text-[#A69697] mb-1.5 uppercase tracking-wider">Nouveau mot de passe</label>
                   <input 
                     type="password" 
-                    value={googleVisionApiKey}
-                    onChange={(e) => setGoogleVisionApiKey(e.target.value)}
-                    placeholder={t('superadmin.settings_page.google_vision_placeholder')}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    minLength={8}
                     className="w-full px-3 py-2 rounded-md border outline-none text-[12px] transition-colors bg-[#1E0A0B] border-white/5 text-white focus:border-[#D98F8F]/50"
                   />
-                  <p className="text-[11px] text-[#A69697] mt-1.5">{t('superadmin.settings_page.google_vision_desc')}</p>
                 </div>
-              </div>
+                <div>
+                  <label className="block text-[11px] font-medium text-[#A69697] mb-1.5 uppercase tracking-wider">Confirmer le nouveau mot de passe</label>
+                  <input 
+                    type="password" 
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={8}
+                    className="w-full px-3 py-2 rounded-md border outline-none text-[12px] transition-colors bg-[#1E0A0B] border-white/5 text-white focus:border-[#D98F8F]/50"
+                  />
+                </div>
+                <div className="pt-2">
+                  <button 
+                    type="submit"
+                    disabled={isChangingPassword}
+                    className="flex items-center gap-2 px-4 py-2 rounded-md text-[12px] font-medium bg-[#D98F8F] text-[#1A0A0B] hover:bg-[#D98F8F]/90 transition-colors disabled:opacity-50"
+                  >
+                    {isChangingPassword ? <Loader size={14} className="animate-spin"/> : <Key size={14} />}
+                    Mettre à jour le mot de passe
+                  </button>
+                </div>
+              </form>
             </div>
           )}
 

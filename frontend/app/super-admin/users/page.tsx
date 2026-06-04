@@ -145,7 +145,7 @@ export default function GlobalUsersPage() {
                       </div>
                     </td>
                     <td className="py-3 px-5 text-right">
-                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-end gap-1">
                         <button className="p-1.5 rounded hover:bg-white/10 text-[#A69697] hover:text-white" title="Reset Password (Placeholder)">
                           <KeyRound size={14} />
                         </button>

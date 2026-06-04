@@ -359,7 +359,7 @@ exports.toggleAnnouncement = async (req, res) => {
 // ----------------------------------------------------
 exports.getAuditLogs = async (req, res) => {
   try {
-    const logs = await AuditLog.find().populate('userId', 'email name').sort({ timestamp: -1 });
+    const logs = await AuditLog.find().populate('userId', 'email name role companyDetails managedBy').sort({ timestamp: -1 });
     res.status(200).json({ success: true, data: logs });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server Error' });

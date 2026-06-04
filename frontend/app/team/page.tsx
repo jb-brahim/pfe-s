@@ -295,7 +295,6 @@ export default function TeamPage() {
                 <thead>
                   <tr className="text-[#A69697] text-[12px] uppercase tracking-wider bg-[rgba(0,0,0,0.2)]">
                     <th className="py-4 px-6 font-semibold">{t('team.user')}</th>
-                    <th className="py-4 px-6 font-semibold">{t('team.department')}</th>
                     <th className="py-4 px-6 font-semibold">{t('team.role')}</th>
                     <th className="py-4 px-6 font-semibold">{t('team.invoices_processed')}</th>
                     <th className="py-4 px-6 font-semibold text-right">{t('team.actions')}</th>
@@ -304,7 +303,7 @@ export default function TeamPage() {
                 <tbody className="text-[#FFFFFF] text-[14px]">
                   {isLoading ? (
                     <tr>
-                      <td colSpan={5} className="py-10 text-center text-[#A69697]">
+                      <td colSpan={4} className="py-10 text-center text-[#A69697]">
                         <div className="flex flex-col items-center justify-center gap-3">
                           <div className="w-6 h-6 border-2 border-[#D98F8F] border-t-transparent rounded-full animate-spin"></div>
                           {t('team.loading')}
@@ -313,7 +312,7 @@ export default function TeamPage() {
                     </tr>
                   ) : filteredEmployees.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-10 text-center text-[#A69697]">
+                      <td colSpan={4} className="py-10 text-center text-[#A69697]">
                         {t('team.no_employees')}
                       </td>
                     </tr>
@@ -335,7 +334,6 @@ export default function TeamPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="py-4 px-6 text-[#A69697] text-[13px]">{getDept(emp.name, emp.role)}</td>
                         <td className="py-4 px-6">{getRoleBadge(emp.role, emp.approvalLevel)}</td>
                         <td className="py-4 px-6">
                           <div className="flex flex-col gap-1">
@@ -357,15 +355,6 @@ export default function TeamPage() {
                                 <div className="p-1">
                                   {currentUser?.role === 'ADMIN' && emp.userId !== currentUser?._id && (
                                     <>
-                                      <button
-                                        onClick={() => {
-                                          handleRoleToggle(emp.userId, emp.role);
-                                          setActionMenuUserId(null);
-                                        }}
-                                        className="w-full text-left px-3 py-2 text-[12px] text-[#A69697] hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                                      >
-                                        {t('team.change_to')} {emp.role === 'ADMIN' ? t('team.accountant') : t('team.admin')}
-                                      </button>
                                       {emp.role === 'ACCOUNTANT' && (
                                         <button
                                           onClick={() => {

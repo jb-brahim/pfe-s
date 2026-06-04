@@ -27,6 +27,20 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+// Response interceptor to handle global errors like Maintenance Mode
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 503 && error.response.data?.maintenance) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('authToken');
+        window.location.href = '/login?maintenance=true';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // ============================================================================
 // MOCK DATA FALLBACK
 // ============================================================================
@@ -411,7 +425,26 @@ export const notificationAPI = {
       return { data: [] };
     }
   },
+
+  markAsRead: async (id: string) => {
+    try {
+      const response = await apiClient.put(`notifications/${id}/read`);
+      return response.data;
+    } catch (error) {
+      return null;
+    }
+  },
+
+  markAllAsRead: async () => {
+    try {
+      const response = await apiClient.put('notifications/read-all');
+      return response.data;
+    } catch (error) {
+      return null;
+    }
+  },
 };
+
 
 export const workflowAPI = {
   approve: async (invoiceId: string, decision: string, notes: string) => {

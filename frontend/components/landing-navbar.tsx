@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Logo } from '@/components/logo';
 import { useLanguage } from '@/lib/i18n-context';
 import { Globe } from 'lucide-react';
@@ -10,12 +11,23 @@ export function LandingNavbar() {
   const [scrolled, setScrolled] = useState(false);
   const [showLanguages, setShowLanguages] = useState(false);
   const { language: lang, setLanguage: setLang, t } = useLanguage();
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const navLinks = [
+    { href: '/',         label: t('landing.navbar.home')     || 'Home' },
+    { href: '/features', label: t('landing.navbar.features') || 'Features' },
+    { href: '/pricing',  label: t('landing.navbar.pricing')  || 'Pricing' },
+    { href: '/ttn',      label: t('landing.navbar.ttn')      || 'TTN Integration' },
+  ];
+
+  const isActive = (href: string) =>
+    href === '/' ? pathname === '/' : pathname.startsWith(href);
 
   return (
     <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-[#1A0A0B]/90 backdrop-blur-xl border-b border-white/10 py-4' : 'bg-transparent py-6'}`}>
@@ -24,12 +36,24 @@ export function LandingNavbar() {
           <Logo size="md" className="shadow-[0_0_15px_rgba(217,143,143,0.4)]" />
           <span className="text-[20px] font-bold tracking-tight text-white">Aura Finance</span>
         </Link>
-        
-        <div className="hidden md:flex items-center gap-8 text-[14px] text-[#A69697] font-medium">
-          <Link href="/" className="hover:text-white transition-colors">{t('landing.navbar.home') || 'Home'}</Link>
-          <Link href="/features" className="hover:text-white transition-colors">{t('landing.navbar.features') || 'Features'}</Link>
-          <Link href="/pricing" className="hover:text-white transition-colors">{t('landing.navbar.pricing') || 'Pricing'}</Link>
-          <Link href="/ttn" className="hover:text-white transition-colors">{t('landing.navbar.ttn') || 'TTN Integration'}</Link>
+
+        <div className="hidden md:flex items-center gap-8 text-[14px]">
+          {navLinks.map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              className={`relative transition-colors duration-200 ${
+                isActive(href)
+                  ? 'text-white font-extrabold'
+                  : 'text-[#A69697] font-medium hover:text-white'
+              }`}
+            >
+              {label}
+              {isActive(href) && (
+                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#D98F8F]" />
+              )}
+            </Link>
+          ))}
         </div>
 
         <div className="flex items-center gap-4">

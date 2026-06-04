@@ -233,8 +233,8 @@ export default function SettingsPage() {
               {[
                 { id: 'general', label: t('settings.tabs.general'), icon: <UserIcon size={16} /> },
                 { id: 'security', label: t('settings.tabs.security'), icon: <Lock size={16} /> },
-                { id: 'notifications', label: t('settings.tabs.notifications'), icon: <Bell size={16} /> },
                 ...(user?.role === 'ADMIN' ? [
+                  { id: 'notifications', label: t('settings.tabs.notifications'), icon: <Bell size={16} /> },
                   { id: 'integrations', label: t('settings.tabs.integrations'), icon: <Network size={16} /> }
                 ] : [])
               ].map((tab) => (

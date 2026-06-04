@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Bell, Search, FileText, X, Globe } from 'lucide-react';
+import { Bell, Search, FileText, X, Globe, Check } from 'lucide-react';
 import { notificationAPI, invoiceAPI } from '@/lib/api';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -84,7 +84,35 @@ export function Navbar() {
 
 
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.isRead && !n.read).length;
+
+  const getNotifUrl = (notif: any): string => {
+    if (notif.invoiceId) {
+      const id = typeof notif.invoiceId === 'object' ? notif.invoiceId._id : notif.invoiceId;
+      return `/invoices/${id}`;
+    }
+    return '/notifications';
+  };
+
+  const handleMarkAsRead = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true, read: true } : n));
+    await notificationAPI.markAsRead(id);
+  };
+
+  const handleMarkAllRead = async () => {
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true, read: true })));
+    await notificationAPI.markAllAsRead();
+  };
+
+  const handleNotifClick = async (notif: any) => {
+    if (!notif.isRead && !notif.read) {
+      setNotifications(prev => prev.map(n => n._id === notif._id ? { ...n, isRead: true, read: true } : n));
+      await notificationAPI.markAsRead(notif._id);
+    }
+    setShowNotifications(false);
+    router.push(getNotifUrl(notif));
+  };
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('fr-TN', { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val) + ' TND';
 
@@ -206,31 +234,79 @@ export function Navbar() {
 
           {showNotifications && (
             <div className="absolute top-12 right-0 w-80 bg-[#1A0A0B] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+              {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
-                <h3 className="font-semibold text-white text-[14px]">Notifications</h3>
-                <span className="text-[#A69697] text-[11px]">{notifications.length} total</span>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-white text-[14px]">Notifications</h3>
+                  {unreadCount > 0 && (
+                    <span className="text-[10px] bg-[#B34E56] text-white px-1.5 py-0.5 rounded-full font-bold">{unreadCount}</span>
+                  )}
+                </div>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={handleMarkAllRead}
+                    className="text-[11px] text-[#D98F8F] hover:text-white transition-colors font-medium flex items-center gap-1"
+                  >
+                    <Check size={10} /> Mark all read
+                  </button>
+                )}
               </div>
-              <div className="max-h-72 overflow-y-auto">
+
+              {/* List */}
+              <div className="max-h-80 overflow-y-auto">
                 {notifications.length === 0 ? (
                   <p className="text-[#A69697] text-[13px] px-4 py-6 text-center">No notifications yet</p>
                 ) : (
-                  notifications.slice(0, 8).map((notif) => (
-                    <div
-                      key={notif._id}
-                      className="px-4 py-3 hover:bg-white/[0.03] transition-colors cursor-pointer border-b border-white/[0.03] last:border-0"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
-                          notif.severity === 'HIGH' ? 'bg-red-400' : notif.severity === 'MEDIUM' ? 'bg-amber-400' : 'bg-[#D98F8F]'
-                        }`} />
-                        <div>
-                          <p className="text-white text-[13px] font-medium leading-tight">{notif.title}</p>
-                          <p className="text-[#A69697] text-[11px] mt-0.5">{notif.message || notif.description}</p>
+                  notifications.slice(0, 10).map((notif) => {
+                    const isUnread = !notif.isRead && !notif.read;
+                    return (
+                      <div
+                        key={notif._id}
+                        onClick={() => handleNotifClick(notif)}
+                        className={`group px-4 py-3 transition-colors cursor-pointer border-b border-white/[0.03] last:border-0 ${
+                          isUnread ? 'bg-white/[0.03] hover:bg-white/[0.06]' : 'hover:bg-white/[0.02]'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
+                            notif.severity === 'HIGH' ? 'bg-red-400' :
+                            notif.severity === 'MEDIUM' ? 'bg-amber-400' : 'bg-[#D98F8F]'
+                          } ${!isUnread ? 'opacity-30' : ''}`} />
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-[13px] leading-tight truncate ${
+                              isUnread ? 'text-white font-medium' : 'text-[#A69697]'
+                            }`}>
+                              {notif.title || notif.message}
+                            </p>
+                            {(notif.message || notif.description) && notif.title && (
+                              <p className="text-[#A69697] text-[11px] mt-0.5 truncate">{notif.message || notif.description}</p>
+                            )}
+                          </div>
+                          {/* Mark as read button — only visible on unread */}
+                          {isUnread && (
+                            <button
+                              onClick={(e) => handleMarkAsRead(e, notif._id)}
+                              title="Mark as read"
+                              className="opacity-0 group-hover:opacity-100 flex-shrink-0 w-5 h-5 flex items-center justify-center rounded-full bg-white/10 hover:bg-[#D98F8F]/30 text-[#A69697] hover:text-[#D98F8F] transition-all mt-0.5"
+                            >
+                              <Check size={10} />
+                            </button>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
+              </div>
+
+              {/* Footer */}
+              <div className="border-t border-white/5 px-4 py-2.5">
+                <button
+                  onClick={() => { setShowNotifications(false); router.push('/notifications'); }}
+                  className="text-[12px] text-[#A69697] hover:text-white transition-colors w-full text-center"
+                >
+                  View all notifications
+                </button>
               </div>
             </div>
           )}

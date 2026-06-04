@@ -65,14 +65,14 @@ export default function PricingPage() {
         <div className="grid md:grid-cols-3 gap-8 mb-32">
           {/* Basic */}
           <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[30px] p-10 flex flex-col hover:border-white/10 transition-colors">
-            <h3 className="text-white text-[24px] font-bold mb-4">{t('landing.pricing_cards.starter') || 'Starter'}</h3>
-            <p className="text-[#A69697] text-[14px] mb-8">{t('landing.pricing_cards.starter_desc') || 'Perfect for small teams and startups testing the waters of automation.'}</p>
+            <h3 className="text-white text-[24px] font-bold mb-2">Basic</h3>
+            <p className="text-[#A69697] text-[14px] mb-8">Core features</p>
             <div className="mb-8">
-              <span className="text-[54px] font-bold text-white">{isAnnual ? '29' : '39'}</span><span className="text-[#A69697] font-bold"> TND</span><span className="text-[#A69697]">/mo</span>
+              <span className="text-[54px] font-bold text-white">{isAnnual ? '15' : '19'}</span><span className="text-[#A69697] font-bold"> TND</span><span className="text-[#A69697]">/mo</span>
               <p className="text-[#A69697] text-[12px] mt-1">{isAnnual ? (t('landing.pricing_cards.billed_annually') || 'Billed annually') : (t('landing.pricing_cards.billed_monthly') || 'Billed monthly')}</p>
             </div>
             <ul className="space-y-4 mb-10 text-[15px] text-[#A69697] flex-1">
-              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Up to 50 Invoice Scans /mo</li>
+              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Up to 500 Invoice Scans /mo</li>
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> 5 API Keys</li>
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> 1 Basic Dashboard</li>
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Email Support</li>
@@ -85,10 +85,10 @@ export default function PricingPage() {
             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white text-xs font-bold px-4 py-1 rounded-full">{t('landing.pricing_cards.most_popular') || 'MOST POPULAR'}</div>
             <div className="absolute inset-0 rounded-[30px] ring-1 ring-inset ring-[#D98F8F] shadow-[inset_0_0_20px_rgba(217,143,143,0.2)] pointer-events-none"></div>
             
-            <h3 className="text-white text-[24px] font-bold mb-4">{t('landing.pricing_cards.professional') || 'Professional'}</h3>
-            <p className="text-[#A69697] text-[14px] mb-8">{t('landing.pricing_cards.professional_desc') || 'For growing businesses that need high-volume processing and advanced analytics.'}</p>
+            <h3 className="text-white text-[24px] font-bold mb-2">Pro</h3>
+            <p className="text-[#A69697] text-[14px] mb-8">Advanced tools</p>
             <div className="mb-8">
-              <span className="text-[54px] font-bold text-white">{isAnnual ? '99' : '119'}</span><span className="text-[#D98F8F] font-bold"> TND</span><span className="text-[#D98F8F]">/mo</span>
+              <span className="text-[54px] font-bold text-white">{isAnnual ? '39' : '49'}</span><span className="text-[#D98F8F] font-bold"> TND</span><span className="text-[#D98F8F]">/mo</span>
               <p className="text-[#D98F8F]/70 text-[12px] mt-1">{isAnnual ? (t('landing.pricing_cards.billed_annually') || 'Billed annually') : (t('landing.pricing_cards.billed_monthly') || 'Billed monthly')}</p>
             </div>
             <ul className="space-y-4 mb-10 text-[15px] text-white flex-1">
@@ -101,13 +101,13 @@ export default function PricingPage() {
             <Link href="/auth/register" className="w-full py-4 rounded-full bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white text-center font-bold shadow-lg hover:shadow-[0_0_20px_rgba(217,143,143,0.4)] transition-all">{t('landing.pricing_cards.start_trial') || 'Start 14-Day Free Trial'}</Link>
           </div>
 
-          {/* Enterprise */}
+          {/* Ultra */}
           <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[30px] p-10 flex flex-col hover:border-white/10 transition-colors">
-            <h3 className="text-white text-[24px] font-bold mb-4">{t('landing.pricing_cards.enterprise') || 'Enterprise'}</h3>
-            <p className="text-[#A69697] text-[14px] mb-8">{t('landing.pricing_cards.enterprise_desc') || 'Custom solutions for large organizations with complex compliance needs.'}</p>
+            <h3 className="text-white text-[24px] font-bold mb-2">Ultra</h3>
+            <p className="text-[#A69697] text-[14px] mb-8">Unlimited usage</p>
             <div className="mb-8">
-              <span className="text-[54px] font-bold text-white">{t('landing.pricing_cards.custom') || 'Custom'}</span>
-              <p className="text-[#A69697] text-[12px] mt-1">{t('landing.pricing_cards.tailored') || 'Tailored to your exact scale'}</p>
+              <span className="text-[54px] font-bold text-white">{isAnnual ? '71' : '89'}</span><span className="text-[#A69697] font-bold"> TND</span><span className="text-[#A69697]">/mo</span>
+              <p className="text-[#A69697] text-[12px] mt-1">{isAnnual ? (t('landing.pricing_cards.billed_annually') || 'Billed annually') : (t('landing.pricing_cards.billed_monthly') || 'Billed monthly')}</p>
             </div>
             <ul className="space-y-4 mb-10 text-[15px] text-[#A69697] flex-1">
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Unlimited Invoice Scans</li>
@@ -116,7 +116,7 @@ export default function PricingPage() {
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> SLA Guarantee & 24/7 Support</li>
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Custom Model Training</li>
             </ul>
-            <Link href="/auth/login" className="w-full py-4 rounded-full bg-white/10 text-white font-bold hover:bg-white/20 transition-colors text-center">{t('landing.pricing_cards.contact_sales') || 'Contact Sales'}</Link>
+            <Link href="/auth/login" className="w-full py-4 rounded-full bg-white/10 text-white font-bold hover:bg-white/20 transition-colors text-center">Contact Sales</Link>
           </div>
         </div>
 

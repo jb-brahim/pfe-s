@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import { Shield, Lock, Loader, FileText, PieChart, BarChart3, Sun, Moon } from 'lucide-react';
+import { Loader, FileText, PieChart, BarChart3, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     if (typeof window !== 'undefined') {
       return (localStorage.getItem('app-theme') as 'dark' | 'light') || 'light';
@@ -131,27 +132,6 @@ export default function LoginPage() {
       isDark ? 'bg-gradient-to-br from-[#120507] via-[#1A0A0B] to-[#2D1B1C]' : 'bg-gradient-to-br from-[#FFF0F0] via-[#FFFFFF] to-[#FDF5F5]'
     }`}>
       
-      {/* Theme Toggle Top Right */}
-      <div className="absolute top-8 right-8 z-50">
-        <button 
-          onClick={toggleTheme}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md border transition-all duration-500 shadow-lg hover:scale-105 ${
-            isDark 
-              ? 'bg-[rgba(255,255,255,0.05)] border-white/10 text-white hover:bg-white/10' 
-              : 'bg-white/50 border-[#8E1B3A]/20 text-[#1A0A0B] hover:bg-white/80'
-          }`}
-        >
-          <div className="relative w-5 h-5 overflow-hidden">
-             <div className={`absolute inset-0 transform transition-transform duration-500 ${isDark ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-               <Moon size={20} className="text-[#D98F8F]" />
-             </div>
-             <div className={`absolute inset-0 transform transition-transform duration-500 ${!isDark ? 'translate-y-0 opacity-100' : '-translate-y-8 opacity-0'}`}>
-               <Sun size={20} className="text-[#8E1B3A]" />
-             </div>
-          </div>
-          <span className="text-[13px] font-bold">{isDark ? 'Dark Mode' : 'Light Mode'}</span>
-        </button>
-      </div>
 
       {/* Background Ambience */}
       <div className="fixed top-[-20%] right-[-10%] w-[50%] h-[50%] bg-[#8E1B3A] rounded-full blur-[150px] opacity-20 pointer-events-none transition-opacity duration-700"></div>
@@ -175,45 +155,42 @@ export default function LoginPage() {
               <form onSubmit={handleLogin} className="space-y-6">
                 <div>
                   <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>Email Address</label>
-                  <div className="relative group">
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className={`w-full rounded-[14px] py-4 px-5 text-[15px] outline-none transition-all duration-700 ${
-                        isDark 
-                          ? 'bg-[#1A0A0B]/60 border border-[rgba(255,255,255,0.08)] text-white focus:border-[#D98F8F]/50 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)]'
-                          : 'bg-white border border-[#8E1B3A]/10 text-[#1A0A0B] focus:border-[#8E1B3A]/40 shadow-[inset_0_2px_10px_rgba(142,27,58,0.05)]'
-                      }`}
-                      required
-                    />
-                    <div className={`absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-full transition-colors duration-700 ${
-                      isDark ? 'bg-[#D98F8F]/10 border border-[#D98F8F]/30 group-focus-within:bg-[#D98F8F]/20' : 'bg-[#8E1B3A]/5 border border-[#8E1B3A]/20 group-focus-within:bg-[#8E1B3A]/10'
-                    }`}>
-                      <Shield size={12} className={isDark ? "text-[#D98F8F]" : "text-[#8E1B3A]"} />
-                    </div>
-                  </div>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={`w-full rounded-[14px] py-4 px-5 text-[15px] outline-none transition-all duration-700 ${
+                      isDark 
+                        ? 'bg-[#1A0A0B]/60 border border-[rgba(255,255,255,0.08)] text-white focus:border-[#D98F8F]/50 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)]'
+                        : 'bg-white border border-[#8E1B3A]/10 text-[#1A0A0B] focus:border-[#8E1B3A]/40 shadow-[inset_0_2px_10px_rgba(142,27,58,0.05)]'
+                    }`}
+                    required
+                  />
                 </div>
 
                 <div>
                   <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>Password</label>
-                  <div className="relative group">
+                  <div className="relative">
                     <input
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className={`w-full rounded-[14px] py-4 px-5 text-[15px] outline-none transition-all duration-700 ${
+                      className={`w-full rounded-[14px] py-4 pl-5 pr-12 text-[15px] outline-none transition-all duration-700 ${
                         isDark 
                           ? 'bg-[#1A0A0B]/60 border border-[rgba(255,255,255,0.08)] text-white focus:border-[#D98F8F]/50 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)]'
                           : 'bg-white border border-[#8E1B3A]/10 text-[#1A0A0B] focus:border-[#8E1B3A]/40 shadow-[inset_0_2px_10px_rgba(142,27,58,0.05)]'
                       }`}
                       required
                     />
-                    <div className={`absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-full border transition-colors duration-700 ${
-                      isDark ? 'border-white/10 group-focus-within:border-white/30' : 'border-[#8E1B3A]/20 group-focus-within:border-[#8E1B3A]/50'
-                    }`}>
-                      <Lock size={12} className={isDark ? "text-[#A69697] group-focus-within:text-white" : "text-[#8E1B3A]/60 group-focus-within:text-[#8E1B3A]"} />
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className={`absolute right-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
+                        isDark ? 'text-[#A69697] hover:text-white' : 'text-[#8E1B3A]/50 hover:text-[#8E1B3A]'
+                      }`}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
                   </div>
                 </div>
 

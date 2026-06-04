@@ -20,6 +20,37 @@ export default function AnnouncementsPage() {
     targetUsers: [] as string[]
   });
 
+  const TEMPLATES = [
+    {
+      label: "Maintenance",
+      title: "Maintenance Programmée - {DATE}",
+      message: "Chers utilisateurs,\n\nVeuillez noter qu'Aura Finance fera l'objet d'une maintenance programmée le {DATE}. Pendant cette période, la plateforme pourra être temporairement indisponible.\n\nMerci de votre compréhension.",
+      severity: "warning"
+    },
+    {
+      label: "Mise à jour",
+      title: "Mise à jour de la Plateforme",
+      message: "Nous sommes heureux de vous annoncer une nouvelle mise à jour d'Aura Finance ! Cette mise à jour inclut des améliorations de performance et de nouvelles fonctionnalités.\n\nVeuillez rafraîchir votre page pour en profiter.",
+      severity: "info"
+    },
+    {
+      label: "Interruption",
+      title: "Interruption de Service",
+      message: "Nous rencontrons actuellement une interruption de service inattendue. Nos ingénieurs travaillent activement à la résolution du problème.\n\nNous vous tiendrons informés.",
+      severity: "critical"
+    }
+  ];
+
+  const handleApplyTemplate = (tpl: typeof TEMPLATES[0]) => {
+    const dateStr = new Date().toLocaleDateString('fr-FR');
+    setForm({
+      ...form,
+      title: tpl.title.replace('{DATE}', dateStr),
+      message: tpl.message.replace('{DATE}', dateStr),
+      severity: tpl.severity
+    });
+  };
+
   const fetchAnnouncements = async () => {
     try {
       const token = localStorage.getItem('authToken');
@@ -94,6 +125,23 @@ export default function AnnouncementsPage() {
           <h2 className="text-[14px] font-semibold text-white mb-5 border-b border-white/5 pb-3">
             {t('superadmin.announcements_page.draft_title')}
           </h2>
+          
+          <div className="mb-5">
+            <label className="block text-[11px] font-medium text-[#A69697] mb-2 uppercase tracking-wider">Modèles Rapides</label>
+            <div className="flex flex-wrap gap-2">
+              {TEMPLATES.map((tpl, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => handleApplyTemplate(tpl)}
+                  className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] text-white hover:bg-white/10 transition-colors"
+                >
+                  {tpl.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <form onSubmit={handlePublish} className="space-y-4">
             <div>
               <label className="block text-[11px] font-medium text-[#A69697] mb-1.5 uppercase tracking-wider">{t('superadmin.announcements_page.announcement_title')}</label>

@@ -58,19 +58,25 @@ export default function SubscriptionPage() {
 
             <h4 className="text-white text-[14px] font-bold mb-4">{t('settings.subscription.upgrade_plan')}</h4>
             <div className="grid md:grid-cols-3 gap-4">
-              {['Normal', 'Pro', 'Premium'].map((planTier) => (
-                <div key={planTier} className={`border ${user?.billing?.plan === planTier ? 'border-[#D98F8F] bg-[#D98F8F]/5' : 'border-white/10 bg-white/5'} rounded-[16px] p-4 flex flex-col`}>
-                  <p className="text-white font-bold text-[16px] mb-1">{planTier}</p>
-                  <p className="text-[#A69697] text-[12px] mb-4">{planTier === 'Premium' ? t('settings.subscription.unlimited') : planTier === 'Pro' ? t('settings.subscription.scans_5000') : t('settings.subscription.scans_500')}</p>
+              {[
+                { name: 'Basic',  desc: 'Core features',    price: '19 TND', scans: t('settings.subscription.scans_500') },
+                { name: 'Pro',    desc: 'Advanced tools',   price: '49 TND', scans: t('settings.subscription.scans_5000') },
+                { name: 'Ultra',  desc: 'Unlimited usage',  price: '89 TND', scans: t('settings.subscription.unlimited') },
+              ].map(({ name, desc, price, scans }) => (
+                <div key={name} className={`border ${user?.billing?.plan === name ? 'border-[#D98F8F] bg-[#D98F8F]/5' : 'border-white/10 bg-white/5'} rounded-[16px] p-4 flex flex-col`}>
+                  <p className="text-white font-bold text-[16px] mb-0.5">{name}</p>
+                  <p className="text-[#A69697] text-[12px] mb-1">{desc}</p>
+                  <p className="text-white font-extrabold text-[20px] mb-3">{price} <span className="text-[#A69697] font-normal text-[13px]">/mo</span></p>
+                  <p className="text-[#A69697] text-[11px] mb-4">{scans}</p>
                   <button 
                     onClick={() => {
-                      setSelectedPlan(planTier);
+                      setSelectedPlan(name);
                       setIsCheckoutModalOpen(true);
                     }}
-                    disabled={user?.billing?.plan === planTier}
-                    className={`mt-auto py-2 rounded-[8px] text-[13px] font-bold transition-all ${user?.billing?.plan === planTier ? 'bg-[#D98F8F]/20 text-[#D98F8F] cursor-not-allowed' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                    disabled={user?.billing?.plan === name}
+                    className={`mt-auto py-2 rounded-[8px] text-[13px] font-bold transition-all ${user?.billing?.plan === name ? 'bg-[#D98F8F]/20 text-[#D98F8F] cursor-not-allowed' : 'bg-white/10 text-white hover:bg-white/20'}`}
                   >
-                    {user?.billing?.plan === planTier ? t('settings.subscription.current') : t('settings.subscription.select')}
+                    {user?.billing?.plan === name ? t('settings.subscription.current') : t('settings.subscription.select')}
                   </button>
                 </div>
               ))}

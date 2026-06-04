@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { ResponsiveContainer, ComposedChart, Line, Area, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { FileText, Download, Calendar, Filter, ChevronDown, Sparkles, Folder, FileBarChart, PieChart, RefreshCw, Zap, Trash2, Mail, Plus, X } from 'lucide-react';
-import { analyticsAPI, reportAPI } from '@/lib/api';
+import { FileText, Download, Calendar, Filter, ChevronDown, Sparkles, Folder, FileBarChart, PieChart, RefreshCw, Zap, Trash2, Mail, Plus, X, FileDown } from 'lucide-react';
+import { analyticsAPI, reportAPI, invoiceAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/i18n-context';
+import { exportInvoicesPDF } from '@/lib/exportPDF';
 
 // Report icons mapping
 const iconMap: Record<string, any> = {
@@ -29,6 +30,7 @@ export default function ReportsPage() {
   const [schedules, setSchedules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [exportingPDF, setExportingPDF] = useState(false);
 
   // Type Maps for Translation
   const typeMap: Record<string, string> = {
@@ -224,6 +226,25 @@ export default function ReportsPage() {
     window.open(`${backendUrl}${report.fileUrl}`, '_blank');
   };
 
+  const handleExportAllPDF = async () => {
+    setExportingPDF(true);
+    try {
+      const res = await invoiceAPI.getAll();
+      const invoices = res.data || [];
+      if (invoices.length === 0) {
+        toast.error('Aucune facture trouvée pour l\'export.');
+        return;
+      }
+      await exportInvoicesPDF(invoices, `Aura_Rapport_Complet_${new Date().toISOString().split('T')[0]}.pdf`);
+      toast.success('Rapport PDF des factures exporté avec succès !');
+    } catch (err) {
+      console.error(err);
+      toast.error('Échec de la génération du PDF. Veuillez réessayer.');
+    } finally {
+      setExportingPDF(false);
+    }
+  };
+
   // Filtered reports list
   const filteredReports = reports.filter(r => {
     const matchesSearch = r.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -244,7 +265,14 @@ export default function ReportsPage() {
             </h1>
             <p className="text-[#A69697] text-[16px]">{t('reports.subtitle')}</p>
           </div>
-
+          <button
+            onClick={handleExportAllPDF}
+            disabled={exportingPDF}
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#8E1B3A]/20 border border-[#8E1B3A]/40 hover:bg-[#8E1B3A]/30 rounded-[10px] text-[13px] font-medium transition-colors text-[#D98F8F] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {exportingPDF ? <RefreshCw size={16} className="animate-spin" /> : <FileDown size={16} />}
+            {exportingPDF ? 'Generating...' : 'Export All Invoices PDF'}
+          </button>
         </div>
 
         {/* Report Generation Engine */}
@@ -467,7 +495,7 @@ export default function ReportsPage() {
                           {report.size}
                         </td>
                         <td className="px-6 py-3 text-right">
-                          <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center justify-end gap-2">
                             <button 
                               onClick={() => handleDownload(report)}
                               className="px-3 py-1.5 rounded-[6px] bg-white/5 border border-white/10 text-[#A69697] hover:text-white hover:bg-white/10 transition-colors text-[12px] flex items-center gap-1.5 cursor-pointer"

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import { Shield, Lock, Loader, FileText, PieChart, BarChart3 } from 'lucide-react';
+import { Shield, Lock, Loader, FileText, PieChart, BarChart3, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -38,6 +38,12 @@ export default function LoginPage() {
   return (
     <div className="keep-dark relative min-h-screen flex items-center justify-center p-6 font-sans bg-gradient-to-br from-[#FFF0F0] via-[#FFFFFF] to-[#FDF5F5]">
       
+      {/* Back to Home Button */}
+      <Link href="/" className="absolute top-6 left-6 z-50 flex items-center gap-2 px-4 py-2 bg-white/40 hover:bg-white/70 backdrop-blur-md border border-white/50 rounded-full text-[#8E1B3A] font-medium transition-all shadow-sm hover:shadow-md">
+        <ArrowLeft size={16} />
+        <span className="text-[13px]">Back to Home</span>
+      </Link>
+
       {/* Background Ambience */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-[#8E1B3A] rounded-full blur-[150px] opacity-20"></div>

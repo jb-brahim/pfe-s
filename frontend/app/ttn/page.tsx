@@ -50,11 +50,7 @@ export default function TTNPage() {
         </div>
 
 
-        <div className="mt-20 text-center">
-          <Link href="/auth/login" className="inline-flex items-center gap-2 text-[#D98F8F] font-bold text-[18px] hover:text-white transition-colors">
-            {t('landing.ttn.talk_to_architect') || 'Talk to an architect about TTN deployment'} <ArrowRight size={20} />
-          </Link>
-        </div>
+
       </main>
       <LandingFooter />
     </div>
