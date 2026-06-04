@@ -81,7 +81,7 @@ export function LandingNavbar() {
             )}
           </div>
 
-          <Link href="/login" className="text-[14px] font-medium text-white hover:text-[#D98F8F] transition-colors hidden sm:block">
+          <Link href="/auth/login" className="text-[14px] font-medium text-white hover:text-[#D98F8F] transition-colors hidden sm:block">
             {t('landing.navbar.login') || 'Login'}
           </Link>
           <Link href="/auth/register" className="px-5 py-2.5 rounded-full bg-white text-[#1A0A0B] text-[14px] font-bold hover:bg-gray-200 transition-colors">

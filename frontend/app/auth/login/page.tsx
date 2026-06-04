@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import { Loader, FileText, PieChart, BarChart3, Eye, EyeOff } from 'lucide-react';
+import { Loader, FileText, PieChart, BarChart3, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -132,6 +132,15 @@ export default function LoginPage() {
       isDark ? 'bg-gradient-to-br from-[#120507] via-[#1A0A0B] to-[#2D1B1C]' : 'bg-gradient-to-br from-[#FFF0F0] via-[#FFFFFF] to-[#FDF5F5]'
     }`}>
       
+      {/* Back to Home Button */}
+      <Link href="/" className={`absolute top-6 left-6 z-50 flex items-center gap-2 px-4 py-2 backdrop-blur-md rounded-full font-medium transition-all shadow-sm hover:shadow-md ${
+        isDark 
+          ? 'bg-[#1A0A0B]/40 hover:bg-[#1A0A0B]/70 border border-white/10 text-white'
+          : 'bg-white/40 hover:bg-white/70 border border-white/50 text-[#8E1B3A]'
+      }`}>
+        <ArrowLeft size={16} />
+        <span className="text-[13px]">Back to Home</span>
+      </Link>
 
       {/* Background Ambience */}
       <div className="fixed top-[-20%] right-[-10%] w-[50%] h-[50%] bg-[#8E1B3A] rounded-full blur-[150px] opacity-20 pointer-events-none transition-opacity duration-700"></div>

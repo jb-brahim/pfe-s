@@ -34,7 +34,7 @@ apiClient.interceptors.response.use(
     if (error.response && error.response.status === 503 && error.response.data?.maintenance) {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('authToken');
-        window.location.href = '/login?maintenance=true';
+        window.location.href = '/auth/login?maintenance=true';
       }
     }
     return Promise.reject(error);

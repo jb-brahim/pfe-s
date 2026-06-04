@@ -72,10 +72,8 @@ export default function PricingPage() {
               <p className="text-[#A69697] text-[12px] mt-1">{isAnnual ? (t('landing.pricing_cards.billed_annually') || 'Billed annually') : (t('landing.pricing_cards.billed_monthly') || 'Billed monthly')}</p>
             </div>
             <ul className="space-y-4 mb-10 text-[15px] text-[#A69697] flex-1">
-              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Up to 500 Invoice Scans /mo</li>
-              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> 5 API Keys</li>
-              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> 1 Basic Dashboard</li>
-              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Email Support</li>
+              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Modul d'extration 200 scan/mon</li>
+              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Modul d'intégration ttn</li>
             </ul>
             <Link href="/auth/register" className="w-full py-4 rounded-full border border-white/20 text-center text-[#A69697] font-bold hover:bg-white/10 hover:text-white transition-colors">{t('landing.pricing_cards.get_started') || 'Get Started'}</Link>
           </div>
@@ -92,29 +90,26 @@ export default function PricingPage() {
               <p className="text-[#D98F8F]/70 text-[12px] mt-1">{isAnnual ? (t('landing.pricing_cards.billed_annually') || 'Billed annually') : (t('landing.pricing_cards.billed_monthly') || 'Billed monthly')}</p>
             </div>
             <ul className="space-y-4 mb-10 text-[15px] text-white flex-1">
-              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-[#D98F8F]" /> Up to 5,000 Invoice Scans /mo</li>
-              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-[#D98F8F]" /> 100 API Keys</li>
-              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-[#D98F8F]" /> Custom Approval Workflows</li>
-              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-[#D98F8F]" /> Advanced AI Analytics</li>
-              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-[#D98F8F]" /> Priority Support</li>
+              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-[#D98F8F]" /> Module d'extraction 5000 scan/mon</li>
+              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-[#D98F8F]" /> Modul intégration. Ttn disponible</li>
+              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-[#D98F8F]" /> Modul de connexion avec ton app</li>
             </ul>
             <Link href="/auth/register" className="w-full py-4 rounded-full bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white text-center font-bold shadow-lg hover:shadow-[0_0_20px_rgba(217,143,143,0.4)] transition-all">{t('landing.pricing_cards.start_trial') || 'Start 14-Day Free Trial'}</Link>
           </div>
 
-          {/* Ultra */}
+          {/* Primum */}
           <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[30px] p-10 flex flex-col hover:border-white/10 transition-colors">
-            <h3 className="text-white text-[24px] font-bold mb-2">Ultra</h3>
+            <h3 className="text-white text-[24px] font-bold mb-2">Primum</h3>
             <p className="text-[#A69697] text-[14px] mb-8">Unlimited usage</p>
             <div className="mb-8">
               <span className="text-[54px] font-bold text-white">{isAnnual ? '71' : '89'}</span><span className="text-[#A69697] font-bold"> TND</span><span className="text-[#A69697]">/mo</span>
               <p className="text-[#A69697] text-[12px] mt-1">{isAnnual ? (t('landing.pricing_cards.billed_annually') || 'Billed annually') : (t('landing.pricing_cards.billed_monthly') || 'Billed monthly')}</p>
             </div>
             <ul className="space-y-4 mb-10 text-[15px] text-[#A69697] flex-1">
-              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Unlimited Invoice Scans</li>
-              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Unlimited API Keys</li>
-              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Dedicated TTN Instance</li>
-              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> SLA Guarantee & 24/7 Support</li>
-              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Custom Model Training</li>
+              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Module d'extraction illimité</li>
+              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Modul intégration. Ttn disponible</li>
+              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Modul de connexion avec ton app</li>
+              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> Modul de comparaison des pris avec les concurrents</li>
             </ul>
             <Link href="/auth/login" className="w-full py-4 rounded-full bg-white/10 text-white font-bold hover:bg-white/20 transition-colors text-center">Contact Sales</Link>
           </div>

@@ -40,7 +40,7 @@ export default function SubscriptionPage() {
           <p className="text-[#A69697] text-[15px]">{t('settings.subscription.subtitle')}</p>
         </div>
 
-        <div className="flex-1 max-w-[800px]">
+        <div className="flex-1 w-full max-w-[1200px]">
           {/* Current Plan */}
           <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-[#D98F8F]/30 rounded-[24px] p-6 shadow-lg relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#D98F8F]/10 rounded-full blur-3xl"></div>
@@ -57,17 +57,30 @@ export default function SubscriptionPage() {
             </div>
 
             <h4 className="text-white text-[14px] font-bold mb-4">{t('settings.subscription.upgrade_plan')}</h4>
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
               {[
-                { name: 'Basic',  desc: 'Core features',    price: '19 TND', scans: t('settings.subscription.scans_500') },
-                { name: 'Pro',    desc: 'Advanced tools',   price: '49 TND', scans: t('settings.subscription.scans_5000') },
-                { name: 'Ultra',  desc: 'Unlimited usage',  price: '89 TND', scans: t('settings.subscription.unlimited') },
-              ].map(({ name, desc, price, scans }) => (
-                <div key={name} className={`border ${user?.billing?.plan === name ? 'border-[#D98F8F] bg-[#D98F8F]/5' : 'border-white/10 bg-white/5'} rounded-[16px] p-4 flex flex-col`}>
-                  <p className="text-white font-bold text-[16px] mb-0.5">{name}</p>
-                  <p className="text-[#A69697] text-[12px] mb-1">{desc}</p>
-                  <p className="text-white font-extrabold text-[20px] mb-3">{price} <span className="text-[#A69697] font-normal text-[13px]">/mo</span></p>
-                  <p className="text-[#A69697] text-[11px] mb-4">{scans}</p>
+                { 
+                  name: 'Basic',  
+                  price: '19 TND', 
+                  features: ["Modul d'extration 200 scan/mon", "Modul d'intégration ttn"] 
+                },
+                { 
+                  name: 'Pro',    
+                  price: '49 TND', 
+                  features: ["Module d'extraction 5000 scan/mon", "Modul intégration. Ttn disponible", "Modul de connexion avec ton app"] 
+                },
+                { 
+                  name: 'Primum',  
+                  price: '89 TND', 
+                  features: ["Module d'extraction illimité", "Modul intégration. Ttn disponible", "Modul de connexion avec ton app", "Modul de comparaison des pris avec les concurrents"] 
+                },
+              ].map(({ name, price, features }) => (
+                <div key={name} className={`border ${user?.billing?.plan === name ? 'border-[#D98F8F] bg-[#D98F8F]/5' : 'border-white/10 bg-white/5'} rounded-[24px] p-6 lg:p-8 flex flex-col hover:border-white/20 transition-colors`}>
+                  <p className="text-white font-bold text-[18px] mb-1">{name}</p>
+                  <p className="text-white font-extrabold text-[28px] mb-5 mt-2">{price} <span className="text-[#A69697] font-normal text-[14px]">/mo</span></p>
+                  <ul className="text-[#A69697] text-[13px] mb-8 space-y-3 flex-1">
+                    {features.map((f, i) => <li key={i} className="flex items-start gap-2"><span className="text-[#D98F8F] shrink-0 mt-0.5">•</span><span className="leading-relaxed">{f}</span></li>)}
+                  </ul>
                   <button 
                     onClick={() => {
                       setSelectedPlan(name);
