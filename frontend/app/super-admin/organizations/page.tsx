@@ -305,7 +305,7 @@ export default function OrganizationsPage() {
                 if (filteredOrgs.length === 0) return alert('No organizations to export');
                 setIsExportModalOpen(true);
               }}
-              className="px-3 py-1.5 rounded-md text-[12px] font-medium transition-colors bg-[#D98F8F]/10 hover:bg-[#D98F8F]/20 border border-[#D98F8F]/30 text-[#D98F8F]"
+              className="px-3 py-1.5 rounded-md text-[12px] font-medium transition-colors bg-white/5 hover:bg-white/10 border border-white/5 text-[#A69697] hover:text-white"
             >
               {t('organizations.export_pdf')}
             </button>

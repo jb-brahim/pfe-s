@@ -7,7 +7,7 @@ type Language = 'EN' | 'FR' | 'AR';
 interface I18nContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, options?: Record<string, string | number>) => string;
 }
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
@@ -57,7 +57,7 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
     localStorage.setItem('app-lang', lang);
   };
 
-  const t = (key: string) => {
+  const t = (key: string, options?: Record<string, string | number>) => {
     // depend on dictVersion to force re-render
     const version = dictVersion; 
     const keys = key.split('.');
@@ -70,7 +70,14 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
         break;
       }
     }
-    return typeof value === 'string' ? value : key;
+    
+    let res = typeof value === 'string' ? value : key;
+    if (options) {
+      Object.entries(options).forEach(([optKey, optValue]) => {
+        res = res.replace(new RegExp(`{{${optKey}}}`, 'g'), String(optValue));
+      });
+    }
+    return res;
   };
 
   const pathname = usePathname();
