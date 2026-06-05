@@ -415,10 +415,10 @@ export default function TeamPage() {
               <table className="w-full text-left border-collapse">
                 <thead className="sticky top-0 z-10 bg-[#1E0A0B] backdrop-blur-xl shadow-md">
                   <tr className="text-[#A69697] text-[11px] uppercase tracking-wider">
-                    <th className="py-4 px-6 font-semibold border-b border-white/5">User</th>
-                    <th className="py-4 px-6 font-semibold border-b border-white/5">Document</th>
-                    <th className="py-4 px-6 font-semibold border-b border-white/5">Date & Time</th>
-                    <th className="py-4 px-6 font-semibold border-b border-white/5 text-right">Status</th>
+                    <th className="py-4 px-6 font-semibold border-b border-white/5">{t('team.user')}</th>
+                    <th className="py-4 px-6 font-semibold border-b border-white/5">{t('team.table_document')}</th>
+                    <th className="py-4 px-6 font-semibold border-b border-white/5">{t('team.table_date')}</th>
+                    <th className="py-4 px-6 font-semibold border-b border-white/5 text-right">{t('team.table_status')}</th>
                   </tr>
                 </thead>
                 <tbody className="text-[#FFFFFF] text-[13px]">
@@ -454,13 +454,13 @@ export default function TeamPage() {
                         </td>
                         <td className="py-4 px-6 text-right">
                           {log.rawAction === 'APPROVE' ? (
-                            <span className="bg-[#4CAF50]/10 text-[#4CAF50] border border-[#4CAF50]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">APPROVED</span>
+                            <span className="bg-[#4CAF50]/10 text-[#4CAF50] border border-[#4CAF50]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide uppercase">{t('status.approved')}</span>
                           ) : log.rawAction === 'REJECT' ? (
-                            <span className="bg-[#D98F8F]/10 text-[#D98F8F] border border-[#D98F8F]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">REJECTED</span>
+                            <span className="bg-[#D98F8F]/10 text-[#D98F8F] border border-[#D98F8F]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide uppercase">{t('status.rejected')}</span>
                           ) : log.rawAction === 'VERIFICATION' ? (
-                            <span className="bg-[#FFC107]/10 text-[#FFC107] border border-[#FFC107]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">VERIFIED</span>
+                            <span className="bg-[#FFC107]/10 text-[#FFC107] border border-[#FFC107]/30 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide uppercase">{t('status.verified')}</span>
                           ) : (
-                            <span className="bg-white/5 text-[#A69697] border border-white/10 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide">{log.rawAction}</span>
+                            <span className="bg-white/5 text-[#A69697] border border-white/10 px-2.5 py-1 rounded-[8px] text-[11px] font-bold tracking-wide uppercase">{log.rawAction}</span>
                           )}
                         </td>
                       </tr>

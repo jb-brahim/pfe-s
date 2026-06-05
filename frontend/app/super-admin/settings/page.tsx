@@ -83,7 +83,7 @@ export default function SettingsPage() {
       });
       setNewPassword('');
       setConfirmPassword('');
-      setSuccessMessage("Mot de passe modifié avec succès !");
+      setSuccessMessage(t('superadmin.settings_page.password_success'));
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error: any) {
@@ -135,7 +135,7 @@ export default function SettingsPage() {
         <div className="w-full md:w-56 flex-shrink-0 space-y-1">
           {[
             { name: 'General', label: t('superadmin.settings_page.tab_general'), icon: Globe },
-            { name: 'Security', label: "Sécurité", icon: Key },
+            { name: 'Security', label: t('superadmin.settings_page.tab_security'), icon: Key },
           ].map((item, i) => (
             <button 
               key={i} 
@@ -192,11 +192,11 @@ export default function SettingsPage() {
           {activeTab === 'Security' && (
             <div className={cardClasses}>
               <h2 className="text-[14px] font-semibold text-white mb-5 border-b border-white/5 pb-3">
-                Changer le Mot de Passe
+                {t('superadmin.settings_page.change_password')}
               </h2>
               <form onSubmit={handleChangePassword} className="space-y-5 max-w-md">
                 <div>
-                  <label className="block text-[11px] font-medium text-[#A69697] mb-1.5 uppercase tracking-wider">Nouveau mot de passe</label>
+                  <label className="block text-[11px] font-medium text-[#A69697] mb-1.5 uppercase tracking-wider">{t('superadmin.settings_page.new_password')}</label>
                   <input 
                     type="password" 
                     value={newPassword}
@@ -207,7 +207,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-medium text-[#A69697] mb-1.5 uppercase tracking-wider">Confirmer le nouveau mot de passe</label>
+                  <label className="block text-[11px] font-medium text-[#A69697] mb-1.5 uppercase tracking-wider">{t('superadmin.settings_page.confirm_password')}</label>
                   <input 
                     type="password" 
                     value={confirmPassword}
@@ -224,7 +224,7 @@ export default function SettingsPage() {
                     className="flex items-center gap-2 px-4 py-2 rounded-md text-[12px] font-medium bg-[#D98F8F] text-[#1A0A0B] hover:bg-[#D98F8F]/90 transition-colors disabled:opacity-50"
                   >
                     {isChangingPassword ? <Loader size={14} className="animate-spin"/> : <Key size={14} />}
-                    Mettre à jour le mot de passe
+                    {t('superadmin.settings_page.update_password')}
                   </button>
                 </div>
               </form>

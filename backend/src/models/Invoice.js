@@ -9,7 +9,12 @@ const invoiceSchema = new mongoose.Schema({
     default: 'DRAFT'
   },
   rejectionReason: { type: String },
-  isSuspicious: { type: Boolean, default: false }
+  isSuspicious: { type: Boolean, default: false },
+  source: {
+    type: String,
+    enum: ['WEB_APP', 'TELEGRAM', 'EMAIL'],
+    default: 'WEB_APP'
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Invoice', invoiceSchema);

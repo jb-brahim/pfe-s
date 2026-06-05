@@ -43,6 +43,8 @@ const userSchema = new mongoose.Schema({
     key: String,
     createdAt: { type: Date, default: Date.now }
   }],
+  telegramId: { type: String, default: null },
+  telegramLinkToken: { type: String, default: null },
   integrations: {
     ttnAccountId: { type: String, default: '' },
     ttnIntegrationKey: { type: String, default: '' },

@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import { Loader, FileText, PieChart, BarChart3, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Loader, FileText, PieChart, BarChart3, Eye, EyeOff, ArrowLeft, Globe } from 'lucide-react';
 import Link from 'next/link';
+import { useLanguage } from '@/lib/i18n-context';
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
+  const { t, language: lang, setLanguage: setLang } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
@@ -23,6 +25,7 @@ export default function LoginPage() {
   });
   const [mounted, setMounted] = useState(false);
   const [transitionReady, setTransitionReady] = useState(false);
+  const [showLanguages, setShowLanguages] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('app-theme') as 'dark' | 'light';
@@ -139,8 +142,44 @@ export default function LoginPage() {
           : 'bg-white/40 hover:bg-white/70 border border-white/50 text-[#8E1B3A]'
       }`}>
         <ArrowLeft size={16} />
-        <span className="text-[13px]">Back to Home</span>
+        <span className="text-[13px]">{t('auth.back_to_home') || 'Back to Home'}</span>
       </Link>
+
+      {/* Language Switcher */}
+      <div className="absolute top-6 right-6 z-50">
+        <button
+          onClick={() => setShowLanguages(!showLanguages)}
+          className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md shadow-sm transition-all border ${
+            isDark 
+              ? 'bg-[#1A0A0B]/40 border-white/10 text-[#A69697] hover:text-white hover:bg-[#1A0A0B]/70'
+              : 'bg-white/40 border-white/50 text-[#8E1B3A]/70 hover:text-[#8E1B3A] hover:bg-white/70'
+          }`}
+          title="Switch Language"
+        >
+          <Globe className="w-5 h-5" strokeWidth={1.5} />
+        </button>
+        {showLanguages && (
+          <div className={`absolute top-12 right-0 w-32 border rounded-xl shadow-2xl overflow-hidden py-1 ${
+            isDark ? 'bg-[#1A0A0B] border-white/10' : 'bg-white border-gray-200'
+          }`}>
+            {(['EN', 'FR', 'AR'] as const).map(l => (
+              <button
+                key={l}
+                onClick={() => { setLang(l); setShowLanguages(false); }}
+                className={`w-full text-left px-4 py-2 text-[13px] transition-colors ${
+                  isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'
+                } ${
+                  lang === l 
+                    ? isDark ? 'text-[#D98F8F] font-bold' : 'text-[#8E1B3A] font-bold'
+                    : isDark ? 'text-[#A69697]' : 'text-gray-700'
+                }`}
+              >
+                {l === 'EN' ? 'English' : l === 'FR' ? 'Français' : 'العربية'}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Background Ambience */}
       <div className="fixed top-[-20%] right-[-10%] w-[50%] h-[50%] bg-[#8E1B3A] rounded-full blur-[150px] opacity-20 pointer-events-none transition-opacity duration-700"></div>
@@ -159,11 +198,11 @@ export default function LoginPage() {
           {mode === 'login' && (
             <>
               <h1 className={`text-[36px] font-medium mb-10 tracking-tight transition-colors duration-700 ${isDark ? 'text-white' : 'text-[#1A0A0B]'}`}>
-                Secure Access
+                {t('auth.secure_access') || 'Secure Access'}
               </h1>
               <form onSubmit={handleLogin} className="space-y-6">
                 <div>
-                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>Email Address</label>
+                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>{t('auth.email_address') || 'Email Address'}</label>
                   <input
                     type="email"
                     value={email}
@@ -178,7 +217,7 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>Password</label>
+                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>{t('auth.password') || 'Password'}</label>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -216,10 +255,10 @@ export default function LoginPage() {
                           : isDark ? 'translate-x-0 bg-[#A69697]' : 'translate-x-0 bg-gray-400'
                       }`}></div>
                     </div>
-                    <span className={`text-[13px] transition-colors duration-700 ${isDark ? 'text-white' : 'text-[#1A0A0B] font-medium'}`}>Remember Me</span>
+                    <span className={`text-[13px] transition-colors duration-700 ${isDark ? 'text-white' : 'text-[#1A0A0B] font-medium'}`}>{t('auth.remember_me') || 'Remember Me'}</span>
                   </div>
                   <button type="button" onClick={() => { setMode('forgot_password'); setError(''); }} className={`text-[13px] transition-colors duration-700 ${isDark ? 'text-[#A69697] hover:text-white' : 'text-[#8E1B3A]/80 hover:text-[#8E1B3A] font-medium'}`}>
-                    Forgot Password?
+                    {t('auth.forgot_password') || 'Forgot Password?'}
                   </button>
                 </div>
 
@@ -235,15 +274,15 @@ export default function LoginPage() {
                   }`}
                 >
                   {isLoading && <Loader size={18} className="animate-spin" />}
-                  {isLoading ? 'Signing in...' : 'Log In'}
+                  {isLoading ? (t('auth.signing_in') || 'Signing in...') : (t('auth.log_in') || 'Log In')}
                 </button>
 
                 <div className="text-center mt-6">
-                  <span className={`text-[13px] ${isDark ? 'text-[#A69697]' : 'text-gray-600'}`}>Don't have an account? </span>
+                  <span className={`text-[13px] ${isDark ? 'text-[#A69697]' : 'text-gray-600'}`}>{t('auth.no_account') || "Don't have an account?"} </span>
                   <Link href="/auth/register" className={`text-[13px] font-bold transition-colors duration-700 ${
                     isDark ? 'text-[#D98F8F] hover:text-white' : 'text-[#8E1B3A] hover:text-[#6D071A]'
                   }`}>
-                    Sign Up
+                    {t('auth.sign_up') || 'Sign Up'}
                   </Link>
                 </div>
               </form>
@@ -253,14 +292,14 @@ export default function LoginPage() {
           {mode === 'forgot_password' && (
             <>
               <h1 className={`text-[36px] font-medium mb-4 tracking-tight transition-colors duration-700 ${isDark ? 'text-white' : 'text-[#1A0A0B]'}`}>
-                Reset Password
+                {t('auth.reset_password') || 'Reset Password'}
               </h1>
               <p className={`text-[14px] mb-8 ${isDark ? 'text-[#A69697]' : 'text-gray-600'}`}>
-                Enter your email address and we'll send you a 6-digit verification code to reset your password.
+                {t('auth.reset_password_desc') || "Enter your email address and we'll send you a 6-digit verification code to reset your password."}
               </p>
               <form onSubmit={handleForgotPassword} className="space-y-6">
                 <div>
-                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>Email Address</label>
+                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>{t('auth.email_address') || 'Email Address'}</label>
                   <div className="relative group">
                     <input
                       type="email"
@@ -288,14 +327,14 @@ export default function LoginPage() {
                   }`}
                 >
                   {isLoading && <Loader size={18} className="animate-spin" />}
-                  {isLoading ? 'Sending...' : 'Send Reset Code'}
+                  {isLoading ? (t('auth.sending') || 'Sending...') : (t('auth.send_reset_code') || 'Send Reset Code')}
                 </button>
 
                 <div className="text-center mt-6">
                   <button type="button" onClick={() => { setMode('login'); setError(''); }} className={`text-[13px] font-bold transition-colors duration-700 ${
                     isDark ? 'text-[#D98F8F] hover:text-white' : 'text-[#8E1B3A] hover:text-[#6D071A]'
                   }`}>
-                    Back to Login
+                    {t('auth.back_to_login') || 'Back to Login'}
                   </button>
                 </div>
               </form>
@@ -305,14 +344,14 @@ export default function LoginPage() {
           {mode === 'reset_password' && (
             <>
               <h1 className={`text-[36px] font-medium mb-4 tracking-tight transition-colors duration-700 ${isDark ? 'text-white' : 'text-[#1A0A0B]'}`}>
-                Enter Code
+                {t('auth.enter_code') || 'Enter Code'}
               </h1>
               <p className={`text-[14px] mb-8 ${isDark ? 'text-[#A69697]' : 'text-gray-600'}`}>
-                We've sent a 6-digit code to <strong>{resetEmail}</strong>. Enter it below along with your new password.
+                {t('auth.code_sent') || "We've sent a 6-digit code to"} <strong>{resetEmail}</strong>. {t('auth.code_sent_2') || "Enter it below along with your new password."}
               </p>
               <form onSubmit={handleResetPassword} className="space-y-6">
                 <div>
-                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>6-Digit Code</label>
+                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>{t('auth.six_digit_code') || '6-Digit Code'}</label>
                   <input
                     type="text"
                     maxLength={6}
@@ -329,7 +368,7 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>New Password</label>
+                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>{t('auth.new_password') || 'New Password'}</label>
                   <input
                     type="password"
                     value={newPassword}
@@ -355,14 +394,14 @@ export default function LoginPage() {
                   }`}
                 >
                   {isLoading && <Loader size={18} className="animate-spin" />}
-                  {isLoading ? 'Resetting...' : 'Reset Password'}
+                  {isLoading ? (t('auth.resetting') || 'Resetting...') : (t('auth.reset_password') || 'Reset Password')}
                 </button>
 
                 <div className="text-center mt-6">
                   <button type="button" onClick={() => { setMode('login'); setError(''); }} className={`text-[13px] font-bold transition-colors duration-700 ${
                     isDark ? 'text-[#D98F8F] hover:text-white' : 'text-[#8E1B3A] hover:text-[#6D071A]'
                   }`}>
-                    Cancel
+                    {t('auth.cancel') || 'Cancel'}
                   </button>
                 </div>
               </form>

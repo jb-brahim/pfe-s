@@ -9,6 +9,15 @@ const protect = async (req, res, next) => {
   const apiKey = req.headers['x-api-key'];
   if (apiKey && apiKey === (process.env.N8N_API_KEY || 'n8n-secret-api-key-123')) {
     try {
+      const telegramId = req.headers['x-telegram-id'];
+      if (telegramId) {
+        const actualUser = await User.findOne({ telegramId });
+        if (actualUser) {
+          req.user = actualUser;
+          return next();
+        }
+      }
+
       let botUser = await User.findOne({ email: 'n8n-bot@system.com' });
       if (!botUser) {
         botUser = await User.create({
@@ -24,7 +33,7 @@ const protect = async (req, res, next) => {
       req.user = botUser;
       return next();
     } catch (err) {
-      console.error('Bot user auth error:', err);
+      console.error('Bot/Telegram user auth error:', err);
       return res.status(500).json({ message: 'Internal Server Error during bot authentication' });
     }
   }

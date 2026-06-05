@@ -122,12 +122,22 @@ const getDashboardStats = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .limit(5);
 
+    // 8. Rejected Invoices (For AI Telegram Assistant Q&A)
+    const rejectedInvoicesList = await Invoice.find({ ...filter, status: 'REJECTED' }).select('_id');
+    const rejectedInvoiceIds = rejectedInvoicesList.map(i => i._id);
+
+    const rejectedInvoices = await ExtractedData.find({ invoiceId: { $in: rejectedInvoiceIds } })
+      .populate('invoiceId', 'status createdAt rejectionReason')
+      .sort({ createdAt: -1 })
+      .limit(5);
+
     res.json({
       data: {
         metrics,
         totalAmount,
         topVendors,
         recentInvoices,
+        rejectedInvoices,
         auditEntries: auditEntries.map(e => ({
           id: e._id,
           timestamp: e.timestamp,

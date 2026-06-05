@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { useLanguage } from '@/lib/i18n-context';
 import { exportInvoicesPDF } from '@/lib/exportPDF';
 
-type InvoiceStatus = 'ALL' | 'DRAFT' | 'EXTRACTED' | 'VERIFIED' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'FAILED';
+type InvoiceStatus = 'ALL' | 'DRAFT' | 'EXTRACTED' | 'VERIFIED' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'FAILED' | 'TELEGRAM';
 
 const ConfidenceRing = ({ score }: { score: number }) => {
   const radius = 16;
@@ -48,11 +48,11 @@ export default function InvoicesPage() {
   const router = useRouter();
   const { t } = useLanguage();
 
-  const statuses: InvoiceStatus[] = ['ALL', 'SUBMITTED', 'APPROVED', 'REJECTED', 'FAILED'];
+  const statuses: InvoiceStatus[] = ['ALL', 'SUBMITTED', 'APPROVED', 'REJECTED', 'FAILED', 'TELEGRAM'];
 
   useEffect(() => {
     const fetchInvoices = async () => {
-      const status = selectedStatus === 'ALL' ? undefined : selectedStatus;
+      const status = (selectedStatus === 'ALL' || selectedStatus === 'TELEGRAM') ? undefined : selectedStatus;
       const result = await invoiceAPI.getAll(status, searchQuery);
       setInvoices(result.data || []);
     };
@@ -144,18 +144,18 @@ export default function InvoicesPage() {
     
     // Professional header structure for accounting/detailed view
     const headers = [
-      'Invoice Number',
-      'Vendor / Company',
-      'Status',
-      'Date Added',
-      'Total H.T. (TND)',
-      'TVA (TND)',
-      'Total T.T.C. (TND)',
-      'AI Confidence',
-      'Product / Service Description',
-      'Quantity',
-      'Unit Price (TND)',
-      'Total Price (TND)'
+      t('invoices.export_headers.invoice_number'),
+      t('invoices.export_headers.vendor'),
+      t('invoices.export_headers.status'),
+      t('invoices.export_headers.date_added'),
+      t('invoices.export_headers.total_ht'),
+      t('invoices.export_headers.tva'),
+      t('invoices.export_headers.total_ttc'),
+      t('invoices.export_headers.confidence'),
+      t('invoices.export_headers.description'),
+      t('invoices.export_headers.quantity'),
+      t('invoices.export_headers.unit_price'),
+      t('invoices.export_headers.total_price')
     ];
 
     const escapeCSV = (value: any) => {
@@ -190,7 +190,7 @@ export default function InvoicesPage() {
           escapeCSV(tvaAmount),
           escapeCSV(totalAmount),
           escapeCSV(Math.round(confidence * 100) + '%'),
-          escapeCSV('No line items extracted'),
+          escapeCSV(t('invoices.no_line_items')),
           escapeCSV(''),
           escapeCSV(''),
           escapeCSV('')
@@ -234,10 +234,10 @@ export default function InvoicesPage() {
     if (invoices.length === 0) return toast.error(t('invoices.export_empty'));
     try {
       await exportInvoicesPDF(filteredInvoices.length > 0 ? filteredInvoices : invoices);
-      toast.success('PDF exporté avec succès !');
+      toast.success(t('invoices.export_pdf_success'));
     } catch (err) {
       console.error(err);
-      toast.error('Échec de la génération du PDF. Veuillez réessayer.');
+      toast.error(t('invoices.export_pdf_failed'));
     }
   };
 
@@ -259,7 +259,8 @@ export default function InvoicesPage() {
   };
 
   const filteredInvoices = invoices.filter((inv) => {
-    if (selectedStatus !== 'ALL' && inv.status !== selectedStatus) return false;
+    if (selectedStatus === 'TELEGRAM' && inv.source !== 'TELEGRAM') return false;
+    if (selectedStatus !== 'ALL' && selectedStatus !== 'TELEGRAM' && inv.status !== selectedStatus) return false;
     if (searchQuery && !inv.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
@@ -285,7 +286,7 @@ export default function InvoicesPage() {
               onClick={handleExportPDF}
               className="flex items-center gap-2 px-4 py-2 bg-[#8E1B3A]/20 border border-[#8E1B3A]/40 hover:bg-[#8E1B3A]/30 rounded-[8px] text-[13px] font-medium transition-colors text-[#D98F8F]"
             >
-              <FileDown size={16} /> Export PDF
+              <FileDown size={16} /> {t('invoices.export_pdf')}
             </button>
           </div>
         </div>
@@ -370,7 +371,11 @@ export default function InvoicesPage() {
                       : 'text-[#A69697] border-transparent hover:text-white'
                   }`}
                 >
-                  {status === 'ALL' ? t('invoices.all') : t(`status.${status.toLowerCase()}`)}
+                  {status === 'ALL' 
+                    ? (t('invoices.all') === 'invoices.all' ? 'All' : t('invoices.all')) 
+                    : status === 'TELEGRAM' 
+                    ? 'Telegram' 
+                    : (t(`status.${status.toLowerCase()}`) === `status.${status.toLowerCase()}` ? status.charAt(0) + status.slice(1).toLowerCase() : t(`status.${status.toLowerCase()}`))}
                 </button>
               ))}
             </div>
@@ -398,7 +403,7 @@ export default function InvoicesPage() {
                   <th className="px-6 py-4">{t('invoices.table.date_added')}</th>
                   <th className="px-6 py-4">{t('invoices.table.status')}</th>
                   <th className="px-6 py-4">{t('invoices.table.ai_match')}</th>
-                  <th className="px-6 py-4 text-right">{t('invoices.table.amount')}</th>
+                  <th className="px-6 py-4">{t('invoices.table.source') || 'Source'}</th>
                   <th className="px-6 py-4 text-center">{t('invoices.table.actions')}</th>
                 </tr>
               </thead>
@@ -459,9 +464,22 @@ export default function InvoicesPage() {
                             <span className="text-[#A69697] text-[12px] italic">{t('invoices.not_scanned')}</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-right">
-                          <p className="font-bold text-white">{invoice.totalAmount?.toLocaleString() || '0'} TND</p>
-                          <p className="text-[#A69697] text-[11px] mt-0.5">{t('invoices.tax')}: {invoice.taxAmount?.toLocaleString() || '0'} TND</p>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            {invoice.source === 'TELEGRAM' ? (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase border bg-blue-500/10 text-blue-400 border-blue-500/20">
+                                Telegram
+                              </span>
+                            ) : invoice.source === 'EMAIL' ? (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase border bg-purple-500/10 text-purple-400 border-purple-500/20">
+                                Email
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase border bg-white/5 text-[#A69697] border-white/10">
+                                Aura App
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center justify-center gap-1">
@@ -501,9 +519,9 @@ export default function InvoicesPage() {
                 <AlertTriangle size={36} className="text-red-400" />
               </div>
               
-              <h2 className="text-white text-[24px] font-bold mb-3">Limit Reached</h2>
+              <h2 className="text-white text-[24px] font-bold mb-3">{t('invoices.limit_reached_title')}</h2>
               <p className="text-white/70 text-[15px] mb-8 leading-relaxed">
-                You have exhausted your free AI scans. Please upgrade your subscription to continue processing invoices.
+                {t('invoices.limit_reached_desc')}
               </p>
               
               <div className="flex flex-col gap-3">
@@ -511,13 +529,13 @@ export default function InvoicesPage() {
                   onClick={() => router.push('/settings?tab=subscription')}
                   className="w-full btn-burgundy py-3.5 text-[15px] font-bold shadow-lg"
                 >
-                  Upgrade Plan
+                  {t('invoices.upgrade_plan')}
                 </button>
                 <button 
                   onClick={() => setShowLimitModal(false)}
                   className="w-full py-3.5 text-white/50 hover:text-white transition-colors text-[14px]"
                 >
-                  Cancel
+                  {t('settings.subscription.checkout.cancel')}
                 </button>
               </div>
             </div>

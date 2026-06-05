@@ -7,6 +7,7 @@ import { ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, XAxis, Toolt
 import { CreditCard, Wallet, TrendingUp, Building2, Server, Briefcase, Plus, Check, X, FileText, Settings2, Save } from 'lucide-react';
 import { analyticsAPI, invoiceAPI, budgetAPI } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
+import { useLanguage } from '@/lib/i18n-context';
 import { toast } from 'sonner';
 
 const expenseCategories = [
@@ -24,6 +25,7 @@ const spendingTrend = [
 
 
 export default function ExpensesPage() {
+  const { t } = useLanguage();
   const [stats, setStats] = useState<any>(null);
   const [pendingInvoices, setPendingInvoices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -148,9 +150,10 @@ export default function ExpensesPage() {
         // Refresh stats to get the new budget
         const statsRes = await analyticsAPI.getDashboardStats();
         setStats(statsRes.data);
+        toast.success(t('expenses.toast_budget_success'));
       } catch (err: any) {
         console.error('Failed to save budget', err);
-        toast.error(err.response?.data?.message || 'Failed to save budget. Please check your permissions.');
+        toast.error(err.response?.data?.message || t('expenses.toast_budget_failed'));
       }
     }
   };
@@ -164,9 +167,9 @@ export default function ExpensesPage() {
           <div className="absolute top-0 right-0 w-96 h-96 bg-[#8E1B3A] rounded-full blur-[150px] opacity-20 pointer-events-none"></div>
           <div>
             <h1 className="text-[36px] font-bold tracking-tight mb-2 flex items-center gap-3 text-[#FFFFFF]">
-              Corporate Expenses
+              {t('expenses.title')}
             </h1>
-            <p className="text-[#A69697] text-[16px]">Track team spending, manage budgets, and approve employee claims.</p>
+            <p className="text-[#A69697] text-[16px]">{t('expenses.subtitle')}</p>
           </div>
         </div>
 
@@ -178,14 +181,14 @@ export default function ExpensesPage() {
               <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
                 <Wallet className="text-[#D98F8F]" size={24} />
               </div>
-              <span className="bg-[#8E1B3A]/30 text-[#D98F8F] px-3 py-1 rounded-full text-[12px] font-bold border border-[#8E1B3A]/50">This Month</span>
+              <span className="bg-[#8E1B3A]/30 text-[#D98F8F] px-3 py-1 rounded-full text-[12px] font-bold border border-[#8E1B3A]/50">{t('expenses.this_month')}</span>
             </div>
-            <p className="text-[#A69697] text-[14px] mb-1">Total Spent</p>
+            <p className="text-[#A69697] text-[14px] mb-1">{t('expenses.total_spent')}</p>
             <h2 className="text-[32px] font-bold text-white tracking-tight">{formatCurrency(totalSpent)}</h2>
           </div>
 
           <div className="bg-[rgba(255,255,255,0.03)] backdrop-blur-[10px] border border-white/10 rounded-[24px] p-6 shadow-lg">
-            <p className="text-[#A69697] text-[14px] mb-4">Budget Utilization</p>
+            <p className="text-[#A69697] text-[14px] mb-4">{t('expenses.budget_utilization')}</p>
             <div className="flex items-center gap-6">
               <div className="w-20 h-20 relative flex items-center justify-center">
                 <svg className="transform -rotate-90 w-20 h-20">
@@ -204,10 +207,10 @@ export default function ExpensesPage() {
                       className="bg-white/5 border border-white/10 rounded-[8px] py-1 px-2 text-[14px] text-white outline-none focus:border-[#D98F8F] w-24"
                     />
                     <button onClick={handleSaveBudget} className="text-[#4CAF50] hover:text-[#4CAF50]/70 p-1 text-[13px] font-medium">
-                      Save
+                      {t('expenses.save')}
                     </button>
                     <button onClick={() => setIsEditingBudget(false)} className="text-[#A69697] hover:text-white p-1 text-[13px] font-medium">
-                      Annuler
+                      {t('expenses.cancel')}
                     </button>
                   </div>
                 ) : (
@@ -215,9 +218,9 @@ export default function ExpensesPage() {
                     <h3 className="text-white font-bold text-[20px]">{formatCurrency(budget)}</h3>
                   </div>
                 )}
-                <p className="text-[#A69697] text-[13px]">Total Budget</p>
+                <p className="text-[#A69697] text-[13px]">{t('expenses.total_budget')}</p>
                 <p className={`text-[12px] font-medium mt-1 ${budgetUtil > 100 ? 'text-[#D98F8F]' : budgetUtil > 80 ? 'text-[#FFC107]' : 'text-[#4CAF50]'}`}>
-                  {budgetUtil > 100 ? 'Over budget!' : budgetUtil > 80 ? 'Approaching limit' : 'Looking good!'}
+                  {budgetUtil > 100 ? t('expenses.over_budget') : budgetUtil > 80 ? t('expenses.approaching_limit') : t('expenses.looking_good')}
                 </p>
               </div>
             </div>
@@ -228,8 +231,8 @@ export default function ExpensesPage() {
         {/* Employee Claims / Receipts Queue */}
         <div className="bg-[rgba(255,255,255,0.03)] backdrop-blur-[10px] border border-white/10 rounded-[30px] p-8 shadow-lg flex flex-col">
             <div className="flex items-center justify-between mb-8">
-              <h3 className="text-[#FFFFFF] text-[18px] font-bold">Pending Team Claims</h3>
-              <Link href="/invoices" className="text-[#D98F8F] text-[13px] font-bold hover:underline">View All History</Link>
+              <h3 className="text-[#FFFFFF] text-[18px] font-bold">{t('expenses.pending_claims')}</h3>
+              <Link href="/invoices" className="text-[#D98F8F] text-[13px] font-bold hover:underline">{t('expenses.view_history')}</Link>
             </div>
 
             <div className="flex flex-col gap-4">
@@ -248,9 +251,9 @@ export default function ExpensesPage() {
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className="text-white font-bold text-[16px] truncate">{claim.item}</h4>
                       {claim.status === 'pending' ? (
-                        <span className="bg-[#FFC107]/10 text-[#FFC107] border border-[#FFC107]/30 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">Pending</span>
+                        <span className="bg-[#FFC107]/10 text-[#FFC107] border border-[#FFC107]/30 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">{t('expenses.pending')}</span>
                       ) : (
-                        <span className="bg-[#4CAF50]/10 text-[#4CAF50] border border-[#4CAF50]/30 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">Approved</span>
+                        <span className="bg-[#4CAF50]/10 text-[#4CAF50] border border-[#4CAF50]/30 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">{t('expenses.approved')}</span>
                       )}
                     </div>
                     <div className="flex items-center gap-3 text-[13px] text-[#A69697]">
@@ -286,7 +289,7 @@ export default function ExpensesPage() {
                       </div>
                     ) : (
                       <div className="w-[88px] flex justify-end">
-                         <Link href={`/invoices/${claim.id}`} className="text-[#A69697] text-[13px] hover:text-white transition-colors underline">View</Link>
+                         <Link href={`/invoices/${claim.id}`} className="text-[#A69697] text-[13px] hover:text-white transition-colors underline">{t('expenses.view')}</Link>
                       </div>
                     )}
                   </div>

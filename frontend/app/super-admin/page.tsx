@@ -29,7 +29,7 @@ export default function SuperAdminDashboard() {
       ttnPending: 0,
       avgAccuracy: 'N/A',
       totalMRR: 0,
-      planCounts: { Premium: 0, Pro: 0, Basic: 0 }
+      planCounts: { Premium: 0, Pro: 0, Normal: 0, Basic: 0 }
     }
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -54,7 +54,7 @@ export default function SuperAdminDashboard() {
             totalInvoices: res.data.data.totalInvoices || 0,
             chartData: res.data.data.chartData || [],
             advanced: res.data.data.advanced || {
-              adminGrowth: 0, invoiceGrowth: 0, activeTokens: 0, ttnPending: 0, avgAccuracy: 'N/A', totalMRR: 0, planCounts: { Premium: 0, Pro: 0, Basic: 0 }
+              adminGrowth: 0, invoiceGrowth: 0, activeTokens: 0, ttnPending: 0, avgAccuracy: 'N/A', totalMRR: 0, planCounts: { Premium: 0, Pro: 0, Normal: 0, Basic: 0 }
             }
           });
         }
@@ -73,47 +73,47 @@ export default function SuperAdminDashboard() {
 
   const statCards = [
     {
-      title: 'Applications connected with Aura',
+      title: t('superadmin.dashboard.apps_connected_aura') || 'Applications connected with Aura',
       value: stats.admins,
       icon: Key,
       color: 'text-[#F59E0B]',
       iconBg: 'bg-[#F59E0B]/10',
-      trend: stats.advanced.adminGrowth > 0 ? `+${stats.advanced.adminGrowth}% this month` : `${stats.advanced.adminGrowth}% this month`,
+      trend: stats.advanced.adminGrowth > 0 ? `+${stats.advanced.adminGrowth}% ${t('superadmin.dashboard.this_month')}` : `${stats.advanced.adminGrowth}% ${t('superadmin.dashboard.this_month')}`,
       trendUp: stats.advanced.adminGrowth >= 0,
       href: '/super-admin/organizations',
-      description: 'API keys issued to enterprises for external system integrations. This represents the core usage of our developer API and drives B2B revenue streams.'
+      description: t('superadmin.dashboard.apps_connected_aura_desc') || 'API keys issued to enterprises for external system integrations. This represents the core usage of our developer API and drives B2B revenue streams.'
     },
     {
-      title: 'Applications connectées au TTN',
+      title: t('superadmin.dashboard.apps_connected_ttn') || 'Applications connectées au TTN',
       value: stats.ttnLinked,
       icon: LinkIcon,
       color: 'text-[#60A5FA]',
       iconBg: 'bg-[#60A5FA]/10',
-      trend: stats.advanced.ttnPending === 0 ? 'All Linked' : `${stats.advanced.ttnPending} Pending`,
+      trend: stats.advanced.ttnPending === 0 ? t('superadmin.dashboard.all_linked') : `${stats.advanced.ttnPending} ${t('superadmin.dashboard.pending')}`,
       trendUp: stats.advanced.ttnPending === 0,
-      description: 'Enterprise ERP systems successfully linked to the Tunisian TradeNet (TTN) network for automated e-invoicing and tax compliance.'
+      description: t('superadmin.dashboard.apps_connected_ttn_desc') || 'Enterprise ERP systems successfully linked to the Tunisian TradeNet (TTN) network for automated e-invoicing and tax compliance.'
     },
     {
-      title: 'Invoices Extracted via AI',
+      title: t('superadmin.dashboard.invoices_extracted') || 'Invoices Extracted via AI',
       value: stats.totalInvoices,
       icon: FileText,
       color: 'text-[#D98F8F]',
       iconBg: 'bg-[#D98F8F]/10',
-      trend: stats.advanced.invoiceGrowth > 0 ? `+${stats.advanced.invoiceGrowth}% this month` : `${stats.advanced.invoiceGrowth}% this month`,
+      trend: stats.advanced.invoiceGrowth > 0 ? `+${stats.advanced.invoiceGrowth}% ${t('superadmin.dashboard.this_month')}` : `${stats.advanced.invoiceGrowth}% ${t('superadmin.dashboard.this_month')}`,
       trendUp: stats.advanced.invoiceGrowth >= 0,
       href: '/super-admin/invoices',
-      description: 'Total volume of invoices processed automatically by the Aura proprietary AI extraction engine across all tenant organizations.'
+      description: t('superadmin.dashboard.invoices_extracted_desc') || 'Total volume of invoices processed automatically by the Aura proprietary AI extraction engine across all tenant organizations.'
     },
     {
-      title: 'Monthly Recurring Revenue',
+      title: t('superadmin.dashboard.mrr') || 'Monthly Recurring Revenue',
       value: `${stats.advanced.totalMRR} TND`,
       icon: CreditCard,
       color: 'text-[#10B981]',
       iconBg: 'bg-[#10B981]/10',
-      trend: `${stats.advanced.planCounts?.Premium || 0} Premium`,
+      trend: `${stats.advanced.planCounts?.Premium || 0} ${t('superadmin.dashboard.premium')}`,
       trendUp: true,
       href: '/super-admin/billing',
-      description: 'Calculated Monthly Recurring Revenue (MRR) driven by active tenant subscriptions across our Basic, Pro, and Premium tiers.'
+      description: t('superadmin.dashboard.mrr_desc') || 'Calculated Monthly Recurring Revenue (MRR) driven by active tenant subscriptions across our Basic, Normal, Pro, and Premium tiers.'
     }
   ];
 
@@ -121,9 +121,9 @@ export default function SuperAdminDashboard() {
     <div className="animate-in fade-in duration-500 pb-20">
       {/* Header */}
       <div className="mb-10">
-        <h1 className="text-[32px] font-bold text-white tracking-tight mb-2">System Overview</h1>
+        <h1 className="text-[32px] font-bold text-white tracking-tight mb-2">{t('superadmin.dashboard.system_overview')}</h1>
         <p className="text-[15px] text-[#A69697] max-w-2xl leading-relaxed">
-          Global platform metrics and infrastructure status. Monitor global API consumption, external integrations, and AI extraction volumes in real-time.
+          {t('superadmin.dashboard.system_overview_desc_long')}
         </p>
       </div>
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { auditAPI } from '@/lib/api';
 import { Download, Filter } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n-context';
 
 interface AuditEntry {
   _id: string;
@@ -14,6 +15,7 @@ interface AuditEntry {
 }
 
 export default function AuditPage() {
+  const { t } = useLanguage();
   const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [dateFrom, setDateFrom] = useState('');
@@ -85,15 +87,15 @@ export default function AuditPage() {
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Audit Trails</h1>
-            <p className="text-white/60">Immutable record of all system activities and changes.</p>
+            <h1 className="text-3xl font-bold text-white mb-2">{t('audit.title')}</h1>
+            <p className="text-white/60">{t('audit.subtitle')}</p>
           </div>
           <button
             onClick={handleExport}
             className="flex items-center gap-2 btn-rose-gold text-sm"
           >
             <Download size={18} />
-            Export CSV
+            {t('audit.export_csv')}
           </button>
         </div>
 
@@ -101,18 +103,18 @@ export default function AuditPage() {
         <div className="glass-card p-6">
           <div className="flex items-center gap-2 mb-6">
             <Filter size={20} className="text-[#B76E79]" />
-            <h2 className="text-lg font-bold text-white">Filters</h2>
+            <h2 className="text-lg font-bold text-white">{t('audit.filters')}</h2>
           </div>
           <div className="grid md:grid-cols-4 gap-4">
             {/* Action Filter */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Action Type</label>
+              <label className="block text-sm font-medium text-white mb-2">{t('audit.action_type')}</label>
               <select
                 value={selectedAction || ''}
                 onChange={(e) => setSelectedAction(e.target.value || null)}
                 className="glass-input w-full"
               >
-                <option value="">All Actions</option>
+                <option value="">{t('audit.all_actions')}</option>
                 {uniqueActions.map((action) => (
                   <option key={action} value={action}>
                     {action}
@@ -123,7 +125,7 @@ export default function AuditPage() {
 
             {/* Date From */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">From Date</label>
+              <label className="block text-sm font-medium text-white mb-2">{t('audit.from_date')}</label>
               <input
                 type="date"
                 value={dateFrom}
@@ -134,7 +136,7 @@ export default function AuditPage() {
 
             {/* Date To */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">To Date</label>
+              <label className="block text-sm font-medium text-white mb-2">{t('audit.to_date')}</label>
               <input
                 type="date"
                 value={dateTo}
@@ -153,7 +155,7 @@ export default function AuditPage() {
                 }}
                 className="w-full px-4 py-2 rounded-lg glass-card text-white/70 hover:text-white transition-colors font-medium"
               >
-                Reset
+                {t('audit.reset')}
               </button>
             </div>
           </div>
@@ -163,7 +165,7 @@ export default function AuditPage() {
         <div className="space-y-4">
           {filteredLogs.length === 0 ? (
             <div className="glass-card p-12 text-center">
-              <p className="text-white/60">No audit entries found</p>
+              <p className="text-white/60">{t('audit.no_entries')}</p>
             </div>
           ) : (
             filteredLogs.map((log, index) => {
@@ -185,11 +187,11 @@ export default function AuditPage() {
                         <div>
                           <h3 className="text-white font-bold">{log.action}</h3>
                           <p className="text-white/60 text-sm">
-                            By <span className="text-white font-medium">{log.user}</span>
+                            {t('audit.by')} <span className="text-white font-medium">{log.user}</span>
                           </p>
                         </div>
                         <span className="text-white/40 text-sm">
-                          {new Date(log.timestamp).toLocaleDateString()} at{' '}
+                          {new Date(log.timestamp).toLocaleDateString()} {t('audit.at')}{' '}
                           {new Date(log.timestamp).toLocaleTimeString([], {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -197,7 +199,7 @@ export default function AuditPage() {
                         </span>
                       </div>
                       <p className="text-white/50 text-sm">
-                        Invoice ID: <span className="text-white/70">{log.invoiceId}</span>
+                        {t('audit.invoice_id')} <span className="text-white/70">{log.invoiceId}</span>
                       </p>
                     </div>
                   </div>
@@ -210,10 +212,10 @@ export default function AuditPage() {
         {/* Stats */}
         <div className="grid md:grid-cols-4 gap-6">
           {[
-            { label: 'Total Activities', value: auditLog.length },
-            { label: 'Uploads', value: auditLog.filter((l) => l.action === 'UPLOAD').length },
-            { label: 'Approvals', value: auditLog.filter((l) => l.action === 'APPROVE').length },
-            { label: 'Rejections', value: auditLog.filter((l) => l.action === 'REJECT').length },
+            { label: t('audit.total_activities'), value: auditLog.length },
+            { label: t('audit.uploads'), value: auditLog.filter((l) => l.action === 'UPLOAD').length },
+            { label: t('audit.approvals'), value: auditLog.filter((l) => l.action === 'APPROVE').length },
+            { label: t('audit.rejections'), value: auditLog.filter((l) => l.action === 'REJECT').length },
           ].map((stat, idx) => (
             <div key={idx} className="glass-card p-6">
               <p className="text-white/60 text-sm mb-2">{stat.label}</p>

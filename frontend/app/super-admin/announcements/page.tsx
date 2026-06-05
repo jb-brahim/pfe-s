@@ -11,6 +11,7 @@ export default function AnnouncementsPage() {
   const [companies, setCompanies] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [companySearch, setCompanySearch] = useState('');
   
   const [form, setForm] = useState({ 
     title: '', 
@@ -22,21 +23,21 @@ export default function AnnouncementsPage() {
 
   const TEMPLATES = [
     {
-      label: "Maintenance",
-      title: "Maintenance Programmée - {DATE}",
-      message: "Chers utilisateurs,\n\nVeuillez noter qu'Aura Finance fera l'objet d'une maintenance programmée le {DATE}. Pendant cette période, la plateforme pourra être temporairement indisponible.\n\nMerci de votre compréhension.",
+      label: t('superadmin.announcements_page.template_maintenance'),
+      title: t('superadmin.announcements_page.template_maintenance_title'),
+      message: t('superadmin.announcements_page.template_maintenance_msg'),
       severity: "warning"
     },
     {
-      label: "Mise à jour",
-      title: "Mise à jour de la Plateforme",
-      message: "Nous sommes heureux de vous annoncer une nouvelle mise à jour d'Aura Finance ! Cette mise à jour inclut des améliorations de performance et de nouvelles fonctionnalités.\n\nVeuillez rafraîchir votre page pour en profiter.",
+      label: t('superadmin.announcements_page.template_update'),
+      title: t('superadmin.announcements_page.template_update_title'),
+      message: t('superadmin.announcements_page.template_update_msg'),
       severity: "info"
     },
     {
-      label: "Interruption",
-      title: "Interruption de Service",
-      message: "Nous rencontrons actuellement une interruption de service inattendue. Nos ingénieurs travaillent activement à la résolution du problème.\n\nNous vous tiendrons informés.",
+      label: t('superadmin.announcements_page.template_outage'),
+      title: t('superadmin.announcements_page.template_outage_title'),
+      message: t('superadmin.announcements_page.template_outage_msg'),
       severity: "critical"
     }
   ];
@@ -64,7 +65,8 @@ export default function AnnouncementsPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (compRes.data && compRes.data.success) {
-        setCompanies(compRes.data.data);
+        // Filter out the n8n system bot from the announcements target audience
+        setCompanies(compRes.data.data.filter((c: any) => c.email !== 'n8n-bot@system.com'));
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -79,7 +81,7 @@ export default function AnnouncementsPage() {
 
   const handlePublish = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title || !form.message) return alert("Title and message are required.");
+    if (!form.title || !form.message) return alert(t('superadmin.announcements_page.alert_required'));
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem('authToken');
@@ -90,7 +92,7 @@ export default function AnnouncementsPage() {
       fetchAnnouncements();
     } catch (error) {
       console.error('Error creating announcement:', error);
-      alert('Failed to publish announcement');
+      alert(t('superadmin.announcements_page.alert_failed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -127,7 +129,7 @@ export default function AnnouncementsPage() {
           </h2>
           
           <div className="mb-5">
-            <label className="block text-[11px] font-medium text-[#A69697] mb-2 uppercase tracking-wider">Modèles Rapides</label>
+            <label className="block text-[11px] font-medium text-[#A69697] mb-2 uppercase tracking-wider">{t('superadmin.announcements_page.quick_templates')}</label>
             <div className="flex flex-wrap gap-2">
               {TEMPLATES.map((tpl, i) => (
                 <button
@@ -182,38 +184,71 @@ export default function AnnouncementsPage() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#A69697] mb-1.5 uppercase tracking-wider">Target Audience</label>
+              <label className="block text-[11px] font-medium text-[#A69697] mb-1.5 uppercase tracking-wider">{t('superadmin.announcements_page.target_audience')}</label>
               <div className="flex gap-4 mb-3">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="radio" name="audience" checked={form.targetAudience === 'ALL'} onChange={() => setForm({...form, targetAudience: 'ALL'})} className="accent-[#D98F8F]" />
-                  <span className="text-[12px] text-white">All Organizations</span>
+                  <span className="text-[12px] text-white">{t('superadmin.announcements_page.all_orgs')}</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="radio" name="audience" checked={form.targetAudience === 'SPECIFIC'} onChange={() => setForm({...form, targetAudience: 'SPECIFIC'})} className="accent-[#D98F8F]" />
-                  <span className="text-[12px] text-white">Specific Users/Companies</span>
+                  <span className="text-[12px] text-white">{t('superadmin.announcements_page.specific_users')}</span>
                 </label>
               </div>
 
               {form.targetAudience === 'SPECIFIC' && (
-                <div className="max-h-40 overflow-y-auto bg-[#1E0A0B] border border-white/5 rounded-md p-2 space-y-1 mt-2">
-                  {companies.map(c => (
-                    <label key={c._id} className="flex items-center gap-2 p-1.5 hover:bg-white/5 rounded cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        className="accent-[#D98F8F]"
-                        checked={form.targetUsers.includes(c._id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setForm({ ...form, targetUsers: [...form.targetUsers, c._id] });
-                          } else {
-                            setForm({ ...form, targetUsers: form.targetUsers.filter(id => id !== c._id) });
-                          }
-                        }}
-                      />
-                      <span className="text-[12px] text-white">{c.name} ({c.email})</span>
-                    </label>
-                  ))}
-                  {companies.length === 0 && <p className="text-[11px] text-[#A69697] p-2">No companies found.</p>}
+                <div className="mt-2">
+                  {form.targetUsers.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {form.targetUsers.map(id => {
+                        const c = companies.find(comp => comp._id === id);
+                        if (!c) return null;
+                        return (
+                          <div key={id} className="flex items-center gap-1 bg-[#8E1B3A]/30 border border-[#8E1B3A]/50 text-[#D98F8F] px-2 py-1 rounded-md text-[12px]">
+                            <span>{c.name}</span>
+                            <button 
+                              type="button"
+                              onClick={() => setForm({ ...form, targetUsers: form.targetUsers.filter(r => r !== id) })}
+                              className="hover:text-white ml-1 cursor-pointer"
+                            >
+                              <XCircle size={12} />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  <input 
+                    type="text"
+                    placeholder={t('superadmin.announcements_page.search_companies')}
+                    value={companySearch}
+                    onChange={(e) => setCompanySearch(e.target.value)}
+                    className="w-full bg-[#1A0A0B]/50 border border-white/10 rounded-xl py-2 px-3 text-white text-[13px] outline-none focus:border-[#D98F8F] mb-2"
+                  />
+
+                  {companySearch && (
+                    <div className="max-h-40 overflow-y-auto bg-[#1E0A0B] border border-white/5 rounded-md p-2 space-y-1">
+                      {companies
+                        .filter(c => (c.name.toLowerCase().includes(companySearch.toLowerCase()) || c.email.toLowerCase().includes(companySearch.toLowerCase())) && !form.targetUsers.includes(c._id))
+                        .map(c => (
+                          <div 
+                            key={c._id} 
+                            onClick={() => {
+                              setForm({ ...form, targetUsers: [...form.targetUsers, c._id] });
+                              setCompanySearch('');
+                            }}
+                            className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors"
+                          >
+                            <span className="text-white text-[13px]">{c.name}</span>
+                            <span className="text-[#A69697] text-[11px]">({c.email})</span>
+                          </div>
+                      ))}
+                      {companies.filter(c => (c.name.toLowerCase().includes(companySearch.toLowerCase()) || c.email.toLowerCase().includes(companySearch.toLowerCase())) && !form.targetUsers.includes(c._id)).length === 0 && (
+                        <div className="text-[#A69697] text-[12px] p-2 text-center">{t('superadmin.announcements_page.no_companies')}</div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -251,7 +286,7 @@ export default function AnnouncementsPage() {
                       </h3>
                       <p className="text-[12px] text-[#A69697] mt-1 whitespace-pre-wrap">{a.message}</p>
                       <p className="text-[10px] text-[#A69697] mt-2">
-                        <strong>Target:</strong> {a.targetAudience === 'ALL' ? 'All Organizations' : `${a.targetUsers?.length || 0} Specific Users`}
+                        <strong>{t('superadmin.announcements_page.target')}:</strong> {a.targetAudience === 'ALL' ? t('superadmin.announcements_page.all_orgs') : `${a.targetUsers?.length || 0} ${t('superadmin.announcements_page.specific_users_count')}`}
                       </p>
                     </div>
                     <span className="text-[10px] text-[#A69697]">{new Date(a.createdAt).toLocaleDateString()}</span>

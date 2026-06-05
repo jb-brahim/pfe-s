@@ -21,6 +21,7 @@ const superAdminRoutes = require('./src/routes/superAdminRoutes');
 const subscriptionRoutes = require('./src/routes/subscriptionRoutes');
 const externalRoutes = require('./src/routes/externalRoutes');
 const messageRoutes = require('./src/routes/messageRoutes');
+const telegramRoutes = require('./src/routes/telegramRoutes');
 
 // Middlewares
 const { errorHandler } = require('./src/middlewares/errorMiddleware');
@@ -70,6 +71,7 @@ app.use('/api/super-admin', superAdminRoutes);
 app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/external', externalRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/telegram', telegramRoutes);
 
 // Error logic
 app.use((req, res, next) => {

@@ -3,7 +3,7 @@
 import { useAuth } from '@/lib/auth-context';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Loader, ShieldCheck, LogOut, Settings, Users, LayoutDashboard, Menu, X, ChevronDown, Building, CreditCard, Megaphone, Activity, Globe, Bell, Check } from 'lucide-react';
+import { Loader, ShieldCheck, LogOut, Settings, Users, LayoutDashboard, Menu, X, ChevronDown, Building, CreditCard, Megaphone, Activity, Globe, Bell, Check, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { Logo } from '@/components/logo';
 import { useLanguage } from '@/lib/i18n-context';
@@ -100,7 +100,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
     {
       category: t('superadmin.configuration'),
       items: [
-        { name: t('sidebar.messages') || 'Messages', href: '/super-admin/messages', icon: Megaphone },
+        { name: t('sidebar.messages') || 'Messages', href: '/super-admin/messages', icon: Mail },
         { name: t('superadmin.system_settings'), href: '/super-admin/settings', icon: Settings },
         { name: t('superadmin.announcements'), href: '/super-admin/announcements', icon: Megaphone },
       ]
@@ -231,7 +231,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
                 <div className="absolute top-12 right-0 w-80 bg-[#1A0A0B] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
                   <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-white text-[14px]">Notifications</h3>
+                      <h3 className="font-semibold text-white text-[14px]">{t('superadmin.notifications_title')}</h3>
                       {unreadCount > 0 && (
                         <span className="text-[10px] bg-[#B34E56] text-white px-1.5 py-0.5 rounded-full font-bold">{unreadCount}</span>
                       )}
@@ -241,14 +241,14 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
                         onClick={handleMarkAllRead}
                         className="text-[11px] text-[#D98F8F] hover:text-white transition-colors font-medium flex items-center gap-1"
                       >
-                        <Check size={10} /> Mark all read
+                        <Check size={10} /> {t('superadmin.mark_all_read')}
                       </button>
                     )}
                   </div>
 
                   <div className="max-h-80 overflow-y-auto">
                     {notifications.length === 0 ? (
-                      <p className="text-[#A69697] text-[13px] px-4 py-6 text-center">No notifications yet</p>
+                      <p className="text-[#A69697] text-[13px] px-4 py-6 text-center">{t('superadmin.no_notifications')}</p>
                     ) : (
                       notifications.slice(0, 10).map((notif) => {
                         const isUnread = !notif.isRead && !notif.read;
@@ -286,7 +286,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
               <button
                 onClick={() => setShowLanguages(!showLanguages)}
                 className="w-9 h-9 flex items-center justify-center rounded-xl bg-transparent border border-transparent text-[#A69697] hover:text-[#FFFFFF] hover:bg-white/[0.04] transition-colors"
-                title="Switch Language"
+                title={t('superadmin.switch_language')}
               >
                 <Globe className="w-4 h-4" strokeWidth={1.5} />
               </button>
@@ -312,7 +312,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
                 localStorage.setItem('app-theme', isLight ? 'light' : 'dark');
               }}
               className="w-9 h-9 flex items-center justify-center rounded-xl bg-transparent border border-transparent text-[#A69697] hover:text-[#FFFFFF] hover:bg-white/[0.04] transition-colors"
-              title="Toggle theme"
+              title={t('superadmin.toggle_theme')}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
             </button>

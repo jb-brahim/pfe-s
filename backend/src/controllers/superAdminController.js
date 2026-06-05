@@ -77,11 +77,12 @@ exports.getSystemStats = async (req, res) => {
     // Calculate Subscriptions & MRR
     const orgs = await User.find({ role: 'ADMIN' });
     let totalMRR = 0;
-    const planCounts = { Premium: 0, Pro: 0, Basic: 0 };
+    const planCounts = { Premium: 0, Pro: 0, Normal: 0, Basic: 0 };
     orgs.forEach(org => {
       const plan = org.billing?.plan || 'Basic';
       if (plan.includes('Premium') || plan.includes('Primum') || plan.includes('Enterprise')) { totalMRR += 89; planCounts.Premium++; }
-      else if (plan.includes('Pro')) { totalMRR += 49; planCounts.Pro++; }
+      else if (plan.includes('Pro')) { totalMRR += 69; planCounts.Pro++; }
+      else if (plan.includes('Normal')) { totalMRR += 49; planCounts.Normal++; }
       else { totalMRR += 19; planCounts.Basic++; }
     });
 
@@ -331,14 +332,15 @@ exports.getBillingStats = async (req, res) => {
   try {
     const orgs = await User.find({ role: 'ADMIN' });
     let totalMRR = 0;
-    const planCounts = { Premium: 0, Pro: 0, Basic: 0 };
+    const planCounts = { Premium: 0, Pro: 0, Normal: 0, Basic: 0 };
     const orgDetails = [];
 
     orgs.forEach(org => {
       const plan = org.billing?.plan || 'Basic';
       let planMRR = 0;
       if (plan.includes('Premium') || plan.includes('Primum') || plan.includes('Enterprise')) { planMRR = 89; totalMRR += planMRR; planCounts.Premium++; }
-      else if (plan.includes('Pro')) { planMRR = 49; totalMRR += planMRR; planCounts.Pro++; }
+      else if (plan.includes('Pro')) { planMRR = 69; totalMRR += planMRR; planCounts.Pro++; }
+      else if (plan.includes('Normal')) { planMRR = 49; totalMRR += planMRR; planCounts.Normal++; }
       else { planMRR = 19; totalMRR += planMRR; planCounts.Basic++; }
 
       orgDetails.push({

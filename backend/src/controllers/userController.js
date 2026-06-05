@@ -341,6 +341,71 @@ const uploadProfileImage = async (req, res, next) => {
   }
 };
 
+// ──────────────────────────────────────────────
+// REQUEST TELEGRAM BOT LINK (Admin only)
+// ──────────────────────────────────────────────
+const requestTelegramLink = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const crypto = require('crypto');
+    const telegramLinkToken = crypto.randomBytes(4).toString('hex');
+
+    user.telegramLinkToken = telegramLinkToken;
+    await user.save();
+
+    // Send an email with the Telegram Deep Link
+    const { sendMail } = require('../utils/mailer');
+    const emailSubject = 'Your Telegram AI Assistant Connection Link';
+    const emailHtml = `
+      <h3>Connect your Telegram AI Assistant</h3>
+      <p>Hello ${user.name},</p>
+      <p>You requested to connect your account to the Sarah PFE Telegram Bot.</p>
+      <p><strong>Click the link below from your phone or desktop to securely connect:</strong></p>
+      <p><a href="https://t.me/sarrapfebot?start=${telegramLinkToken}" style="display:inline-block;padding:10px 20px;background-color:#0088cc;color:#fff;text-decoration:none;border-radius:5px;">Connect to Telegram Bot</a></p>
+      <br/>
+      <p>If you did not request this, please ignore this email.</p>
+      <br/>
+      <p>Best regards,<br/>The aura Invoice AI Team</p>
+    `;
+    
+    sendMail(user.email, emailSubject, '', emailHtml).catch(err => console.error(err));
+
+    res.json({ message: 'Telegram connection email sent successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ──────────────────────────────────────────────
+// LINK TELEGRAM BOT (Called by n8n)
+// ──────────────────────────────────────────────
+const linkTelegram = async (req, res, next) => {
+  try {
+    const { telegramId, token } = req.body;
+    
+    if (!telegramId || !token) {
+      return res.status(400).json({ message: 'Missing telegramId or token' });
+    }
+
+    const user = await User.findOne({ telegramLinkToken: token });
+    if (!user) {
+      return res.status(404).json({ message: 'Invalid or expired connection token' });
+    }
+
+    user.telegramId = telegramId.toString();
+    user.telegramLinkToken = null; // Consume the token
+    await user.save();
+
+    res.json({ message: 'Telegram account linked successfully', user: { name: user.name, email: user.email } });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = { 
   getAllUsers, 
   createUser, 
@@ -353,5 +418,7 @@ module.exports = {
   generateApiKey,
   updateIntegrations,
   updateUserLevel,
-  uploadProfileImage
+  uploadProfileImage,
+  requestTelegramLink,
+  linkTelegram
 };

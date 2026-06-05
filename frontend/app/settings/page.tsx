@@ -158,6 +158,20 @@ export default function SettingsPage() {
     }
   };
 
+  const [telegramLoading, setTelegramLoading] = useState(false);
+
+  const handleTelegramRequest = async () => {
+    setTelegramLoading(true);
+    try {
+      await userAPI.requestTelegramLink();
+      toast.success(t('settings.toast.telegram_success'));
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || t('settings.toast.telegram_failed'));
+    } finally {
+      setTelegramLoading(false);
+    }
+  };
+
   const toggleIntegrationActive = async (key: 'slackActive' | 'quickbooksActive') => {
     try {
       const current = user?.integrations?.[key] ?? false;
@@ -427,6 +441,23 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
+
+                {/* Telegram Bot Setup */}
+                <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-md border border-[rgba(255,255,255,0.05)] rounded-[24px] p-6 shadow-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-[#FFFFFF] text-[16px] font-bold">{t('settings.integrations.telegram.title')}</h3>
+                      <p className="text-[#A69697] text-[12px] mt-1">{t('settings.integrations.telegram.desc')}</p>
+                    </div>
+                    <button 
+                      onClick={handleTelegramRequest}
+                      disabled={telegramLoading}
+                      className="bg-[#0088cc]/20 text-[#0088cc] border border-[#0088cc]/50 px-5 py-2.5 rounded-[12px] text-[13px] font-bold hover:bg-[#0088cc]/30 transition-colors disabled:opacity-50"
+                    >
+                      {telegramLoading ? t('settings.integrations.telegram.sending') : t('settings.integrations.telegram.request_link')}
+                    </button>
+                  </div>
+                </div>
 
               </div>
             )}

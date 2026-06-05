@@ -5,8 +5,10 @@ import { messageAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { Mail, Send, X, Inbox } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { useLanguage } from '@/lib/i18n-context';
 
 export default function SuperAdminMessagesPage() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'inbox' | 'outbox'>('inbox');
   const [messages, setMessages] = useState<any[]>([]);
@@ -21,6 +23,7 @@ export default function SuperAdminMessagesPage() {
   });
   const [sending, setSending] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<any | null>(null);
+  const [contactSearch, setContactSearch] = useState('');
 
   useEffect(() => {
     fetchMessages();
@@ -38,7 +41,7 @@ export default function SuperAdminMessagesPage() {
         setMessages(res.data || []);
       }
     } catch (err) {
-      toast.error('Failed to load messages');
+      toast.error(t('superadmin.messages_page.toast_load_failed'));
     } finally {
       setIsLoading(false);
     }
@@ -56,19 +59,19 @@ export default function SuperAdminMessagesPage() {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (composeForm.receiverIds.length === 0 || !composeForm.subject || !composeForm.body) {
-      toast.error('Please fill all fields and select at least one recipient.');
+      toast.error(t('superadmin.messages_page.toast_fill_fields'));
       return;
     }
     
     setSending(true);
     try {
       await messageAPI.sendMessage(composeForm.receiverIds, composeForm.subject, composeForm.body);
-      toast.success('Message sent successfully!');
+      toast.success(t('superadmin.messages_page.toast_sent_success'));
       setIsComposeOpen(false);
       setComposeForm({ receiverIds: [], subject: '', body: '' });
       if (activeTab === 'outbox') fetchMessages();
     } catch (err) {
-      toast.error('Failed to send message.');
+      toast.error(t('superadmin.messages_page.toast_send_failed'));
     } finally {
       setSending(false);
     }
@@ -89,15 +92,15 @@ export default function SuperAdminMessagesPage() {
       <div className="flex items-center justify-between p-6 border-b border-white/5">
         <div>
           <h1 className="text-[24px] font-bold text-white flex items-center gap-2">
-            <Mail className="text-[#D98F8F]" size={24} /> Administrator Inbox
+            <Mail className="text-[#D98F8F]" size={24} /> {t('superadmin.messages_page.title')}
           </h1>
-          <p className="text-[#A69697] text-[13px] mt-1">Communicate with company admins across the platform.</p>
+          <p className="text-[#A69697] text-[13px] mt-1">{t('superadmin.messages_page.subtitle')}</p>
         </div>
         <button 
           onClick={() => setIsComposeOpen(true)}
           className="bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white px-5 py-2.5 rounded-[12px] text-[14px] font-bold shadow-lg hover:shadow-[0_0_15px_rgba(217,143,143,0.4)] transition-all flex items-center gap-2"
         >
-          <Send size={16} /> Compose Broadcast
+          <Send size={16} /> {t('superadmin.messages_page.compose_btn')}
         </button>
       </div>
 
@@ -110,7 +113,7 @@ export default function SuperAdminMessagesPage() {
               activeTab === 'inbox' ? 'bg-[#D98F8F]/20 text-white' : 'text-[#A69697] hover:text-white hover:bg-white/5'
             }`}
           >
-            <Inbox size={18} className={activeTab === 'inbox' ? 'text-[#D98F8F]' : ''} /> Inbox
+            <Inbox size={18} className={activeTab === 'inbox' ? 'text-[#D98F8F]' : ''} /> {t('superadmin.messages_page.inbox_tab')}
           </button>
           <button
             onClick={() => { setActiveTab('outbox'); setSelectedMessage(null); }}
@@ -118,7 +121,7 @@ export default function SuperAdminMessagesPage() {
               activeTab === 'outbox' ? 'bg-[#D98F8F]/20 text-white' : 'text-[#A69697] hover:text-white hover:bg-white/5'
             }`}
           >
-            <Send size={18} className={activeTab === 'outbox' ? 'text-[#D98F8F]' : ''} /> Sent
+            <Send size={18} className={activeTab === 'outbox' ? 'text-[#D98F8F]' : ''} /> {t('superadmin.messages_page.sent_tab')}
           </button>
         </div>
 
@@ -128,7 +131,7 @@ export default function SuperAdminMessagesPage() {
             // Message View
             <div className="flex-1 p-6 overflow-y-auto">
               <button onClick={() => setSelectedMessage(null)} className="text-[#A69697] hover:text-white text-[13px] flex items-center gap-1 mb-6">
-                &larr; Back to {activeTab}
+                &larr; {t('superadmin.messages_page.back_to')} {activeTab === 'inbox' ? t('superadmin.messages_page.inbox_tab') : t('superadmin.messages_page.sent_tab')}
               </button>
               <div className="bg-[#1A0A0B]/50 p-6 rounded-2xl border border-white/5">
                 <h2 className="text-[20px] font-bold text-white mb-4">{selectedMessage.subject}</h2>
@@ -161,9 +164,9 @@ export default function SuperAdminMessagesPage() {
             // Message List
             <div className="flex-1 overflow-y-auto">
               {isLoading ? (
-                <div className="flex justify-center p-10"><span className="text-[#A69697]">Loading...</span></div>
+                <div className="flex justify-center p-10"><span className="text-[#A69697]">{t('superadmin.messages_page.loading')}</span></div>
               ) : messages.length === 0 ? (
-                <div className="flex justify-center p-10"><span className="text-[#A69697]">No messages found.</span></div>
+                <div className="flex justify-center p-10"><span className="text-[#A69697]">{t('superadmin.messages_page.no_messages')}</span></div>
               ) : (
                 messages.map(msg => (
                   <div 
@@ -208,7 +211,7 @@ export default function SuperAdminMessagesPage() {
           <div className="bg-[#1A050A] border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl p-6 flex flex-col max-h-[90vh]">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-[18px] font-bold text-white flex items-center gap-2">
-                <Send size={18} className="text-[#D98F8F]" /> Compose Broadcast
+                <Send size={18} className="text-[#D98F8F]" /> {t('superadmin.messages_page.compose_btn')}
               </h2>
               <button onClick={() => setIsComposeOpen(false)} className="text-[#A69697] hover:text-white">
                 <X size={20} />
@@ -218,7 +221,7 @@ export default function SuperAdminMessagesPage() {
             <form onSubmit={handleSendMessage} className="flex flex-col gap-4 overflow-y-auto pr-2">
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="text-[#A69697] text-[13px]">To:</label>
+                  <label className="text-[#A69697] text-[13px]">{t('superadmin.messages_page.to_label')}</label>
                   <button 
                     type="button"
                     onClick={() => {
@@ -228,51 +231,83 @@ export default function SuperAdminMessagesPage() {
                         setComposeForm({ ...composeForm, receiverIds: contacts.map(c => c._id) });
                       }
                     }}
-                    className="text-[#D98F8F] text-[11px] hover:underline"
+                    className="text-[#D98F8F] text-[11px] hover:underline cursor-pointer"
                   >
-                    Toggle All Admins
+                    {t('superadmin.messages_page.toggle_all_admins')}
                   </button>
                 </div>
-                <div className="bg-[#1A0A0B]/50 border border-white/10 rounded-xl max-h-[150px] overflow-y-auto p-2">
-                  {contacts.map(c => (
-                    <label key={c._id} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg cursor-pointer">
-                      <input 
-                        type="checkbox"
-                        checked={composeForm.receiverIds.includes(c._id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
+
+                {composeForm.receiverIds.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {composeForm.receiverIds.map(id => {
+                      const c = contacts.find(contact => contact._id === id);
+                      if (!c) return null;
+                      return (
+                        <div key={id} className="flex items-center gap-1 bg-[#8E1B3A]/30 border border-[#8E1B3A]/50 text-[#D98F8F] px-2 py-1 rounded-md text-[12px]">
+                          <span>{c.name}</span>
+                          <button 
+                            type="button"
+                            onClick={() => setComposeForm({ ...composeForm, receiverIds: composeForm.receiverIds.filter(r => r !== id) })}
+                            className="hover:text-white ml-1 cursor-pointer"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <input 
+                  type="text"
+                  placeholder={t('superadmin.messages_page.search_admins_placeholder')}
+                  value={contactSearch}
+                  onChange={(e) => setContactSearch(e.target.value)}
+                  className="w-full bg-[#1A0A0B]/50 border border-white/10 rounded-xl py-2 px-3 text-white text-[13px] outline-none focus:border-[#D98F8F] mb-2"
+                />
+
+                {contactSearch && (
+                  <div className="bg-[#1A0A0B]/50 border border-white/10 rounded-xl max-h-[150px] overflow-y-auto p-2">
+                    {contacts
+                      .filter(c => c.name.toLowerCase().includes(contactSearch.toLowerCase()) && !composeForm.receiverIds.includes(c._id))
+                      .map(c => (
+                        <div 
+                          key={c._id} 
+                          onClick={() => {
                             setComposeForm({ ...composeForm, receiverIds: [...composeForm.receiverIds, c._id] });
-                          } else {
-                            setComposeForm({ ...composeForm, receiverIds: composeForm.receiverIds.filter(id => id !== c._id) });
-                          }
-                        }}
-                        className="rounded border-white/10 bg-[#1A0A0B] text-[#D98F8F]"
-                      />
-                      <span className="text-white text-[13px]">{c.name}</span>
-                      <span className="text-[#A69697] text-[11px]">({c.companyDetails?.name || 'Admin'})</span>
-                    </label>
-                  ))}
-                </div>
+                            setContactSearch('');
+                          }}
+                          className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors"
+                        >
+                          <span className="text-white text-[13px]">{c.name}</span>
+                          <span className="text-[#A69697] text-[11px]">({c.companyDetails?.name || 'Admin'})</span>
+                        </div>
+                    ))}
+                    {contacts.filter(c => c.name.toLowerCase().includes(contactSearch.toLowerCase()) && !composeForm.receiverIds.includes(c._id)).length === 0 && (
+                      <div className="text-[#A69697] text-[12px] p-2 text-center">{t('superadmin.messages_page.no_suggestions')}</div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div>
-                <label className="text-[#A69697] text-[13px] mb-1 block">Subject:</label>
+                <label className="text-[#A69697] text-[13px] mb-1 block">{t('superadmin.messages_page.subject_label')}</label>
                 <input 
                   type="text" 
                   value={composeForm.subject}
                   onChange={(e) => setComposeForm({ ...composeForm, subject: e.target.value })}
                   className="w-full bg-[#1A0A0B]/50 border border-white/10 rounded-xl py-2 px-3 text-white text-[14px] outline-none focus:border-[#D98F8F]" 
-                  placeholder="Enter subject"
+                  placeholder={t('superadmin.messages_page.subject_placeholder')}
                 />
               </div>
 
               <div className="flex-1 min-h-[200px]">
-                <label className="text-[#A69697] text-[13px] mb-1 block">Message:</label>
+                <label className="text-[#A69697] text-[13px] mb-1 block">{t('superadmin.messages_page.message_label')}</label>
                 <textarea 
                   value={composeForm.body}
                   onChange={(e) => setComposeForm({ ...composeForm, body: e.target.value })}
                   className="w-full h-[200px] bg-[#1A0A0B]/50 border border-white/10 rounded-xl py-3 px-3 text-white text-[14px] outline-none focus:border-[#D98F8F] resize-none" 
-                  placeholder="Type your message here..."
+                  placeholder={t('superadmin.messages_page.message_placeholder')}
                 />
               </div>
 
@@ -282,14 +317,14 @@ export default function SuperAdminMessagesPage() {
                   onClick={() => setIsComposeOpen(false)}
                   className="px-5 py-2 rounded-xl text-white bg-white/5 hover:bg-white/10 transition-colors text-[14px] font-medium"
                 >
-                  Cancel
+                  {t('superadmin.messages_page.cancel_btn')}
                 </button>
                 <button 
                   type="submit" 
                   disabled={sending}
                   className="px-6 py-2 rounded-xl text-white bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] shadow-lg hover:opacity-90 transition-opacity text-[14px] font-bold flex items-center gap-2"
                 >
-                  {sending ? 'Sending...' : <><Send size={16} /> Send Message</>}
+                  {sending ? t('superadmin.messages_page.sending_btn') : <><Send size={16} /> {t('superadmin.messages_page.send_btn')}</>}
                 </button>
               </div>
             </form>

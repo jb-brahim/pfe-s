@@ -1,0 +1,427 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c7ac75cd-c200-43e6-acdd-9aed71e379d4",
+      "name": "Telegram Trigger",
+      "webhookId": "9eb78297-2392-4d9a-b583-f41553224b7b",
+      "credentials": {
+        "telegramApi": {
+          "id": "7FkCK6pRriLvUh7R",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "58c5c3b2-cdea-44ac-a76c-65258a8e1a21",
+              "leftValue": "={{ Object.keys($json.message).join(',') }}\n",
+              "rightValue": "photo",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "21bb357f-b8f4-4136-b78d-182dffe6047b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.photo[$json.message.photo.length - 1].file_id }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        616,
+        -96
+      ],
+      "id": "5febb399-553d-4a69-913c-3e8163194f4b",
+      "name": "Get a file",
+      "webhookId": "86f20889-b45a-4313-8556-8d3557f2519d",
+      "credentials": {
+        "telegramApi": {
+          "id": "7FkCK6pRriLvUh7R",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://unsupervised-filamented-eartha.ngrok-free.dev/api/invoices/upload",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "n8n-secret-api-key-123"
+            },
+            {
+              "name": "x-telegram-id",
+              "value": "={{ $node[\"Telegram Trigger\"].json.message.chat.id }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "invoiceFile",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        824,
+        -96
+      ],
+      "id": "a0102d37-96be-4cef-8d45-baea49ec16d2",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $node[\"Telegram Trigger\"].json.message.chat.id }}",
+        "text": "✅ Invoice photo successfully uploaded to Sarah PFE! AI extraction is now processing.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1032,
+        -96
+      ],
+      "id": "e99e66f7-6021-487e-91ff-620bb624b3cc",
+      "name": "Send a text message",
+      "webhookId": "02876fec-a0b0-4a60-bed3-a5ca3feb7ff8",
+      "credentials": {
+        "telegramApi": {
+          "id": "7FkCK6pRriLvUh7R",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://unsupervised-filamented-eartha.ngrok-free.dev/api/analytics/dashboard",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "n8n-secret-api-key-123"
+            },
+            {
+              "name": "x-telegram-id",
+              "value": "={{ $node[\"Telegram Trigger\"].json.message.chat.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        568,
+        128
+      ],
+      "id": "d7973579-17b4-455f-9d78-1b7466a690db",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpMultipleHeadersAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\nJSON.stringify({\n  \"model\": \"llama-3.3-70b-versatile\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are Sarah PFE Financial AI Assistant, an expert corporate financial controller. Your task is to answer the user's question accurately based on the company's live financial metrics. Do not invent any numbers. Always format currency amounts as TND (Tunisian Dinar) instead of Dollars ($). Keep your response concise, professional, and friendly. Never mention n8n or add a signature.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"User Question: \" + $node[\"Telegram Trigger\"].json.message.text + \n                 \"\\n\\nLive Company Metrics from Database: \" + JSON.stringify($json.data)\n    }\n  ]\n})\n}}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        776,
+        128
+      ],
+      "id": "02f0d5ea-6c9d-4878-b989-543048cc78fd",
+      "name": "HTTP Request2",
+      "credentials": {
+        "httpMultipleHeadersAuth": {
+          "id": "ZX3OfziU5rwHSIVV",
+          "name": "Multiple Headers Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $node[\"Telegram Trigger\"].json.message.chat.id }}",
+        "text": "={{ $json.choices[0].message.content }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        984,
+        128
+      ],
+      "id": "2433cc91-0d68-448f-acd9-86cc1900ad99",
+      "name": "Send a text message1",
+      "webhookId": "b97e4795-3542-4036-91b7-6eb50ae6b806",
+      "credentials": {
+        "telegramApi": {
+          "id": "7FkCK6pRriLvUh7R",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "abc-start-check",
+              "leftValue": "={{ $json.message.text || '' }}",
+              "rightValue": "/start",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        192,
+        -200
+      ],
+      "id": "start-if-node-id",
+      "name": "Check for Start Command"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://unsupervised-filamented-eartha.ngrok-free.dev/api/users/link-telegram",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "n8n-secret-api-key-123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\nJSON.stringify({\n  telegramId: $json.message.chat.id,\n  token: $json.message.text.split(' ')[1]\n})\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        416,
+        -350
+      ],
+      "id": "link-account-node",
+      "name": "Link Account HTTP Request"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $node[\"Telegram Trigger\"].json.message.chat.id }}",
+        "text": "✅ Account linked successfully! You can now send me photos of your invoices or ask questions about your company's financials.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        624,
+        -350
+      ],
+      "id": "success-msg-node",
+      "name": "Send Success Message",
+      "credentials": {
+        "telegramApi": {
+          "id": "7FkCK6pRriLvUh7R",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check for Start Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check for Start Command": {
+      "main": [
+        [
+          {
+            "node": "Link Account HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Link Account HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Send Success Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "dc52f3d6-ff21-4092-a8b1-dee7040b2cbc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "14d36379f6ef1d386a5c24178179e3ce74ccbc407e62ec25210fe6f536c84a86"
+  },
+  "id": "csB7FUTD9jG1qq4k",
+  "tags": []
+}

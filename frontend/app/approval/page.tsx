@@ -276,7 +276,7 @@ export default function ApprovalPage() {
                         <td className="px-4 py-4 text-right">
                           <p className="font-bold text-white tracking-tight">{formatCurrency(invoice.totalAmount)}</p>
                           {invoice.taxAmount != null && (
-                            <p className="text-[#A69697] text-[11px] mt-0.5">Tax: {formatCurrency(invoice.taxAmount)}</p>
+                            <p className="text-[#A69697] text-[11px] mt-0.5">{t('approval.table.tax')} {formatCurrency(invoice.taxAmount)}</p>
                           )}
                         </td>
                         <td className="px-4 py-4">
@@ -364,7 +364,7 @@ export default function ApprovalPage() {
                     <p className="text-[11px] text-[#A69697] uppercase tracking-wider font-semibold">{t('approval.drawer.submitted')}</p>
                   </div>
                   <p className="text-white text-[13px] font-medium">
-                    {drawerInvoice.createdAt ? new Date(drawerInvoice.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Today'}
+                    {drawerInvoice.createdAt ? new Date(drawerInvoice.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : t('approval.drawer.today')}
                   </p>
                 </div>
               </div>

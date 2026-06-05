@@ -172,26 +172,53 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Outstanding Invoices */}
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 flex flex-col justify-between h-[170px]">
-            <div className="flex items-start justify-between">
-              <h3 className="text-[#A69697] text-[13px] font-medium">{user?.role === 'ADMIN' ? t('dashboard.outstanding_invoices') : t('dashboard.pending_invoices')}</h3>
-              <span className="text-white text-[13px] font-bold">{pendingCount}</span>
-            </div>
-            <div className="mt-3">
-              <p className="text-white text-[14px] font-medium mb-2">{user?.role === 'ADMIN' ? t('dashboard.approval_rate') : t('dashboard.my_approval_status')}</p>
-              <div className="w-full h-2 bg-black/30 border border-white/5 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-[#8E1B3A] to-[#D98F8F] rounded-full transition-all duration-1000"
-                  style={{ width: `${approvalRate}%` }}
-                ></div>
+          {/* Pending Approvals & Verifications */}
+          {user?.role === 'ADMIN' ? (
+            <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 flex flex-col h-[170px] overflow-hidden relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+                  <h3 className="text-white text-[14px] font-medium">{t('dashboard.pending_approvals')}</h3>
+                </div>
+                <span className="bg-yellow-500/10 text-yellow-500 text-[11px] font-bold px-2 py-1 rounded-md border border-yellow-500/20">{pendingCount} {t('dashboard.action_required')}</span>
               </div>
-              <div className="flex justify-between mt-2">
-                <p className="text-[#A69697] text-[12px]">{approvalRate}% {t('dashboard.approved')}</p>
-                <p className="text-[#A69697] text-[12px]">{t('dashboard.outstanding')}: {formatCurrency(outstandingTotal)}</p>
+
+              <div className="overflow-auto scrollbar-none">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="text-[#A69697] text-[11px] uppercase tracking-wider border-b border-white/[0.04]">
+                      <th className="pb-2 font-medium px-2">{t('dashboard.table.uploaded')}</th>
+                      <th className="pb-2 font-medium px-2">{t('dashboard.table.company')}</th>
+                      <th className="pb-2 font-medium px-2">{t('dashboard.table.status')}</th>
+                      <th className="pb-2 font-medium px-2 text-right">{t('dashboard.table.action')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-[12px]">
+                    {loading ? (
+                      <tr><td colSpan={4} className="py-4 text-center text-[#A69697]"><Loader size={16} className="animate-spin inline-block" /></td></tr>
+                    ) : invoices.filter((inv: any) => ['SUBMITTED', 'EXTRACTED', 'VERIFIED'].includes(inv.status)).length === 0 ? (
+                      <tr><td colSpan={4} className="py-4 text-center text-[#A69697] text-[12px]">{t('dashboard.no_pending_actions')}</td></tr>
+                    ) : (
+                      invoices.filter((inv: any) => ['SUBMITTED', 'EXTRACTED', 'VERIFIED'].includes(inv.status)).slice(0, 5).map((inv: any) => (
+                        <tr key={inv._id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors cursor-pointer group">
+                          <td className="py-2 px-2 text-[#A69697]">{formatDate(inv.createdAt)}</td>
+                          <td className="py-2 px-2 text-white truncate max-w-[80px]">{inv.companyName || t('dashboard.unknown_vendor')}</td>
+                          <td className="py-2 px-2">{getStatusBadge(inv.status)}</td>
+                          <td className="py-2 px-2 text-right">
+                            <Link href={`/invoices/${inv._id}`} className="px-3 py-1 rounded-full bg-white/10 text-white text-[11px] font-bold group-hover:bg-[#D98F8F] group-hover:text-[#1A0A0B] transition-all whitespace-nowrap">{t('dashboard.review')}</Link>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 flex items-center justify-center h-[170px]">
+              <p className="text-[#A69697] text-[13px]">{t('dashboard.my_pending_actions_empty')}</p>
+            </div>
+          )}
 
         </div>
 
@@ -272,8 +299,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ROW 3: Recent Transactions & Expense Tracking */}
-        <div className="grid lg:grid-cols-[2fr_1fr] gap-5">
+        {/* ROW 3: Recent Transactions */}
+        <div className="grid grid-cols-1 gap-5">
           {/* Recent Transactions */}
           <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 flex flex-col h-full">
             <div className="flex items-center justify-between mb-4">
@@ -290,7 +317,7 @@ export default function DashboardPage() {
                     <th className="pb-3 font-medium px-2">{t('dashboard.table.date')}</th>
                     <th className="pb-3 font-medium px-2">{t('dashboard.table.vendor')}</th>
                     <th className="pb-3 font-medium px-2">{t('dashboard.table.invoice_num')}</th>
-                    <th className="pb-3 font-medium px-2">{t('dashboard.table.amount')}</th>
+                    <th className="pb-3 font-medium px-2">{t('invoices.table.source')}</th>
                     <th className="pb-3 font-medium px-2">{t('dashboard.table.status')}</th>
                   </tr>
                 </thead>
@@ -305,7 +332,21 @@ export default function DashboardPage() {
                         <td className="py-3 px-2 text-[#A69697] text-[13px]">{formatDate(inv.createdAt)}</td>
                         <td className="py-3 px-2 text-white">{inv.companyName || t('dashboard.unknown_vendor')}</td>
                         <td className="py-3 px-2 text-[#A69697] text-[13px] font-mono">{inv.invoiceNumber || '—'}</td>
-                        <td className="py-3 px-2 text-white font-medium">{formatCurrency(inv.totalAmount || 0)}</td>
+                        <td className="py-3 px-2">
+                          {inv.source === 'TELEGRAM' ? (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase border bg-blue-500/10 text-blue-400 border-blue-500/20">
+                              {t('source.telegram')}
+                            </span>
+                          ) : inv.source === 'EMAIL' ? (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase border bg-purple-500/10 text-purple-400 border-purple-500/20">
+                              {t('source.email')}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase border bg-white/5 text-[#A69697] border-white/10">
+                              {t('source.aura_app')}
+                            </span>
+                          )}
+                        </td>
                         <td className="py-3 px-2">{getStatusBadge(inv.status)}</td>
                       </tr>
                     ))
@@ -314,76 +355,9 @@ export default function DashboardPage() {
               </table>
             </div>
           </div>
-
-          {/* Expense Tracking */}
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 flex flex-col justify-between">
-            <div className="flex items-start justify-between mb-3">
-              <h3 className="text-white text-[14px] font-medium">{user?.role === 'ADMIN' ? t('dashboard.monthly_expenses') : t('dashboard.my_monthly_uploads')}</h3>
-            </div>
-
-            <div className="h-[200px] w-full mb-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={expenseTrackingData.length > 0 ? expenseTrackingData : [{ name: '—', approved: 0 }]} barSize={12} margin={{ left: -25, bottom: 0 }}>
-                  <XAxis dataKey="name" stroke="#A69697" fontSize={10} tickLine={false} axisLine={false} dy={8} />
-                  <YAxis stroke="#A69697" fontSize={10} tickLine={false} axisLine={false} dx={-5} tickFormatter={(val: number) => val === 0 ? '0' : `${(val / 1000).toFixed(0)}k`} />
-                  <Tooltip contentStyle={{ backgroundColor: '#1A0A0B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '13px' }} />
-                  <Bar dataKey="approved" stackId="a" fill="#D98F8F" radius={[0, 0, 3, 3]} name="Approved" />
-                  <Bar dataKey="pending" stackId="a" fill="#8E1B3A" opacity={0.7} radius={[3, 3, 0, 0]} name="Pending" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            <Link href="/expenses" className="w-full py-3 rounded-xl bg-[#8E1B3A] text-white font-medium text-[14px] hover:bg-[#7B112C] transition-colors text-center block">
-              {t('dashboard.view_expenses')}
-            </Link>
-          </div>
         </div>
 
-        {/* ROW 4: Action Required (Admin Only) */}
-        {user?.role === 'ADMIN' && (
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 flex flex-col mt-2">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
-                <h3 className="text-white text-[14px] font-medium">{t('dashboard.pending_approvals')}</h3>
-              </div>
-              <span className="bg-yellow-500/10 text-yellow-500 text-[11px] font-bold px-2 py-1 rounded-md border border-yellow-500/20">{pendingCount} {t('dashboard.action_required')}</span>
-            </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="text-[#A69697] text-[12px] uppercase tracking-wider border-b border-white/[0.04]">
-                    <th className="pb-3 font-medium px-2">{t('dashboard.table.uploaded')}</th>
-                    <th className="pb-3 font-medium px-2">{t('dashboard.table.company')}</th>
-                    <th className="pb-3 font-medium px-2">{t('dashboard.table.amount')}</th>
-                    <th className="pb-3 font-medium px-2">{t('dashboard.table.status')}</th>
-                    <th className="pb-3 font-medium px-2 text-right">{t('dashboard.table.action')}</th>
-                  </tr>
-                </thead>
-                <tbody className="text-[14px]">
-                  {loading ? (
-                    <tr><td colSpan={5} className="py-8 text-center text-[#A69697]"><Loader size={20} className="animate-spin inline-block" /></td></tr>
-                  ) : invoices.filter((inv: any) => ['SUBMITTED', 'EXTRACTED', 'VERIFIED'].includes(inv.status)).length === 0 ? (
-                    <tr><td colSpan={5} className="py-8 text-center text-[#A69697] text-[13px]">{t('dashboard.no_pending_actions')}</td></tr>
-                  ) : (
-                    invoices.filter((inv: any) => ['SUBMITTED', 'EXTRACTED', 'VERIFIED'].includes(inv.status)).slice(0, 5).map((inv: any) => (
-                      <tr key={inv._id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors cursor-pointer group">
-                        <td className="py-4 px-2 text-[#A69697] text-[13px]">{formatDate(inv.createdAt)}</td>
-                        <td className="py-4 px-2 text-white">{inv.companyName || t('dashboard.unknown_vendor')}</td>
-                        <td className="py-4 px-2 text-white font-medium">{formatCurrency(inv.totalAmount || 0)}</td>
-                        <td className="py-4 px-2">{getStatusBadge(inv.status)}</td>
-                        <td className="py-4 px-2 text-right">
-                           <Link href={`/invoices/${inv._id}`} className="px-4 py-1.5 rounded-full bg-white/10 text-white text-[12px] font-bold group-hover:bg-[#D98F8F] group-hover:text-[#1A0A0B] transition-all">{t('dashboard.review')}</Link>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
 
       </div>
 

@@ -9,7 +9,7 @@ const checkout = async (req, res, next) => {
     const { plan } = req.body;
     const userId = req.user._id;
 
-    if (!['Basic', 'Pro', 'Ultra'].includes(plan)) {
+    if (!['Basic', 'Normal', 'Pro', 'Premium'].includes(plan)) {
       return res.status(400).json({ success: false, message: 'Invalid plan selected' });
     }
 
@@ -32,15 +32,15 @@ const checkout = async (req, res, next) => {
 
     // Update billing details
     user.billing.plan = plan;
-    // Set some arbitrary limits based on plan
+    // Set limits based on plan
     if (plan === 'Basic') {
-      user.billing.aiScansLimit = 500;
+      user.billing.aiScansLimit = 200;
       user.billing.storageLimitGB = 5;
-    } else if (plan === 'Pro') {
+    } else if (plan === 'Normal' || plan === 'Pro') {
       user.billing.aiScansLimit = 5000;
       user.billing.storageLimitGB = 50;
-    } else if (plan === 'Ultra') {
-      user.billing.aiScansLimit = 50000;
+    } else if (plan === 'Premium') {
+      user.billing.aiScansLimit = 999999;
       user.billing.storageLimitGB = 500;
     }
     

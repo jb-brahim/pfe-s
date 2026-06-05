@@ -24,7 +24,7 @@ export default function SubscriptionPage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-full">
-          <p className="text-[#A69697]">Access denied. Admin only.</p>
+          <p className="text-[#A69697]">{t('settings.access_denied_admin')}</p>
         </div>
       </DashboardLayout>
     );
@@ -57,7 +57,7 @@ export default function SubscriptionPage() {
             </div>
 
             <h4 className="text-white text-[14px] font-bold mb-4">{t('settings.subscription.upgrade_plan')}</h4>
-            <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
               {[
                 { 
                   name: 'Basic',  
@@ -68,12 +68,22 @@ export default function SubscriptionPage() {
                   ] 
                 },
                 { 
-                  name: 'Pro',    
+                  name: 'Normal',    
                   price: '49 TND', 
                   features: [
                     t('landing.pricing_cards.f_pro_1') || "Module d'extraction 5000 scans/mois", 
                     t('landing.pricing_cards.f_pro_2') || "Module d'intégration TTN disponible", 
                     t('landing.pricing_cards.f_pro_3') || "Module de connexion avec votre application"
+                  ] 
+                },
+                { 
+                  name: 'Pro',    
+                  price: '69 TND', 
+                  features: [
+                    t('landing.pricing_cards.f_pro_1') || "Module d'extraction 5000 scans/mois", 
+                    t('landing.pricing_cards.f_pro_2') || "Module d'intégration TTN disponible", 
+                    t('landing.pricing_cards.f_pro_3') || "Module de connexion avec votre application",
+                    t('landing.pricing_cards.telegram_integration')
                   ] 
                 },
                 { 
@@ -83,7 +93,8 @@ export default function SubscriptionPage() {
                     t('landing.pricing_cards.f_premium_1') || "Module d'extraction illimité", 
                     t('landing.pricing_cards.f_pro_2') || "Module d'intégration TTN disponible", 
                     t('landing.pricing_cards.f_pro_3') || "Module de connexion avec votre application", 
-                    t('landing.pricing_cards.f_premium_4') || "Module de comparaison des prix avec les concurrents"
+                    t('landing.pricing_cards.f_premium_4') || "Module de comparaison des prix avec les concurrents",
+                    t('landing.pricing_cards.telegram_integration')
                   ] 
                 },
               ].map(({ name, price, features }) => (
@@ -117,30 +128,30 @@ export default function SubscriptionPage() {
               
               <div className="p-6 border-b border-white/5">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-white text-[20px] font-bold">Upgrade to {selectedPlan}</h3>
+                  <h3 className="text-white text-[20px] font-bold">{t('settings.subscription.checkout.title', { plan: selectedPlan }).replace('{{plan}}', selectedPlan)}</h3>
                   <button type="button" onClick={() => setIsCheckoutModalOpen(false)} className="text-[#A69697] hover:text-white transition-colors">
                     <X size={20} />
                   </button>
                 </div>
-                <p className="text-[#A69697] text-[13px] mt-1">Complete your payment details to upgrade.</p>
+                <p className="text-[#A69697] text-[13px] mt-1">{t('settings.subscription.checkout.subtitle')}</p>
               </div>
 
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="text-[#A69697] text-[13px] block mb-1">Name on Card</label>
+                  <label className="text-[#A69697] text-[13px] block mb-1">{t('settings.subscription.checkout.name_on_card')}</label>
                   <input type="text" placeholder="John Doe" value={cardName} onChange={(e) => setCardName(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-[12px] py-3 px-4 text-[14px] text-white outline-none focus:border-[#D98F8F]" />
                 </div>
                 <div>
-                  <label className="text-[#A69697] text-[13px] block mb-1">Card Number</label>
+                  <label className="text-[#A69697] text-[13px] block mb-1">{t('settings.subscription.checkout.card_number')}</label>
                   <input type="text" placeholder="**** **** **** 4242" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-[12px] py-3 px-4 text-[14px] text-white outline-none focus:border-[#D98F8F] font-mono tracking-widest" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[#A69697] text-[13px] block mb-1">Expiry (MM/YY)</label>
+                    <label className="text-[#A69697] text-[13px] block mb-1">{t('settings.subscription.checkout.expiry')}</label>
                     <input type="text" placeholder="12/26" value={cardExpiry} onChange={(e) => setCardExpiry(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-[12px] py-3 px-4 text-[14px] text-white outline-none focus:border-[#D98F8F] font-mono" />
                   </div>
                   <div>
-                    <label className="text-[#A69697] text-[13px] block mb-1">CVC</label>
+                    <label className="text-[#A69697] text-[13px] block mb-1">{t('settings.subscription.checkout.cvc')}</label>
                     <input type="text" placeholder="123" value={cardCvc} onChange={(e) => setCardCvc(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-[12px] py-3 px-4 text-[14px] text-white outline-none focus:border-[#D98F8F] font-mono" />
                   </div>
                 </div>
@@ -150,7 +161,7 @@ export default function SubscriptionPage() {
                 <button 
                   onClick={async () => {
                     if (!cardName.trim() || !cardNumber.trim() || !cardExpiry.trim() || !cardCvc.trim()) {
-                      toast.error('Please fill in all credit card details to proceed with the upgrade.');
+                      toast.error(t('settings.subscription.checkout.error_fill_details'));
                       return;
                     }
                     
@@ -172,7 +183,7 @@ export default function SubscriptionPage() {
                   disabled={checkoutLoading}
                   className="w-full py-4 rounded-[12px] bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white font-bold shadow-lg hover:shadow-[0_0_15px_rgba(217,143,143,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  {checkoutLoading ? 'Processing...' : `Pay & Upgrade to ${selectedPlan}`}
+                  {checkoutLoading ? t('settings.subscription.checkout.processing') : t('settings.subscription.checkout.pay_and_upgrade', { plan: selectedPlan }).replace('{{plan}}', selectedPlan)}
                 </button>
               </div>
             </div>

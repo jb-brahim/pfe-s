@@ -62,11 +62,11 @@ export default function PricingPage() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-8 mb-32">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-32">
           {/* Basic */}
           <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[30px] p-10 flex flex-col hover:border-white/10 transition-colors">
-            <h3 className="text-white text-[24px] font-bold mb-2">Basic</h3>
-            <p className="text-[#A69697] text-[14px] mb-8">Core features</p>
+            <h3 className="text-white text-[24px] font-bold mb-2">{t('landing.pricing_cards.basic') || 'Basic'}</h3>
+            <p className="text-[#A69697] text-[14px] mb-8">{t('landing.pricing_cards.core_features') || 'Core features'}</p>
             <div className="mb-8">
               <span className="text-[54px] font-bold text-white">{isAnnual ? '15' : '19'}</span><span className="text-[#A69697] font-bold"> TND</span><span className="text-[#A69697]">/mo</span>
               <p className="text-[#A69697] text-[12px] mt-1">{isAnnual ? (t('landing.pricing_cards.billed_annually') || 'Billed annually') : (t('landing.pricing_cards.billed_monthly') || 'Billed monthly')}</p>
@@ -78,29 +78,46 @@ export default function PricingPage() {
             <Link href="/auth/register" className="w-full py-4 rounded-full border border-white/20 text-center text-[#A69697] font-bold hover:bg-white/10 hover:text-white transition-colors">{t('landing.pricing_cards.get_started') || 'Get Started'}</Link>
           </div>
 
+          {/* Normal */}
+          <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[30px] p-10 flex flex-col hover:border-white/10 transition-colors">
+            <h3 className="text-white text-[24px] font-bold mb-2">{t('landing.pricing_cards.normal') || 'Normal'}</h3>
+            <p className="text-[#A69697] text-[14px] mb-8">{t('landing.pricing_cards.standard_tools') || 'Standard tools'}</p>
+            <div className="mb-8">
+              <span className="text-[54px] font-bold text-white">{isAnnual ? '39' : '49'}</span><span className="text-[#A69697] font-bold"> TND</span><span className="text-[#A69697]">/mo</span>
+              <p className="text-[#A69697] text-[12px] mt-1">{isAnnual ? (t('landing.pricing_cards.billed_annually') || 'Billed annually') : (t('landing.pricing_cards.billed_monthly') || 'Billed monthly')}</p>
+            </div>
+            <ul className="space-y-4 mb-10 text-[15px] text-[#A69697] flex-1">
+              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> {t('landing.pricing_cards.f_pro_1') || "Module d'extraction 5000 scans/mois"}</li>
+              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> {t('landing.pricing_cards.f_pro_2') || "Module d'intégration TTN disponible"}</li>
+              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> {t('landing.pricing_cards.f_pro_3') || "Module de connexion avec votre application"}</li>
+            </ul>
+            <Link href="/auth/register" className="w-full py-4 rounded-full border border-white/20 text-center text-[#A69697] font-bold hover:bg-white/10 hover:text-white transition-colors">{t('landing.pricing_cards.get_started') || 'Get Started'}</Link>
+          </div>
+
           {/* Pro */}
           <div className="bg-[rgba(255,255,255,0.05)] border border-[#D98F8F]/50 rounded-[30px] p-10 relative transform md:-translate-y-4 shadow-[0_20px_50px_rgba(142,27,58,0.3)] flex flex-col">
             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white text-xs font-bold px-4 py-1 rounded-full">{t('landing.pricing_cards.most_popular') || 'MOST POPULAR'}</div>
             <div className="absolute inset-0 rounded-[30px] ring-1 ring-inset ring-[#D98F8F] shadow-[inset_0_0_20px_rgba(217,143,143,0.2)] pointer-events-none"></div>
             
-            <h3 className="text-white text-[24px] font-bold mb-2">Pro</h3>
-            <p className="text-[#A69697] text-[14px] mb-8">Advanced tools</p>
+            <h3 className="text-white text-[24px] font-bold mb-2">{t('landing.pricing_cards.pro') || 'Pro'}</h3>
+            <p className="text-[#A69697] text-[14px] mb-8">{t('landing.pricing_cards.advanced_tools') || 'Advanced tools'}</p>
             <div className="mb-8">
-              <span className="text-[54px] font-bold text-white">{isAnnual ? '39' : '49'}</span><span className="text-[#D98F8F] font-bold"> TND</span><span className="text-[#D98F8F]">/mo</span>
+              <span className="text-[54px] font-bold text-white">{isAnnual ? '55' : '69'}</span><span className="text-[#D98F8F] font-bold"> TND</span><span className="text-[#D98F8F]">/mo</span>
               <p className="text-[#D98F8F]/70 text-[12px] mt-1">{isAnnual ? (t('landing.pricing_cards.billed_annually') || 'Billed annually') : (t('landing.pricing_cards.billed_monthly') || 'Billed monthly')}</p>
             </div>
             <ul className="space-y-4 mb-10 text-[15px] text-white flex-1">
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-[#D98F8F]" /> {t('landing.pricing_cards.f_pro_1') || "Module d'extraction 5000 scans/mois"}</li>
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-[#D98F8F]" /> {t('landing.pricing_cards.f_pro_2') || "Module d'intégration TTN disponible"}</li>
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-[#D98F8F]" /> {t('landing.pricing_cards.f_pro_3') || "Module de connexion avec votre application"}</li>
+              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-[#D98F8F]" /> {t('landing.pricing_cards.telegram_integration') || 'Intégration Telegram'}</li>
             </ul>
             <Link href="/auth/register" className="w-full py-4 rounded-full bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white text-center font-bold shadow-lg hover:shadow-[0_0_20px_rgba(217,143,143,0.4)] transition-all">{t('landing.pricing_cards.start_trial') || 'Start 14-Day Free Trial'}</Link>
           </div>
 
-          {/* Primum */}
+          {/* Premium */}
           <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[30px] p-10 flex flex-col hover:border-white/10 transition-colors">
             <h3 className="text-white text-[24px] font-bold mb-2">{t('landing.pricing_cards.premium') || 'Premium'}</h3>
-            <p className="text-[#A69697] text-[14px] mb-8">Unlimited usage</p>
+            <p className="text-[#A69697] text-[14px] mb-8">{t('landing.pricing_cards.unlimited_usage') || 'Unlimited usage'}</p>
             <div className="mb-8">
               <span className="text-[54px] font-bold text-white">{isAnnual ? '71' : '89'}</span><span className="text-[#A69697] font-bold"> TND</span><span className="text-[#A69697]">/mo</span>
               <p className="text-[#A69697] text-[12px] mt-1">{isAnnual ? (t('landing.pricing_cards.billed_annually') || 'Billed annually') : (t('landing.pricing_cards.billed_monthly') || 'Billed monthly')}</p>
@@ -110,8 +127,9 @@ export default function PricingPage() {
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> {t('landing.pricing_cards.f_pro_2') || "Module d'intégration TTN disponible"}</li>
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> {t('landing.pricing_cards.f_pro_3') || "Module de connexion avec votre application"}</li>
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> {t('landing.pricing_cards.f_premium_4') || "Module de comparaison des prix avec les concurrents"}</li>
+              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> {t('landing.pricing_cards.telegram_integration') || 'Intégration Telegram'}</li>
             </ul>
-            <Link href="/auth/login" className="w-full py-4 rounded-full bg-white/10 text-white font-bold hover:bg-white/20 transition-colors text-center">Contact Sales</Link>
+            <Link href="/auth/login" className="w-full py-4 rounded-full bg-white/10 text-white font-bold hover:bg-white/20 transition-colors text-center">{t('landing.pricing_cards.contact_sales') || 'Contact Sales'}</Link>
           </div>
         </div>
 

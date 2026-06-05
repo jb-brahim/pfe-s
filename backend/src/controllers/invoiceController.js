@@ -124,10 +124,15 @@ const uploadInvoice = async (req, res, next) => {
       return res.status(403).json({ message: 'LIMIT_REACHED' });
     }
 
+    let source = 'WEB_APP';
+    if (req.headers['x-telegram-id']) source = 'TELEGRAM';
+    else if (req.user.email === 'n8n-bot@system.com' || (req.body && req.body.sender)) source = 'EMAIL';
+
     const invoice = await Invoice.create({
       userId: req.user._id,
       fileUrl: req.file.path,
-      status: 'DRAFT'
+      status: 'DRAFT',
+      source
     });
 
     await AuditLog.create({
@@ -308,7 +313,8 @@ const manualEntry = async (req, res, next) => {
     const invoice = await Invoice.create({
       userId: req.user._id,
       fileUrl: 'MANUAL_ENTRY',
-      status: 'EXTRACTED'
+      status: 'EXTRACTED',
+      source: 'WEB_APP'
     });
 
     const extractedData = await ExtractedData.create({
@@ -632,7 +638,8 @@ const batchUpload = async (req, res, next) => {
         const invoice = await Invoice.create({
           userId: req.user._id,
           fileUrl: file.path,
-          status: 'PROCESSING'
+          status: 'PROCESSING',
+          source: 'WEB_APP'
         });
 
         const aiResponse = await extractInvoiceData(file.path);

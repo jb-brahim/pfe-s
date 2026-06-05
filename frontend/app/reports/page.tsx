@@ -6,10 +6,7 @@ import { ResponsiveContainer, ComposedChart, Line, Area, Bar, XAxis, YAxis, Tool
 import { FileText, Download, Calendar, Filter, ChevronDown, Sparkles, Folder, FileBarChart, PieChart, RefreshCw, Zap, Trash2, Mail, Plus, X, FileDown } from 'lucide-react';
 import { analyticsAPI, reportAPI, invoiceAPI } from '@/lib/api';
 import { toast } from 'sonner';
-import { useLanguage } from '@/lib/i18n-context';
-import { exportInvoicesPDF } from '@/lib/exportPDF';
-
-// Report icons mapping
+import { useLanguage } from '@/lib/i18n-context';// Report icons mapping
 const iconMap: Record<string, any> = {
   'Profit & Loss Statement': FileBarChart,
   'Tax Compliance Audit': FileText,
@@ -30,7 +27,6 @@ export default function ReportsPage() {
   const [schedules, setSchedules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
-  const [exportingPDF, setExportingPDF] = useState(false);
 
   // Type Maps for Translation
   const typeMap: Record<string, string> = {
@@ -226,24 +222,6 @@ export default function ReportsPage() {
     window.open(`${backendUrl}${report.fileUrl}`, '_blank');
   };
 
-  const handleExportAllPDF = async () => {
-    setExportingPDF(true);
-    try {
-      const res = await invoiceAPI.getAll();
-      const invoices = res.data || [];
-      if (invoices.length === 0) {
-        toast.error('Aucune facture trouvée pour l\'export.');
-        return;
-      }
-      await exportInvoicesPDF(invoices, `Aura_Rapport_Complet_${new Date().toISOString().split('T')[0]}.pdf`);
-      toast.success('Rapport PDF des factures exporté avec succès !');
-    } catch (err) {
-      console.error(err);
-      toast.error('Échec de la génération du PDF. Veuillez réessayer.');
-    } finally {
-      setExportingPDF(false);
-    }
-  };
 
   // Filtered reports list
   const filteredReports = reports.filter(r => {
@@ -265,14 +243,7 @@ export default function ReportsPage() {
             </h1>
             <p className="text-[#A69697] text-[16px]">{t('reports.subtitle')}</p>
           </div>
-          <button
-            onClick={handleExportAllPDF}
-            disabled={exportingPDF}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#8E1B3A]/20 border border-[#8E1B3A]/40 hover:bg-[#8E1B3A]/30 rounded-[10px] text-[13px] font-medium transition-colors text-[#D98F8F] disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {exportingPDF ? <RefreshCw size={16} className="animate-spin" /> : <FileDown size={16} />}
-            {exportingPDF ? 'Generating...' : 'Export All Invoices PDF'}
-          </button>
+
         </div>
 
         {/* Report Generation Engine */}

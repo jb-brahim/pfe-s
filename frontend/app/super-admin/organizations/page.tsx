@@ -307,13 +307,13 @@ export default function OrganizationsPage() {
               }}
               className="px-3 py-1.5 rounded-md text-[12px] font-medium transition-colors bg-[#D98F8F]/10 hover:bg-[#D98F8F]/20 border border-[#D98F8F]/30 text-[#D98F8F]"
             >
-              Export PDF
+              {t('organizations.export_pdf')}
             </button>
             <button 
               onClick={handleExportCSV}
               className="px-3 py-1.5 rounded-md text-[12px] font-medium transition-colors bg-white/5 hover:bg-white/10 border border-white/5 text-[#A69697] hover:text-white"
             >
-              Export CSV
+              {t('organizations.export')} CSV
             </button>
           </div>
         </div>
@@ -365,7 +365,7 @@ export default function OrganizationsPage() {
                           </div>
                           <div>
                             <p className="text-[13px] font-medium text-white">{org.companyDetails?.name || org.name || 'Unnamed Org'}</p>
-                            <p className="text-[11px] text-[#A69697]">Employees: {org.employees?.length || 0}</p>
+                            <p className="text-[11px] text-[#A69697]">{t('organizations.employees_count', { count: org.employees?.length || 0 })}</p>
                           </div>
                         </div>
                       </td>
@@ -378,16 +378,16 @@ export default function OrganizationsPage() {
                           <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-white/5 text-white border border-[#D98F8F]/50">
                             {plan}
                           </span>
-                          <span className="text-[11px] text-[#A69697]">{price} TND / month</span>
+                          <span className="text-[11px] text-[#A69697]">{t('organizations.per_month', { price })}</span>
                         </div>
                       </td>
                       <td className="py-3 px-5">
                         <div className="flex flex-col gap-1">
                           <p className="text-[12px] text-white">{org.billing?.renewalDate ? new Date(org.billing?.renewalDate).toLocaleDateString() : 'N/A'}</p>
                           {daysRemaining <= 7 ? (
-                            <span className="text-[11px] font-semibold text-[#D98F8F]">{daysRemaining} days left!</span>
+                            <span className="text-[11px] font-semibold text-[#D98F8F]">{t('organizations.days_left', { days: daysRemaining })}</span>
                           ) : (
-                            <span className="text-[11px] text-[#A69697]">{daysRemaining} days remaining</span>
+                            <span className="text-[11px] text-[#A69697]">{t('organizations.days_remaining', { days: daysRemaining })}</span>
                           )}
                         </div>
                       </td>
@@ -419,7 +419,7 @@ export default function OrganizationsPage() {
                               handleDelete(org._id);
                             }}
                             className="p-1.5 rounded hover:bg-red-500/10 text-[#A69697] hover:text-red-400 transition-colors" 
-                            title="Delete Organization"
+                            title={t('organizations.delete_org')}
                           >
                             <Trash2 size={14} />
                           </button>
@@ -429,7 +429,7 @@ export default function OrganizationsPage() {
                               openApiModal(org);
                             }}
                             className="p-1.5 rounded hover:bg-white/10 text-[#A69697] hover:text-white" 
-                            title="API Settings"
+                            title={t('organizations.api_settings')}
                           >
                             <MoreVertical size={14} />
                           </button>
@@ -440,7 +440,7 @@ export default function OrganizationsPage() {
                       <tr className="bg-[#1A0A0B]/50 border-b border-white/[0.02]">
                         <td colSpan={6} className="py-4 px-12">
                           <div className="flex flex-col gap-2">
-                            <h4 className="text-[#A69697] text-[11px] uppercase font-bold tracking-wider mb-2 flex items-center gap-2"><Users size={14} /> Organization Employees</h4>
+                            <h4 className="text-[#A69697] text-[11px] uppercase font-bold tracking-wider mb-2 flex items-center gap-2"><Users size={14} /> {t('organizations.org_employees')}</h4>
                             {org.employees?.length > 0 ? (
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                 {org.employees.map((emp: any) => (
@@ -454,7 +454,7 @@ export default function OrganizationsPage() {
                                 ))}
                               </div>
                             ) : (
-                              <p className="text-[12px] text-[#A69697] italic">No employees found under this organization.</p>
+                              <p className="text-[12px] text-[#A69697] italic">{t('organizations.no_employees')}</p>
                             )}
                           </div>
                         </td>
@@ -474,7 +474,7 @@ export default function OrganizationsPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[#1A050A] border border-white/10 rounded-xl w-full max-w-2xl shadow-2xl p-6 overflow-y-auto max-h-[90vh]">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-[18px] font-semibold text-white">{t('organizations.manage')} Subscription</h2>
+              <h2 className="text-[18px] font-semibold text-white">{t('organizations.manage_subscription')}</h2>
               <button onClick={() => setIsEditModalOpen(false)} className="text-[#A69697] hover:text-white">
                 <X size={18} />
               </button>
@@ -484,15 +484,15 @@ export default function OrganizationsPage() {
               {/* Read-Only Info */}
               <div className="p-4 rounded-lg bg-[#1E0A0B] border border-white/5 flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
                 <div>
-                  <span className="text-[11px] text-[#A69697] uppercase tracking-wider block mb-1">Company</span>
+                  <span className="text-[11px] text-[#A69697] uppercase tracking-wider block mb-1">{t('organizations.company_label')}</span>
                   <span className="text-[14px] font-medium text-white">{editOrgForm.name}</span>
                 </div>
                 <div>
-                  <span className="text-[11px] text-[#A69697] uppercase tracking-wider block mb-1">Owner Email</span>
+                  <span className="text-[11px] text-[#A69697] uppercase tracking-wider block mb-1">{t('organizations.owner_email_label')}</span>
                   <span className="text-[14px] font-medium text-white">{editOrgForm.email}</span>
                 </div>
                 <div>
-                  <span className="text-[11px] text-[#A69697] uppercase tracking-wider block mb-1">Current Expiry</span>
+                  <span className="text-[11px] text-[#A69697] uppercase tracking-wider block mb-1">{t('organizations.current_expiry_label')}</span>
                   <span className="text-[14px] font-medium text-white">
                     {editOrgForm.currentRenewalDate ? new Date(editOrgForm.currentRenewalDate).toLocaleDateString() : 'N/A'}
                   </span>
@@ -500,7 +500,7 @@ export default function OrganizationsPage() {
               </div>
 
               <div className="space-y-4">
-                <label className="block text-[13px] text-white font-medium">Select Plan</label>
+                <label className="block text-[13px] text-white font-medium">{t('organizations.select_plan')}</label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {[
                     { id: 'Basic', name: 'Basic', price: 19, icon: <Shield size={16} />, desc: 'Core features' },
@@ -530,7 +530,7 @@ export default function OrganizationsPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2 border-t border-white/5">
                 <div>
-                  <label className="block text-[12px] text-[#A69697] mb-1.5 font-medium flex items-center gap-1.5"><Calendar size={14} /> Add Duration</label>
+                  <label className="block text-[12px] text-[#A69697] mb-1.5 font-medium flex items-center gap-1.5"><Calendar size={14} /> {t('organizations.add_duration')}</label>
                   <div className="grid grid-cols-4 gap-2">
                     {[
                       { label: 'None', val: 0 },
@@ -550,7 +550,7 @@ export default function OrganizationsPage() {
                   </div>
                   {editOrgForm.durationMonths > 0 && editOrgForm.currentRenewalDate && (
                     <p className="text-[11px] text-[#D98F8F] mt-2">
-                      New expiry: {(() => {
+                      {t('organizations.new_expiry')} {(() => {
                         const d = new Date(editOrgForm.currentRenewalDate);
                         d.setMonth(d.getMonth() + editOrgForm.durationMonths);
                         return d.toLocaleDateString();
@@ -560,15 +560,15 @@ export default function OrganizationsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[12px] text-[#A69697] mb-1.5 font-medium">Account Status</label>
+                  <label className="block text-[12px] text-[#A69697] mb-1.5 font-medium">{t('organizations.account_status')}</label>
                   <select 
                     value={editOrgForm.status}
                     onChange={(e) => setEditOrgForm({...editOrgForm, status: e.target.value})}
                     className="w-full px-3 py-2 rounded-md bg-[#1E0A0B] border border-white/5 text-white text-[13px] focus:border-[#D98F8F]/50 outline-none appearance-none h-[38px]"
                   >
-                    <option value="Active">Active</option>
-                    <option value="Suspended">Suspended</option>
-                    <option value="Pending Deletion">Pending Deletion</option>
+                    <option value="Active">{t('organizations.active')}</option>
+                    <option value="Suspended">{t('organizations.suspended')}</option>
+                    <option value="Pending Deletion">{t('organizations.pending_deletion')}</option>
                   </select>
                 </div>
               </div>
@@ -579,13 +579,13 @@ export default function OrganizationsPage() {
                   onClick={() => setIsEditModalOpen(false)}
                   className="px-5 py-2.5 rounded-lg text-[13px] font-medium text-[#A69697] hover:text-white transition-colors"
                 >
-                  Cancel
+                  {t('organizations.cancel')}
                 </button>
                 <button 
                   type="submit"
                   className="px-5 py-2.5 rounded-lg text-[13px] font-semibold bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white shadow-lg hover:shadow-xl hover:opacity-90 transition-all"
                 >
-                  Apply Subscription Updates
+                  {t('organizations.apply_updates')}
                 </button>
               </div>
             </form>
@@ -610,7 +610,7 @@ export default function OrganizationsPage() {
               </div>
 
               <div>
-                <label className="block text-[12px] text-[#A69697] mb-1.5 font-medium">Subject</label>
+                <label className="block text-[12px] text-[#A69697] mb-1.5 font-medium">{t('organizations.subject')}</label>
                 <input 
                   type="text"
                   value={messageForm.subject}
@@ -621,7 +621,7 @@ export default function OrganizationsPage() {
               </div>
 
               <div>
-                <label className="block text-[12px] text-[#A69697] mb-1.5 font-medium">Message Body</label>
+                <label className="block text-[12px] text-[#A69697] mb-1.5 font-medium">{t('organizations.message_body')}</label>
                 <textarea 
                   value={messageForm.message}
                   onChange={(e) => setMessageForm({...messageForm, message: e.target.value})}
@@ -660,7 +660,7 @@ export default function OrganizationsPage() {
                 <div className="w-8 h-8 rounded-full bg-[#D98F8F]/10 flex items-center justify-center">
                   <Key size={16} className="text-[#D98F8F]" />
                 </div>
-                <h2 className="text-[18px] font-semibold text-white">API Settings</h2>
+                <h2 className="text-[18px] font-semibold text-white">{t('organizations.api_settings')}</h2>
               </div>
               <button onClick={() => setIsApiModalOpen(false)} className="text-[#A69697] hover:text-white">
                 <X size={18} />
@@ -669,14 +669,13 @@ export default function OrganizationsPage() {
             
             <div className="space-y-4">
               <p className="text-[13px] text-[#A69697] leading-relaxed">
-                Generate an API key for <strong className="text-white">{apiOrg.companyDetails?.name || apiOrg.name}</strong>. 
-                This key allows external systems to integrate with their Aura Finance account.
+                {t('organizations.generate_api_desc').replace('{{name}}', apiOrg.companyDetails?.name || apiOrg.name)}
               </p>
 
               {generatedApiKey ? (
                 <div className="space-y-3">
                   <div className="bg-green-500/10 border border-green-500/20 text-green-400 p-3 rounded-lg text-[13px]">
-                    API Key generated successfully! Please copy it now, as you won't be able to see it again.
+                    {t('organizations.api_generated_success')}
                   </div>
                   <div className="flex items-center gap-2">
                     <input 
@@ -700,7 +699,7 @@ export default function OrganizationsPage() {
                     disabled={isGeneratingApi}
                     className="w-full bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white py-2.5 rounded-lg text-[13px] font-semibold flex justify-center items-center gap-2 disabled:opacity-50 transition-all"
                   >
-                    {isGeneratingApi ? <Loader size={16} className="animate-spin" /> : <><Key size={16} /> Generate New API Key</>}
+                    {isGeneratingApi ? <Loader size={16} className="animate-spin" /> : <><Key size={16} /> {t('organizations.generate_new_api_key')}</>}
                   </button>
                 </div>
               )}
@@ -714,14 +713,14 @@ export default function OrganizationsPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[#1A050A] border border-white/10 rounded-xl w-full max-w-lg shadow-2xl p-6 flex flex-col max-h-[80vh]">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-[18px] font-semibold text-white">Export Organizations</h2>
+              <h2 className="text-[18px] font-semibold text-white">{t('organizations.export_orgs')}</h2>
               <button onClick={() => setIsExportModalOpen(false)} className="text-[#A69697] hover:text-white">
                 <X size={18} />
               </button>
             </div>
             
             <div className="mb-4 flex items-center justify-between">
-              <span className="text-[13px] text-[#A69697]">Select organizations to export:</span>
+              <span className="text-[13px] text-[#A69697]">{t('organizations.select_orgs_export')}</span>
               <button 
                 onClick={() => {
                   if (selectedOrgs.length === filteredOrgs.length) {
@@ -732,7 +731,7 @@ export default function OrganizationsPage() {
                 }}
                 className="text-[12px] text-[#D98F8F] hover:underline"
               >
-                {selectedOrgs.length === filteredOrgs.length ? 'Deselect All' : 'Select All'}
+                {selectedOrgs.length === filteredOrgs.length ? t('organizations.deselect_all') : t('organizations.select_all')}
               </button>
             </div>
 
@@ -764,7 +763,7 @@ export default function OrganizationsPage() {
                 onClick={() => setIsExportModalOpen(false)}
                 className="px-4 py-2 rounded-md text-[13px] font-medium text-[#A69697] hover:text-white transition-colors border border-white/10"
               >
-                Cancel
+                {t('organizations.cancel')}
               </button>
               <button 
                 onClick={async () => {
@@ -782,7 +781,7 @@ export default function OrganizationsPage() {
                 }}
                 className="px-4 py-2 rounded-md text-[13px] font-medium bg-[#D98F8F] text-[#1E0A0B] hover:bg-[#D98F8F]/90 transition-colors"
               >
-                Export PDF {selectedOrgs.length > 0 ? `(${selectedOrgs.length})` : '(All)'}
+                {selectedOrgs.length > 0 ? t('organizations.export_pdf_count', { count: selectedOrgs.length }) : t('organizations.export_pdf_all')}
               </button>
             </div>
           </div>

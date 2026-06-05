@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import { Search, Users as UsersIcon, Loader, Lock, KeyRound, Unlock } from 'lucide-react';
 import axios from 'axios';
+import { useLanguage } from '@/lib/i18n-context';
 
 export default function GlobalUsersPage() {
+  const { t } = useLanguage();
   const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -57,9 +59,9 @@ export default function GlobalUsersPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-[24px] font-semibold text-white tracking-tight mb-1">Global Users</h1>
+          <h1 className="text-[24px] font-semibold text-white tracking-tight mb-1">{t('superadmin.users_page.title')}</h1>
           <p className="text-[13px] text-[#A69697]">
-            Manage all accounts across every tenant organization.
+            {t('superadmin.users_page.subtitle')}
           </p>
         </div>
       </div>
@@ -73,7 +75,7 @@ export default function GlobalUsersPage() {
               type="text" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search users or emails..." 
+              placeholder={t('superadmin.users_page.search_placeholder')} 
               className="w-full pl-9 pr-4 py-2 rounded-md border outline-none text-[12px] transition-colors bg-[#1E0A0B] border-white/5 text-white focus:border-[#D98F8F]/50 placeholder:text-[#A69697]"
             />
           </div>
@@ -83,10 +85,10 @@ export default function GlobalUsersPage() {
               onChange={(e) => setRoleFilter(e.target.value)}
               className="px-3 py-1.5 rounded-md text-[12px] font-medium transition-colors bg-white/5 border border-white/5 text-white outline-none appearance-none"
             >
-              <option value="All Roles">All Roles</option>
-              <option value="ADMIN">Organization Admin</option>
-              <option value="ACCOUNTANT">Accountant</option>
-              <option value="SUPER_ADMIN">Super Admin</option>
+              <option value="All Roles">{t('superadmin.users_page.all_roles')}</option>
+              <option value="ADMIN">{t('superadmin.users_page.org_admin')}</option>
+              <option value="ACCOUNTANT">{t('superadmin.users_page.accountant')}</option>
+              <option value="SUPER_ADMIN">{t('superadmin.users_page.super_admin')}</option>
             </select>
           </div>
         </div>
@@ -96,10 +98,10 @@ export default function GlobalUsersPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-white/5 bg-white/[0.02]">
-                <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">User Details</th>
-                <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">Role</th>
-                <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">Status</th>
-                <th className="py-3 px-5 text-right w-[10%]">Actions</th>
+                <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">{t('superadmin.users_page.user_details')}</th>
+                <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">{t('superadmin.users_page.role')}</th>
+                <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">{t('superadmin.users_page.status')}</th>
+                <th className="py-3 px-5 text-right w-[10%]">{t('superadmin.users_page.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -112,7 +114,7 @@ export default function GlobalUsersPage() {
               ) : filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="py-12 text-center text-[#A69697] text-[12px]">
-                    No users found.
+                    {t('superadmin.users_page.no_users')}
                   </td>
                 </tr>
               ) : (

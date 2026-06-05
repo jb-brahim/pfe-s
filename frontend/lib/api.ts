@@ -520,6 +520,11 @@ export const userAPI = {
     const response = await apiClient.post('users/integrations', { integrations });
     return response.data;
   },
+
+  requestTelegramLink: async () => {
+    const response = await apiClient.post('users/request-telegram');
+    return response.data;
+  },
 };
 
 export const mailAPI = {

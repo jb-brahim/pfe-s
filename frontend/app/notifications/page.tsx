@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { notificationAPI } from '@/lib/api';
 import { AlertCircle, Info, AlertTriangle, Check } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n-context';
 
 interface Notification {
   _id: string;
@@ -15,6 +16,7 @@ interface Notification {
 }
 
 export default function NotificationsPage() {
+  const { t } = useLanguage();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filter, setFilter] = useState<'ALL' | 'HIGH' | 'MEDIUM' | 'LOW'>('ALL');
 
@@ -59,8 +61,8 @@ export default function NotificationsPage() {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Notifications Center</h1>
-          <p className="text-white/60">Alerts and updates from your invoice processing system.</p>
+          <h1 className="text-3xl font-bold text-white mb-2">{t('notifications.title')}</h1>
+          <p className="text-white/60">{t('notifications.subtitle')}</p>
         </div>
 
         {/* Filter Tabs */}
@@ -75,7 +77,7 @@ export default function NotificationsPage() {
                   : 'glass-card text-white/70 hover:text-white'
               }`}
             >
-              {f}
+              {f === 'ALL' ? (t('notifications.all') === 'notifications.all' ? 'All' : t('notifications.all')) : t(`notifications.${f.toLowerCase()}`)}
             </button>
           ))}
         </div>
@@ -85,8 +87,8 @@ export default function NotificationsPage() {
           {filteredNotifications.length === 0 ? (
             <div className="glass-card p-12 text-center">
               <Check className="w-12 h-12 text-green-400 mx-auto mb-4" />
-              <p className="text-white font-medium">All caught up!</p>
-              <p className="text-white/60 text-sm mt-1">No {filter !== 'ALL' ? filter.toLowerCase() : ''} notifications</p>
+              <p className="text-white font-medium">{t('notifications.all_caught_up')}</p>
+              <p className="text-white/60 text-sm mt-1">{t('notifications.no_notifications')}</p>
             </div>
           ) : (
             filteredNotifications.map((notification) => {
@@ -100,14 +102,14 @@ export default function NotificationsPage() {
                       <p className="text-white/70 text-sm mt-2">{notification.message}</p>
                       <div className="flex items-center justify-between mt-4">
                         <span className="text-white/40 text-xs">
-                          {new Date(notification.timestamp).toLocaleDateString()} at{' '}
+                          {new Date(notification.timestamp).toLocaleDateString()} {t('notifications.at')}{' '}
                           {new Date(notification.timestamp).toLocaleTimeString([], {
                             hour: '2-digit',
                             minute: '2-digit',
                           })}
                         </span>
                         <button className="text-[#B76E79] hover:text-[#D4969F] text-sm font-medium">
-                          View Details
+                          {t('notifications.view_details')}
                         </button>
                       </div>
                     </div>
@@ -121,9 +123,9 @@ export default function NotificationsPage() {
         {/* Stats */}
         <div className="grid md:grid-cols-3 gap-6">
           {[
-            { label: 'Critical Alerts', count: notifications.filter((n) => n.severity === 'HIGH').length },
-            { label: 'Warnings', count: notifications.filter((n) => n.severity === 'MEDIUM').length },
-            { label: 'Info Messages', count: notifications.filter((n) => n.severity === 'LOW').length },
+            { label: t('notifications.critical_alerts'), count: notifications.filter((n) => n.severity === 'HIGH').length },
+            { label: t('notifications.warnings'), count: notifications.filter((n) => n.severity === 'MEDIUM').length },
+            { label: t('notifications.info_messages'), count: notifications.filter((n) => n.severity === 'LOW').length },
           ].map((stat, idx) => (
             <div key={idx} className="glass-card p-6">
               <p className="text-white/60 text-sm mb-2">{stat.label}</p>

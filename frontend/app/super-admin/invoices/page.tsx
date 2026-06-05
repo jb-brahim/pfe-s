@@ -42,9 +42,9 @@ export default function InvoicesDetailsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-[24px] font-semibold text-white tracking-tight mb-1">Invoices by Enterprise</h1>
+          <h1 className="text-[24px] font-semibold text-white tracking-tight mb-1">{t('superadmin.invoices_page.title')}</h1>
           <p className="text-[13px] text-[#A69697]">
-            Overview of total extracted invoices for each organization on the platform.
+            {t('superadmin.invoices_page.subtitle')}
           </p>
         </div>
       </div>
@@ -58,7 +58,7 @@ export default function InvoicesDetailsPage() {
               type="text" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search enterprise or email..."
+              placeholder={t('superadmin.invoices_page.search_placeholder')}
               className="w-full pl-9 pr-4 py-2 rounded-md border outline-none text-[12px] transition-colors bg-[#1E0A0B] border-white/5 text-white focus:border-[#D98F8F]/50 placeholder:text-[#A69697]"
             />
           </div>
@@ -69,9 +69,9 @@ export default function InvoicesDetailsPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-white/5 bg-white/[0.02]">
-                <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium w-[40%]">Enterprise Name</th>
-                <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium w-[40%]">Admin Email</th>
-                <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium w-[20%] text-right">Invoices Extracted</th>
+                <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium w-[40%]">{t('superadmin.invoices_page.enterprise_name')}</th>
+                <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium w-[40%]">{t('superadmin.invoices_page.admin_email')}</th>
+                <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium w-[20%] text-right">{t('superadmin.invoices_page.invoices_extracted')}</th>
               </tr>
             </thead>
             <tbody>
@@ -84,7 +84,7 @@ export default function InvoicesDetailsPage() {
               ) : filteredData.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="py-12 text-center text-[12px] text-[#A69697]">
-                    No enterprises found matching your search.
+                    {t('superadmin.invoices_page.no_results')}
                   </td>
                 </tr>
               ) : (

@@ -3,8 +3,10 @@
 import { Activity, ShieldAlert, KeyRound, UserMinus, Search, Loader, Users, LogIn, Building, Shield, FileText, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useLanguage } from '@/lib/i18n-context';
 
 export default function AuditLogsPage() {
+  const { t } = useLanguage();
   const [logs, setLogs] = useState<any[]>([]);
   const [companies, setCompanies] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,17 +51,17 @@ export default function AuditLogsPage() {
   };
 
   const getCompanyName = (user: any) => {
-    if (!user) return 'System';
-    if (user.role === 'SUPER_ADMIN') return 'Super Admin';
-    if (user.role === 'ADMIN') return user.companyDetails?.name || user.name || 'Organization';
+    if (!user) return t('superadmin.audit_logs_page.system');
+    if (user.role === 'SUPER_ADMIN') return t('superadmin.audit_logs_page.super_admin');
+    if (user.role === 'ADMIN') return user.companyDetails?.name || user.name || t('superadmin.audit_logs_page.organization');
     
     // If accountant, find their company via the companies array
     const company = companies.find(c => 
       c._id === user.managedBy || c.employees?.some((e: any) => e._id === user._id)
     );
-    if (company) return company.companyDetails?.name || company.name || 'Organization';
+    if (company) return company.companyDetails?.name || company.name || t('superadmin.audit_logs_page.organization');
     
-    return 'Unknown Organization';
+    return t('superadmin.audit_logs_page.unknown_org');
   };
 
   const getEntityBadge = (type: string, id: string) => {
@@ -122,17 +124,17 @@ export default function AuditLogsPage() {
     <table className="w-full text-left border-collapse">
       <thead>
         <tr className="border-b border-white/5 bg-white/[0.02]">
-          <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">Action</th>
-          <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">Target Entity</th>
-          <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">Actor</th>
-          <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">Timestamp</th>
+          <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">{t('superadmin.audit_logs_page.table_action')}</th>
+          <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">{t('superadmin.audit_logs_page.table_target')}</th>
+          <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">{t('superadmin.audit_logs_page.table_actor')}</th>
+          <th className="py-3 px-5 text-[11px] uppercase tracking-wider text-[#A69697] font-medium">{t('superadmin.audit_logs_page.table_timestamp')}</th>
         </tr>
       </thead>
       <tbody>
         {logsToRender.length === 0 ? (
           <tr>
             <td colSpan={4} className="py-12 text-center text-[#A69697] text-[12px]">
-              No audit logs match your search.
+              {t('superadmin.audit_logs_page.no_logs')}
             </td>
           </tr>
         ) : (
@@ -152,7 +154,7 @@ export default function AuditLogsPage() {
                 <td className="py-3 px-5">{getEntityBadge(log.entityType, log.entityId)}</td>
                 <td className="py-3 px-5">
                   <div className="flex flex-col">
-                    <span className="text-[13px] text-white">{log.userId?.email || 'System'}</span>
+                    <span className="text-[13px] text-white">{log.userId?.email || t('superadmin.audit_logs_page.system')}</span>
                     {activeTab === 'ALL' && log.userId?.role !== 'SUPER_ADMIN' && log.userId && (
                       <span className="text-[10px] text-[#A69697]">{orgName}</span>
                     )}
@@ -171,9 +173,9 @@ export default function AuditLogsPage() {
     <div className="animate-in fade-in duration-500 h-full flex flex-col">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-[24px] font-semibold text-white tracking-tight mb-1">Audit Logs</h1>
+        <h1 className="text-[24px] font-semibold text-white tracking-tight mb-1">{t('superadmin.audit_logs_page.title')}</h1>
         <p className="text-[13px] text-[#A69697]">
-          Chronological feed of all critical system and security actions.
+          {t('superadmin.audit_logs_page.subtitle')}
         </p>
       </div>
 
@@ -185,7 +187,7 @@ export default function AuditLogsPage() {
             activeTab === 'ALL' ? 'text-white border-b-2 border-[#D98F8F]' : 'text-[#A69697] hover:text-white border-b-2 border-transparent'
           }`}
         >
-          All Activity
+          {t('superadmin.audit_logs_page.tab_all')}
         </button>
         <button
           onClick={() => setActiveTab('SUPER_ADMIN')}
@@ -194,7 +196,7 @@ export default function AuditLogsPage() {
           }`}
         >
           <Shield size={14} className={activeTab === 'SUPER_ADMIN' ? 'text-[#D98F8F]' : ''} />
-          Super Admin
+          {t('superadmin.audit_logs_page.tab_superadmin')}
         </button>
         <button
           onClick={() => setActiveTab('ORGS')}
@@ -203,7 +205,7 @@ export default function AuditLogsPage() {
           }`}
         >
           <Building size={14} className={activeTab === 'ORGS' ? 'text-[#D98F8F]' : ''} />
-          Organizations
+          {t('superadmin.audit_logs_page.tab_orgs')}
         </button>
       </div>
 
@@ -216,13 +218,13 @@ export default function AuditLogsPage() {
               type="text" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search logs by actor, email, or action..." 
+              placeholder={t('superadmin.audit_logs_page.search_placeholder')} 
               className="w-full pl-9 pr-4 py-2 rounded-md border outline-none text-[12px] transition-colors bg-[#1E0A0B] border-white/5 text-white focus:border-[#D98F8F]/50 placeholder:text-[#A69697]"
             />
           </div>
           <div className="flex gap-2">
             <button className="px-3 py-1.5 rounded-md text-[12px] font-medium transition-colors bg-white/5 hover:bg-white/10 border border-white/5 text-[#A69697] hover:text-white">
-              Export CSV
+              {t('superadmin.audit_logs_page.export_csv')}
             </button>
           </div>
         </div>
@@ -236,7 +238,7 @@ export default function AuditLogsPage() {
           ) : activeTab === 'ORGS' ? (
             // Grouped by Organizations View
             Object.keys(groupedByOrg).length === 0 ? (
-              <div className="py-12 text-center text-[#A69697] text-[12px]">No organization logs found.</div>
+              <div className="py-12 text-center text-[#A69697] text-[12px]">{t('superadmin.audit_logs_page.no_org_logs')}</div>
             ) : (
               Object.keys(groupedByOrg).sort().map(orgName => (
                 <div key={orgName} className="mb-6">
@@ -244,7 +246,7 @@ export default function AuditLogsPage() {
                     <Building size={14} className="text-[#A69697]" />
                     <h3 className="text-[13px] font-semibold text-white">{orgName}</h3>
                     <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full ml-2">
-                      {groupedByOrg[orgName].length} events
+                      {groupedByOrg[orgName].length} {t('superadmin.audit_logs_page.events')}
                     </span>
                   </div>
                   {renderLogTable(groupedByOrg[orgName])}

@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import { Loader, FileText, PieChart, BarChart3, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Loader, FileText, PieChart, BarChart3, Eye, EyeOff, ArrowLeft, Globe } from 'lucide-react';
 import Link from 'next/link';
+import { useLanguage } from '@/lib/i18n-context';
 
 export default function RegisterPage() {
   const router = useRouter();
   const { register } = useAuth();
+  const { t, language: lang, setLanguage: setLang } = useLanguage();
   const [name, setName] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
@@ -26,6 +28,7 @@ export default function RegisterPage() {
   });
   const [mounted, setMounted] = useState(false);
   const [transitionReady, setTransitionReady] = useState(false);
+  const [showLanguages, setShowLanguages] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('app-theme') as 'dark' | 'light';
@@ -116,8 +119,44 @@ export default function RegisterPage() {
           : 'bg-white/40 hover:bg-white/70 border border-white/50 text-[#8E1B3A]'
       }`}>
         <ArrowLeft size={16} />
-        <span className="text-[13px]">Back to Home</span>
+        <span className="text-[13px]">{t('auth.back_to_home') || 'Back to Home'}</span>
       </Link>
+
+      {/* Language Switcher */}
+      <div className="absolute top-6 right-6 z-50">
+        <button
+          onClick={() => setShowLanguages(!showLanguages)}
+          className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md shadow-sm transition-all border ${
+            isDark 
+              ? 'bg-[#1A0A0B]/40 border-white/10 text-[#A69697] hover:text-white hover:bg-[#1A0A0B]/70'
+              : 'bg-white/40 border-white/50 text-[#8E1B3A]/70 hover:text-[#8E1B3A] hover:bg-white/70'
+          }`}
+          title="Switch Language"
+        >
+          <Globe className="w-5 h-5" strokeWidth={1.5} />
+        </button>
+        {showLanguages && (
+          <div className={`absolute top-12 right-0 w-32 border rounded-xl shadow-2xl overflow-hidden py-1 ${
+            isDark ? 'bg-[#1A0A0B] border-white/10' : 'bg-white border-gray-200'
+          }`}>
+            {(['EN', 'FR', 'AR'] as const).map(l => (
+              <button
+                key={l}
+                onClick={() => { setLang(l); setShowLanguages(false); }}
+                className={`w-full text-left px-4 py-2 text-[13px] transition-colors ${
+                  isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'
+                } ${
+                  lang === l 
+                    ? isDark ? 'text-[#D98F8F] font-bold' : 'text-[#8E1B3A] font-bold'
+                    : isDark ? 'text-[#A69697]' : 'text-gray-700'
+                }`}
+              >
+                {l === 'EN' ? 'English' : l === 'FR' ? 'Français' : 'العربية'}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Background Ambience */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -138,13 +177,13 @@ export default function RegisterPage() {
           {mode === 'register' && (
             <>
               <h1 className={`text-[36px] font-medium mb-8 tracking-tight transition-colors duration-700 ${isDark ? 'text-white' : 'text-[#1A0A0B]'}`}>
-                Create Account
+                {t('auth.create_account') || 'Create Account'}
               </h1>
 
               <form onSubmit={handleRegister} className="space-y-5">
                 {/* Full Name */}
                 <div>
-                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>Full Name</label>
+                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>{t('auth.full_name') || 'Full Name'}</label>
                   <input
                     type="text"
                     value={name}
@@ -160,13 +199,13 @@ export default function RegisterPage() {
 
                 {/* Company Name */}
                 <div>
-                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>Company / Organization Name</label>
+                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>{t('auth.company_name') || 'Company / Organization Name'}</label>
                   <div className="relative group">
                     <input
                       type="text"
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
-                      placeholder="e.g., Pereira S.A.R.L."
+                      placeholder={t('auth.company_placeholder') || 'e.g., Pereira S.A.R.L.'}
                       className={`w-full rounded-[14px] py-4 px-5 text-[15px] outline-none transition-all duration-700 ${
                         isDark 
                           ? 'bg-[#1A0A0B]/60 border border-[rgba(255,255,255,0.08)] text-white focus:border-[#D98F8F]/50 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)]'
@@ -179,7 +218,7 @@ export default function RegisterPage() {
 
                 {/* Email */}
                 <div>
-                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>Email Address</label>
+                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>{t('auth.email_address') || 'Email Address'}</label>
                   <input
                     type="email"
                     value={email}
@@ -195,7 +234,7 @@ export default function RegisterPage() {
 
                 {/* Password */}
                 <div>
-                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>Password</label>
+                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>{t('auth.password') || 'Password'}</label>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -222,7 +261,7 @@ export default function RegisterPage() {
 
                 {/* Confirm Password */}
                 <div>
-                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>Confirm Password</label>
+                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>{t('auth.confirm_password') || 'Confirm Password'}</label>
                   <div className="relative">
                     <input
                       type={showConfirm ? 'text' : 'password'}
@@ -260,16 +299,16 @@ export default function RegisterPage() {
                   }`}
                 >
                   {isLoading && <Loader size={18} className="animate-spin" />}
-                  {isLoading ? 'Creating account...' : 'Sign Up'}
+                  {isLoading ? (t('auth.creating_account') || 'Creating account...') : (t('auth.sign_up') || 'Sign Up')}
                 </button>
 
                 {/* Redirect link to Login */}
                 <div className="text-center mt-6">
-                  <span className={`text-[13px] ${isDark ? 'text-[#A69697]' : 'text-gray-600'}`}>Already have an account? </span>
+                  <span className={`text-[13px] ${isDark ? 'text-[#A69697]' : 'text-gray-600'}`}>{t('auth.have_account') || 'Already have an account?'} </span>
                   <Link href="/auth/login" className={`text-[13px] font-bold transition-colors duration-700 ${
                     isDark ? 'text-[#D98F8F] hover:text-white' : 'text-[#8E1B3A] hover:text-[#6D071A]'
                   }`}>
-                    Log In
+                    {t('auth.log_in') || 'Log In'}
                   </Link>
                 </div>
               </form>
@@ -279,15 +318,15 @@ export default function RegisterPage() {
           {mode === 'verify' && (
             <>
               <h1 className={`text-[36px] font-medium mb-4 tracking-tight transition-colors duration-700 ${isDark ? 'text-white' : 'text-[#1A0A0B]'}`}>
-                Verify Email
+                {t('auth.verify_email') || 'Verify Email'}
               </h1>
               <p className={`text-[14px] mb-8 ${isDark ? 'text-[#A69697]' : 'text-gray-600'}`}>
-                We've sent a 6-digit verification code to <strong>{email}</strong>. Enter it below to unlock your account.
+                {t('auth.verify_email_desc') || "We've sent a 6-digit verification code to"} <strong>{email}</strong>. {t('auth.verify_email_desc_2') || "Enter it below to unlock your account."}
               </p>
 
               <form onSubmit={handleVerify} className="space-y-6">
                 <div>
-                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>6-Digit Code</label>
+                  <label className={`block text-[13px] mb-2 transition-colors duration-700 ${isDark ? 'text-[#A69697]' : 'text-[#8E1B3A]/80 font-bold'}`}>{t('auth.six_digit_code') || '6-Digit Code'}</label>
                   <input
                     type="text"
                     maxLength={6}
@@ -315,7 +354,7 @@ export default function RegisterPage() {
                   }`}
                 >
                   {isLoading && <Loader size={18} className="animate-spin" />}
-                  {isLoading ? 'Verifying...' : 'Verify Email'}
+                  {isLoading ? (t('auth.verifying') || 'Verifying...') : (t('auth.verify_email') || 'Verify Email')}
                 </button>
               </form>
             </>
