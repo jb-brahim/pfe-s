@@ -284,7 +284,7 @@ export default function InvoicesPage() {
             </button>
             <button 
               onClick={handleExportPDF}
-              className="flex items-center gap-2 px-4 py-2 bg-[#8E1B3A]/20 border border-[#8E1B3A]/40 hover:bg-[#8E1B3A]/30 rounded-[8px] text-[13px] font-medium transition-colors text-[#D98F8F]"
+              className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 rounded-[8px] text-[13px] font-medium transition-colors text-white"
             >
               <FileDown size={16} /> {t('invoices.export_pdf')}
             </button>
