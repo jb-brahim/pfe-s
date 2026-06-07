@@ -8,7 +8,7 @@ export async function exportInvoicesPDF(invoices: any[], filename?: string) {
   const { default: jsPDF } = await import('jspdf');
   const { default: autoTable } = await import('jspdf-autotable');
 
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
   const date = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -40,8 +40,6 @@ export async function exportInvoicesPDF(invoices: any[], filename?: string) {
 
   // Title
   doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...WHITE);
   doc.text('Aura Finance', 32, 11);
 
   doc.setFontSize(8);
@@ -53,7 +51,7 @@ export async function exportInvoicesPDF(invoices: any[], filename?: string) {
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...WHITE);
-  doc.text("RAPPORT D'EXPORT DE FACTURES", pageW - 10, 11, { align: 'right' });
+  doc.text("RAPPORT D'EXPORT", pageW - 10, 11, { align: 'right' });
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...GREY);
   doc.setFontSize(8);
@@ -74,8 +72,8 @@ export async function exportInvoicesPDF(invoices: any[], filename?: string) {
 
   const stats = [
     { label: 'Factures Totales', value: String(invoices.length) },
-    { label: 'Montant Total (TND)', value: formatCurrency(totalAmount) },
-    { label: 'TVA Totale (TND)',    value: formatCurrency(totalTax) },
+    { label: 'Montant (TND)', value: formatCurrency(totalAmount) },
+    { label: 'TVA (TND)',    value: formatCurrency(totalTax) },
     { label: 'Approuvées',          value: String(approved) },
     { label: 'En Attente',          value: String(pending) },
   ];
@@ -105,106 +103,134 @@ export async function exportInvoicesPDF(invoices: any[], filename?: string) {
     return map[status] || status;
   };
 
-  // ── Build table rows ───────────────────────────────────────────────────────
-  const head = [['#', 'N° Facture', 'Fournisseur', 'Date', 'Statut', 'Confiance IA', 'Total H.T.', 'TVA', 'Total T.T.C.', 'Description', 'Qté', 'Prix U.']];
-  const body: (string | number)[][] = [];
+  let currentY = 58;
 
-  let rowIndex = 1;
-  invoices.forEach((inv) => {
-    const base = {
-      num: rowIndex,
-      invNo: inv.invoiceNumber || 'N/A',
-      company: inv.companyName || 'N/A',
-      date: inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('fr-FR') : '—',
-      status: translateStatus(inv.status || '—'),
-      conf: inv.confidence ? `${Math.round(inv.confidence * 100)}%` : '—',
-      ht: formatCurrency(inv.extractedData?.totalHT || 0),
-      tva: formatCurrency(inv.taxAmount || 0),
-      ttc: formatCurrency(inv.totalAmount || 0),
-    };
+  invoices.forEach((inv, index) => {
+    // Page break logic (50px needed for header + approx 20px for table head)
+    if (currentY > pageH - 70) {
+      doc.addPage();
+      currentY = 20;
+    }
 
+    const companyName = inv.companyName || 'Fournisseur Inconnu';
+    const invNo = inv.invoiceNumber || 'N/A';
+    const invDate = inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('fr-FR') : '—';
+    const status = translateStatus(inv.status || '—');
+    const totalHT = formatCurrency(inv.extractedData?.totalHT || 0);
+    const totalTVA = formatCurrency(inv.taxAmount || 0);
+    const totalTTC = formatCurrency(inv.totalAmount || 0);
+
+    // ── Invoice Header ───────────────────────────────────────────────────────
+    doc.setFillColor(252, 250, 250);
+    doc.setDrawColor(230, 222, 222);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(10, currentY, pageW - 20, 26, 2, 2, 'FD');
+
+    // Left side: Company & basic details
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...DARK);
+    doc.text(companyName, 14, currentY + 7);
+
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...GREY);
+    doc.text(`Facture N°:`, 14, currentY + 13);
+    doc.setTextColor(...DARK);
+    doc.text(invNo, 32, currentY + 13);
+
+    doc.setTextColor(...GREY);
+    doc.text(`Date:`, 14, currentY + 18);
+    doc.setTextColor(...DARK);
+    doc.text(invDate, 32, currentY + 18);
+
+    doc.setTextColor(...GREY);
+    doc.text(`Statut:`, 14, currentY + 23);
+    doc.setFont('helvetica', 'bold');
+    // Colorize status
+    if (status === 'APPROUVÉ' || status === 'VÉRIFIÉ') doc.setTextColor(76, 175, 80);
+    else if (status === 'SOUMIS' || status === 'EXTRAIT') doc.setTextColor(255, 193, 7);
+    else if (status === 'REJETÉ') doc.setTextColor(217, 143, 143);
+    else doc.setTextColor(...DARK);
+    doc.text(status, 32, currentY + 23);
+
+    // Right side: Financial details
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...GREY);
+    doc.text(`Total H.T. :`, pageW - 60, currentY + 13);
+    doc.text(`TVA :`, pageW - 60, currentY + 18);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...DARK);
+    doc.text(`Total T.T.C. :`, pageW - 60, currentY + 23);
+
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${totalHT} TND`, pageW - 14, currentY + 13, { align: 'right' });
+    doc.text(`${totalTVA} TND`, pageW - 14, currentY + 18, { align: 'right' });
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...WINE);
+    doc.text(`${totalTTC} TND`, pageW - 14, currentY + 23, { align: 'right' });
+
+    currentY += 30;
+
+    // ── Line Items Table ─────────────────────────────────────────────────────
     const lineItems: any[] = inv.extractedData?.lineItems || [];
     if (lineItems.length === 0) {
-      body.push([base.num, base.invNo, base.company, base.date, base.status, base.conf, base.ht, base.tva, base.ttc, 'Aucun article', '—', '—']);
-      rowIndex++;
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(...GREY);
+      doc.text("Aucun article extrait pour cette facture.", 14, currentY + 2);
+      currentY += 12;
     } else {
-      lineItems.forEach((item, li) => {
-        body.push([
-          li === 0 ? base.num : '',
-          li === 0 ? base.invNo   : '',
-          li === 0 ? base.company : '',
-          li === 0 ? base.date    : '',
-          li === 0 ? base.status  : '',
-          li === 0 ? base.conf    : '',
-          li === 0 ? base.ht      : '',
-          li === 0 ? base.tva     : '',
-          li === 0 ? base.ttc     : '',
-          item.description || '—',
-          item.quantity ?? '—',
-          item.unitPrice != null ? formatCurrency(item.unitPrice) : '—',
-        ]);
-      });
-      rowIndex++;
-    }
-  });
+      const head = [['Description', 'Quantité', 'Prix Unitaire', 'Total']];
+      const body = lineItems.map((item) => [
+        item.description || '—',
+        item.quantity ?? '—',
+        item.unitPrice != null ? formatCurrency(item.unitPrice) : '—',
+        item.totalPrice != null ? formatCurrency(item.totalPrice) : '—'
+      ]);
 
-  // ── Render table ──────────────────────────────────────────────────────────
-  autoTable(doc, {
-    head,
-    body,
-    startY: 55,
-    margin: { left: 10, right: 10 },
-    styles: {
-      fontSize: 8,
-      cellPadding: { top: 2.5, bottom: 2.5, left: 3, right: 3 },
-      lineColor: [230, 222, 222],
-      lineWidth: 0.2,
-      textColor: [40, 20, 22],
-      font: 'helvetica',
-    },
-    headStyles: {
-      fillColor: WINE,
-      textColor: WHITE,
-      fontStyle: 'bold',
-      fontSize: 7.5,
-      halign: 'center',
-    },
-    alternateRowStyles: {
-      fillColor: [253, 248, 248],
-    },
-    columnStyles: {
-      0:  { halign: 'center', cellWidth: 8 },
-      1:  { cellWidth: 26 },
-      2:  { cellWidth: 32 },
-      3:  { cellWidth: 18, halign: 'center' },
-      4:  { cellWidth: 20, halign: 'center' },
-      5:  { cellWidth: 18, halign: 'center' },
-      6:  { cellWidth: 25, halign: 'right' },
-      7:  { cellWidth: 20, halign: 'right' },
-      8:  { cellWidth: 25, halign: 'right' },
-      9:  { cellWidth: 'auto' },
-      10: { cellWidth: 12, halign: 'center' },
-      11: { cellWidth: 20, halign: 'right' },
-    },
-    // Set status text colour via styles instead of redrawing
-    didParseCell: (data) => {
-      if (data.section === 'body' && data.column.index === 4 && data.cell.raw) {
-        const status = String(data.cell.raw);
-        if (status === 'APPROUVÉ' || status === 'VÉRIFIÉ') {
-          data.cell.styles.textColor = [76, 175, 80];
-          data.cell.styles.fontStyle = 'bold';
-        } else if (status === 'SOUMIS' || status === 'EXTRAIT') {
-          data.cell.styles.textColor = [255, 193, 7];
-          data.cell.styles.fontStyle = 'bold';
-        } else if (status === 'REJETÉ') {
-          data.cell.styles.textColor = [217, 143, 143];
-          data.cell.styles.fontStyle = 'bold';
-        } else if (status === 'ÉCHOUÉ') {
-          data.cell.styles.textColor = [244, 67, 54];
-          data.cell.styles.fontStyle = 'bold';
+      autoTable(doc, {
+        head,
+        body,
+        startY: currentY,
+        margin: { left: 14, right: 14 },
+        styles: {
+          fontSize: 7.5,
+          cellPadding: { top: 2, bottom: 2, left: 3, right: 3 },
+          lineColor: [240, 235, 235],
+          lineWidth: 0.1,
+          textColor: [40, 20, 22],
+          font: 'helvetica',
+        },
+        headStyles: {
+          fillColor: [248, 243, 243],
+          textColor: GREY,
+          fontStyle: 'bold',
+          fontSize: 7,
+          halign: 'left',
+          lineWidth: 0.1,
+          lineColor: [230, 222, 222]
+        },
+        alternateRowStyles: {
+          fillColor: [255, 255, 255],
+        },
+        columnStyles: {
+          0: { cellWidth: 'auto' },
+          1: { cellWidth: 20, halign: 'center' },
+          2: { cellWidth: 30, halign: 'right' },
+          3: { cellWidth: 30, halign: 'right' },
         }
-      }
-    },
+      });
+      
+      currentY = (doc as any).lastAutoTable.finalY + 12;
+    }
+
+    // Subtle separator between invoices
+    if (index < invoices.length - 1) {
+      doc.setDrawColor(240, 235, 235);
+      doc.setLineWidth(0.5);
+      doc.line(20, currentY - 5, pageW - 20, currentY - 5);
+    }
   });
 
   // ── Footer ─────────────────────────────────────────────────────────────────
@@ -216,11 +242,12 @@ export async function exportInvoicesPDF(invoices: any[], filename?: string) {
     doc.setFontSize(7);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...GREY);
-    doc.text('Aura Finance — Rapport de factures confidentiel', 10, pageH - 4);
+    doc.text('Aura Finance — Rapport de factures', 10, pageH - 4);
     doc.text(`Page ${p} sur ${pageCount}`, pageW - 10, pageH - 4, { align: 'right' });
   }
 
   const name = filename || `Aura_Export_Factures_${new Date().toISOString().split('T')[0]}.pdf`;
   doc.save(name);
 }
+
 

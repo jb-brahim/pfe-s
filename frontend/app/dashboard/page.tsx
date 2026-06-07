@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Upload, MoreHorizontal, ChevronDown, FileText, TrendingUp, Users, CheckCircle2, Loader } from 'lucide-react';
+import { Upload, MoreHorizontal, ChevronDown, FileText, TrendingUp, Users, CheckCircle2, Loader, XCircle } from 'lucide-react';
 import { invoiceAPI, analyticsAPI } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { useLanguage } from '@/lib/i18n-context';
@@ -78,6 +78,7 @@ export default function DashboardPage() {
   const totalRevenue = dashboardStats?.totalAmount || 0;
   const totalInvoices = invoices.length;
   const approvedCount = invoices.filter((inv: any) => inv.status === 'APPROVED').length;
+  const rejectedCount = invoices.filter((inv: any) => inv.status === 'REJECTED').length;
   const pendingCount = invoices.filter((inv: any) => ['SUBMITTED', 'EXTRACTED', 'VERIFIED'].includes(inv.status)).length;
   const outstandingTotal = invoices
     .filter((inv: any) => inv.status !== 'APPROVED' && inv.status !== 'REJECTED')
@@ -215,8 +216,22 @@ export default function DashboardPage() {
               </div>
             </div>
           ) : (
-            <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 flex items-center justify-center h-[170px]">
-              <p className="text-[#A69697] text-[13px]">{t('dashboard.my_pending_actions_empty')}</p>
+            <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 flex flex-row items-center justify-center gap-12 h-[170px]">
+              <div className="flex flex-col items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-[#4CAF50]/10 border border-[#4CAF50]/20 flex items-center justify-center mb-3">
+                  <CheckCircle2 size={24} className="text-[#4CAF50]" />
+                </div>
+                <h3 className="text-white text-[32px] font-bold leading-none mb-1">{approvedCount}</h3>
+                <p className="text-[#A69697] text-[12px] uppercase tracking-wider">{t('status.approved')}</p>
+              </div>
+              <div className="w-[1px] h-20 bg-white/10"></div>
+              <div className="flex flex-col items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-3">
+                  <XCircle size={24} className="text-red-400" />
+                </div>
+                <h3 className="text-white text-[32px] font-bold leading-none mb-1">{rejectedCount}</h3>
+                <p className="text-[#A69697] text-[12px] uppercase tracking-wider">{t('status.rejected')}</p>
+              </div>
             </div>
           )}
 
@@ -279,15 +294,15 @@ export default function DashboardPage() {
 
             <div className="flex-1 w-full h-full min-h-[280px] mt-[-10px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={revenueChartData.length > 0 ? revenueChartData : [{ month: '—', revenue: 0 }]} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                <AreaChart data={revenueChartData.length > 0 ? revenueChartData : [{ month: '—', revenue: 0 }]} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
                   <defs>
                     <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="rgba(217, 143, 143, 0.3)" />
                       <stop offset="100%" stopColor="rgba(142, 27, 58, 0)" />
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="month" stroke="#A69697" fontSize={11} tickLine={false} axisLine={false} dy={10} />
-                  <YAxis stroke="#A69697" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val: number) => val === 0 ? '0' : `${(val / 1000).toFixed(1)}k`} dx={-10} />
+                  <XAxis dataKey="month" stroke="#A69697" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#A69697" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val: number) => new Intl.NumberFormat('en', { notation: 'compact', compactDisplay: 'short' }).format(val)} />
                   <Tooltip
                     contentStyle={{ backgroundColor: '#1A0A0B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '13px' }}
                     formatter={(value: number) => [formatCurrency(value), user?.role === 'ADMIN' ? t('dashboard.revenue') : t('dashboard.submitted')]}

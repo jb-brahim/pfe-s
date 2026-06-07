@@ -181,7 +181,16 @@ const getMonthlyStats = async (req, res, next) => {
     // 1. Monthly invoice count
     const monthlyData = await Invoice.aggregate([
       { $match: filter },
-      { $group: { _id: { $month: "$createdAt" }, count: { $sum: 1 } } },
+      {
+        $lookup: {
+          from: 'extracteddatas',
+          localField: '_id',
+          foreignField: 'invoiceId',
+          as: 'extracted'
+        }
+      },
+      { $unwind: { path: '$extracted', preserveNullAndEmptyArrays: true } },
+      { $group: { _id: { $month: { $ifNull: ["$extracted.date", "$createdAt"] } }, count: { $sum: 1 } } },
       { $sort: { _id: 1 } }
     ]);
 
@@ -203,7 +212,7 @@ const getMonthlyStats = async (req, res, next) => {
         }
       },
       { $unwind: '$invoice' },
-      { $group: { _id: { $month: "$invoice.createdAt" }, total: { $sum: "$totalAmount" } } },
+      { $group: { _id: { $month: { $ifNull: ["$date", "$invoice.createdAt"] } }, total: { $sum: "$totalAmount" } } },
       { $sort: { _id: 1 } }
     ]);
 
@@ -225,7 +234,7 @@ const getMonthlyStats = async (req, res, next) => {
         }
       },
       { $unwind: '$invoice' },
-      { $group: { _id: { $month: "$invoice.createdAt" }, total: { $sum: "$totalAmount" } } },
+      { $group: { _id: { $month: { $ifNull: ["$date", "$invoice.createdAt"] } }, total: { $sum: "$totalAmount" } } },
       { $sort: { _id: 1 } }
     ]);
 
