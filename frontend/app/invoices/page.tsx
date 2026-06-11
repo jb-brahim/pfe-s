@@ -526,7 +526,7 @@ export default function InvoicesPage() {
               
               <div className="flex flex-col gap-3">
                 <button 
-                  onClick={() => router.push('/settings?tab=subscription')}
+                  onClick={() => router.push('/subscription')}
                   className="w-full btn-burgundy py-3.5 text-[15px] font-bold shadow-lg"
                 >
                   {t('invoices.upgrade_plan')}
@@ -535,7 +535,7 @@ export default function InvoicesPage() {
                   onClick={() => setShowLimitModal(false)}
                   className="w-full py-3.5 text-white/50 hover:text-white transition-colors text-[14px]"
                 >
-                  {t('settings.subscription.checkout.cancel')}
+                  {t('settings.company.cancel')}
                 </button>
               </div>
             </div>

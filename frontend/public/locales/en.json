@@ -121,7 +121,7 @@
     "edit": "Edit",
     "delete": "Delete",
     "limit_reached_title": "Limit Reached",
-    "limit_reached_desc": "You have exhausted your free AI scans. Please upgrade your subscription to continue processing invoices.",
+    "limit_reached_desc": "You have exhausted your AI scans limit. Please upgrade your subscription to continue processing invoices.",
     "upgrade_plan": "Upgrade Plan",
     "export_pdf": "Export PDF",
     "export_pdf_success": "PDF exported successfully!",

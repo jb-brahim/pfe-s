@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Upload, MoreHorizontal, ChevronDown, FileText, TrendingUp, Users, CheckCircle2, Loader, XCircle } from 'lucide-react';
+import { Upload, MoreHorizontal, ChevronDown, FileText, TrendingUp, Users, CheckCircle2, Loader, XCircle, AlertTriangle } from 'lucide-react';
 import { invoiceAPI, analyticsAPI } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { useLanguage } from '@/lib/i18n-context';
@@ -12,12 +13,14 @@ import Link from 'next/link';
 export default function DashboardPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const router = useRouter();
   const [invoices, setInvoices] = useState<any[]>([]);
   const [dashboardStats, setDashboardStats] = useState<any>(null);
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -67,6 +70,11 @@ export default function DashboardPage() {
       try {
         await invoiceAPI.uploadFile(e.target.files[0]);
         await fetchAllData(); // Refresh all data after upload
+      } catch (error: any) {
+        console.error('Upload failed:', error);
+        if (error.response?.status === 403 && error.response?.data?.message === 'LIMIT_REACHED') {
+          setShowLimitModal(true);
+        }
       } finally {
         setIsUploading(false);
         if (fileInputRef.current) fileInputRef.current.value = '';
@@ -414,6 +422,39 @@ export default function DashboardPage() {
               >
                 {t('dashboard.welcome.start_btn')}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Limit Reached Upgrade Modal */}
+      {showLimitModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="glass-card w-full max-w-[420px] shadow-2xl relative overflow-hidden bg-[#3A0A14]/95 border-[#8E1B3A]/40 text-center">
+            <div className="p-8">
+              <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-500/20">
+                <AlertTriangle size={36} className="text-red-400" />
+              </div>
+              
+              <h2 className="text-white text-[24px] font-bold mb-3">{t('invoices.limit_reached_title')}</h2>
+              <p className="text-white/70 text-[15px] mb-8 leading-relaxed">
+                {t('invoices.limit_reached_desc')}
+              </p>
+              
+              <div className="flex flex-col gap-3">
+                <button 
+                  onClick={() => router.push('/subscription')}
+                  className="w-full btn-burgundy py-3.5 text-[15px] font-bold shadow-lg"
+                >
+                  {t('invoices.upgrade_plan')}
+                </button>
+                <button 
+                  onClick={() => setShowLimitModal(false)}
+                  className="w-full py-3.5 text-white/50 hover:text-white transition-colors text-[14px]"
+                >
+                  {t('settings.company.cancel')}
+                </button>
+              </div>
             </div>
           </div>
         </div>

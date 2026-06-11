@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import Link from 'next/link';
 import { ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, XAxis, Tooltip } from 'recharts';
-import { CreditCard, Wallet, TrendingUp, Building2, Server, Briefcase, Plus, Check, X, FileText, Settings2, Save } from 'lucide-react';
+import { CreditCard, Wallet, TrendingUp, Building2, Server, Briefcase, Plus, Check, X, FileText, Settings2, Save, AlertTriangle } from 'lucide-react';
 import { analyticsAPI, invoiceAPI, budgetAPI } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { useLanguage } from '@/lib/i18n-context';
@@ -26,12 +27,14 @@ const spendingTrend = [
 
 export default function ExpensesPage() {
   const { t } = useLanguage();
+  const router = useRouter();
   const [stats, setStats] = useState<any>(null);
   const [pendingInvoices, setPendingInvoices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditingBudget, setIsEditingBudget] = useState(false);
   const [editBudgetValue, setEditBudgetValue] = useState('');
   const [realCategories, setRealCategories] = useState<any[]>([]);
+  const [showLimitModal, setShowLimitModal] = useState(false);
   const { user: currentUser } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -54,8 +57,13 @@ export default function ExpensesPage() {
       if (budgetRes.data?.categories) {
         setRealCategories(budgetRes.data.categories);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Upload error:', err);
+      if (err.response?.status === 403 && err.response?.data?.message === 'LIMIT_REACHED') {
+        setShowLimitModal(true);
+      } else {
+        toast.error(t('invoices.upload_failed') || "Failed to upload file");
+      }
     }
   };
 
@@ -300,6 +308,39 @@ export default function ExpensesPage() {
 
         </div>
       </div>
+
+      {/* Limit Reached Upgrade Modal */}
+      {showLimitModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="glass-card w-full max-w-[420px] shadow-2xl relative overflow-hidden bg-[#3A0A14]/95 border-[#8E1B3A]/40 text-center">
+            <div className="p-8">
+              <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-500/20">
+                <AlertTriangle size={36} className="text-red-400" />
+              </div>
+              
+              <h2 className="text-white text-[24px] font-bold mb-3">{t('invoices.limit_reached_title')}</h2>
+              <p className="text-white/70 text-[15px] mb-8 leading-relaxed">
+                {t('invoices.limit_reached_desc')}
+              </p>
+              
+              <div className="flex flex-col gap-3">
+                <button 
+                  onClick={() => router.push('/subscription')}
+                  className="w-full btn-burgundy py-3.5 text-[15px] font-bold shadow-lg"
+                >
+                  {t('invoices.upgrade_plan')}
+                </button>
+                <button 
+                  onClick={() => setShowLimitModal(false)}
+                  className="w-full py-3.5 text-white/50 hover:text-white transition-colors text-[14px]"
+                >
+                  {t('settings.company.cancel')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

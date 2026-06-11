@@ -121,7 +121,7 @@
     "edit": "Modifier",
     "delete": "Supprimer",
     "limit_reached_title": "Limite Atteinte",
-    "limit_reached_desc": "Vous avez épuisé vos scans IA gratuits. Veuillez mettre à niveau votre abonnement pour continuer le traitement des factures.",
+    "limit_reached_desc": "Vous avez atteint votre limite de scans IA. Veuillez mettre à niveau votre abonnement pour continuer le traitement des factures.",
     "upgrade_plan": "Mettre à Niveau",
     "export_pdf": "Exporter PDF",
     "export_pdf_success": "PDF exporté avec succès !",
