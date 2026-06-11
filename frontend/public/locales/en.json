@@ -14,7 +14,8 @@
     "account_settings": "Account Settings",
     "logout": "Log Out",
     "subscription": "Subscription",
-    "messages": "Messages"
+    "messages": "Messages",
+    "services": "Services"
   },
   "dashboard": {
     "total_revenue": "Total Revenue",
@@ -248,7 +249,8 @@
       "recipients": "Recipient Emails (comma separated)",
       "recipients_placeholder": "accountant@aura.com, admin@aura.com",
       "cancel": "Cancel",
-      "schedule": "Schedule"
+      "schedule": "Schedule",
+      "access_denied_admin": "Access denied. Organization Administrator only."
     }
   },
   "suppliers": {
@@ -322,8 +324,8 @@
     "toggle_all_employees": "Toggle All Employees",
     "search_employees": "Type to search employees...",
     "employee": "Employee",
-    "admin": "Admin",
-    "super_admin": "Super Admin",
+    "admin": "Administrateur Organisation",
+    "super_admin": "Opérateur de service",
     "no_suggestions": "No suggestions found.",
     "subject": "Subject",
     "subject_placeholder": "Enter subject",
@@ -356,7 +358,7 @@
     "full_name": "Full Name",
     "primary_role": "Primary Role",
     "analyst": "Analyst",
-    "admin": "Admin",
+    "admin": "Administrateur Organisation",
     "send_invite": "Send Invite",
     "directory": "Employee Directory",
     "search_members": "Search members...",
@@ -435,7 +437,8 @@
       "member_since": "Member Since 2026",
       "full_name": "Full Name",
       "email": "Email",
-      "save_changes": "Save Changes"
+      "save_changes": "Save Changes",
+      "delete_image": "Delete profile picture"
     },
     "security": {
       "title": "Security & Authentication",
@@ -487,14 +490,9 @@
       "select": "Select",
       "checkout": {
         "title": "Upgrade to {{plan}}",
-        "subtitle": "Complete your payment details to upgrade.",
-        "name_on_card": "Name on Card",
-        "card_number": "Card Number",
-        "expiry": "Expiry (MM/YY)",
-        "cvc": "CVC",
-        "error_fill_details": "Please fill in all credit card details to proceed with the upgrade.",
+        "subtitle": "Are you sure you want to change your subscription to the {{plan}} plan?",
         "processing": "Processing...",
-        "pay_and_upgrade": "Pay & Upgrade to {{plan}}"
+        "pay_and_upgrade": "Confirm"
       },
       "developer_api": "Developer API",
       "api_desc": "Use this API key to sync invoices to your external management application.",
@@ -548,7 +546,7 @@
     "security": "Security",
     "audit_logs": "Audit Logs",
     "logout": "Logout",
-    "system_admin": "System Administrator",
+    "system_admin": "Opérateur de service",
     "notifications_title": "Notifications",
     "mark_all_read": "Mark all read",
     "no_notifications": "No notifications yet",
@@ -565,8 +563,8 @@
       "platform_growth": "Platform Growth",
       "user_role_distribution": "User Role Distribution",
       "accountants": "Accountants",
-      "admins": "Admins",
-      "super_admins": "Super Admins",
+      "admins": "Administrateurs Organisation",
+      "super_admins": "Opérateurs de service",
       "loading": "Loading...",
       "error": "Error",
       "all_services": "All services operational",
@@ -592,9 +590,9 @@
       "subtitle": "Manage all accounts across every tenant organization.",
       "search_placeholder": "Search users or emails...",
       "all_roles": "All Roles",
-      "org_admin": "Organization Admin",
+      "org_admin": "Administrateur Organisation",
       "accountant": "Accountant",
-      "super_admin": "Super Admin",
+      "super_admin": "Opérateur de service",
       "user_details": "User Details",
       "role": "Role",
       "status": "Status",
@@ -613,7 +611,7 @@
       "platform_name": "Platform Name",
       "maintenance_mode": "Maintenance Mode",
       "enable_maintenance": "Enable Maintenance",
-      "maintenance_desc": "Locks out all non-system administrators.",
+      "maintenance_desc": "Locks out all non-service operators.",
       "api_title": "External Integrations",
       "google_vision_key": "Google Vision API Key",
       "google_vision_placeholder": "Enter API Key for AI Extraction...",
@@ -630,8 +628,8 @@
       "toast_fill_fields": "Please fill all fields and select at least one recipient.",
       "toast_sent_success": "Message sent successfully!",
       "toast_send_failed": "Failed to send message.",
-      "title": "Administrator Inbox",
-      "subtitle": "Communicate with company admins across the platform.",
+      "title": "Service Operator Inbox",
+      "subtitle": "Communicate with organization administrators across the platform.",
       "compose_btn": "Compose Broadcast",
       "inbox_tab": "Inbox",
       "sent_tab": "Sent",
@@ -639,8 +637,8 @@
       "loading": "Loading...",
       "no_messages": "No messages found.",
       "to_label": "To:",
-      "toggle_all_admins": "Toggle All Admins",
-      "search_admins_placeholder": "Type to search admins...",
+      "toggle_all_admins": "Toggle All Organization Administrators",
+      "search_admins_placeholder": "Type to search organization administrators...",
       "no_suggestions": "No suggestions found.",
       "subject_label": "Subject:",
       "subject_placeholder": "Enter subject",
@@ -655,7 +653,7 @@
       "subtitle": "Overview of total extracted invoices for each organization on the platform.",
       "search_placeholder": "Search enterprise or email...",
       "enterprise_name": "Enterprise Name",
-      "admin_email": "Admin Email",
+      "admin_email": "Organization Administrator Email",
       "invoices_extracted": "Invoices Extracted",
       "no_results": "No enterprises found matching your search."
     },
@@ -680,7 +678,7 @@
       "title": "Audit Logs",
       "subtitle": "Chronological feed of all critical system and security actions.",
       "tab_all": "All Activity",
-      "tab_superadmin": "Super Admin",
+      "tab_superadmin": "Opérateur de service",
       "tab_orgs": "Organizations",
       "search_placeholder": "Search logs by actor, email, or action...",
       "export_csv": "Export CSV",
@@ -692,7 +690,7 @@
       "no_org_logs": "No organization logs found.",
       "events": "events",
       "system": "System",
-      "super_admin": "Super Admin",
+      "super_admin": "Opérateur de service",
       "organization": "Organization",
       "unknown_org": "Unknown Organization"
     },
@@ -744,7 +742,7 @@
     "export": "Export",
     "table": {
       "organization": "Organization",
-      "client_admin": "Client Admin",
+      "client_admin": "Administrateur Organisation",
       "subscription": "Subscription",
       "time_left": "Time Left",
       "actions": "Actions",
@@ -1012,5 +1010,37 @@
     "verify_email_desc": "We've sent a 6-digit verification code to",
     "verify_email_desc_2": "Enter it below to unlock your account.",
     "verifying": "Verifying..."
+  },
+  "services_page": {
+    "title": "Overview",
+    "subtitle": "Discover and enable the smart services available on Aura Finance.",
+    "obtenir": "Get Service",
+    "actif": "Active",
+    "extraction": {
+      "title": "AI Extraction Service",
+      "desc": "Leverage state-of-the-art deep learning and optical character recognition (OCR) to automatically extract key metadata (invoice numbers, dates, tax amounts, line items, and totals) from PDF, JPEG, and PNG invoices with a 99.9% accuracy rate, eliminating manual data entry."
+    },
+    "ttn": {
+      "title": "TTN E-Invoicing Connection",
+      "desc": "Connect your account directly to the Tunisian TradeNet (TTN) portal for instant, automated validation of electronic invoices. Fully verify compliance with local trade regulations and synchronize transaction statuses in real-time."
+    },
+    "app_conn": {
+      "title": "App Integration (API Key)",
+      "desc": "Access secure, high-throughput developer REST APIs and SDKs to integrate Aura Finance directly into your existing ERP systems, accounting software, custom business tools, and internal database structures."
+    },
+    "telegram": {
+      "title": "Telegram AI Bot Services",
+      "desc": "Activate the smart AI-powered Telegram assistant to upload invoices on the go, track approval workflows, receive instant push notifications for rejected or pending bills, and query real-time financial stats directly via mobile."
+    },
+    "comparison": {
+      "title": "Competitor Price Comparison",
+      "desc": "Utilize advanced pricing intelligence algorithms to benchmark vendor unit prices against current market indexes and historical supplier quotes. Identify cost savings, detect overcharges, and renegotiate terms with solid market analytics."
+    },
+    "active_organizations": "Active Organizations",
+    "org_count_single": "{{count}} Organization",
+    "org_count_plural": "{{count}} Organizations",
+    "view_organizations": "View Organizations",
+    "back_to_services": "Back to Services",
+    "search_orgs": "Search organizations..."
   }
 }

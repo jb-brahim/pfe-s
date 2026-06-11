@@ -74,7 +74,7 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
     let res = typeof value === 'string' ? value : key;
     if (options) {
       Object.entries(options).forEach(([optKey, optValue]) => {
-        res = res.replace(new RegExp(`{{${optKey}}}`, 'g'), String(optValue));
+        res = res.replace(new RegExp(`\\{\\{${optKey}\\}\\}`, 'g'), String(optValue));
       });
     }
     return res;

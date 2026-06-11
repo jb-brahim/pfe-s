@@ -75,7 +75,7 @@ export default function LoginPage() {
         // Technically shouldn't happen here since verification is at signup, but just in case
         setError('Please verify your email before logging in.');
       } else {
-        const msg = err?.response?.data?.message || 'Invalid email or password. Please try again.';
+        const msg = err?.response?.data?.message || "Adresse e-mail ou mot de passe incorrect. Veuillez réessayer.";
         setError(msg);
       }
     } finally {

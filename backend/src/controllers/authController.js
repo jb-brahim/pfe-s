@@ -171,7 +171,7 @@ const loginUser = async (req, res, next) => {
         }
       });
     } else {
-      res.status(401).json({ message: 'Invalid email or password' });
+      res.status(401).json({ message: "Adresse e-mail ou mot de passe incorrect" });
     }
   } catch (error) {
     next(error);
@@ -293,7 +293,7 @@ const changePassword = async (req, res, next) => {
 
     const user = await User.findById(req.user._id);
     const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
-    if (!isMatch) return res.status(401).json({ message: 'Current password incorrect' });
+    if (!isMatch) return res.status(401).json({ message: "Le mot de passe actuel est incorrect" });
 
     const salt = await bcrypt.genSalt(10);
     user.passwordHash = await bcrypt.hash(newPassword, salt);

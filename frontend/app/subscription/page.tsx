@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
@@ -15,10 +15,22 @@ export default function SubscriptionPage() {
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('');
   const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [cardName, setCardName] = useState('');
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardExpiry, setCardExpiry] = useState('');
-  const [cardCvc, setCardCvc] = useState('');
+
+  // Auto-trigger checkout if plan query parameter is present
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const planParam = params.get('plan');
+      if (planParam) {
+        const validPlans = ['Basic', 'Normal', 'Pro', 'Premium'];
+        const matchedPlan = validPlans.find(p => p.toLowerCase() === planParam.toLowerCase());
+        if (matchedPlan && matchedPlan !== user?.billing?.plan) {
+          setSelectedPlan(matchedPlan);
+          setIsCheckoutModalOpen(true);
+        }
+      }
+    }
+  }, [user]);
 
   if (user?.role !== 'ADMIN') {
     return (
@@ -133,38 +145,24 @@ export default function SubscriptionPage() {
                     <X size={20} />
                   </button>
                 </div>
-                <p className="text-[#A69697] text-[13px] mt-1">{t('settings.subscription.checkout.subtitle')}</p>
               </div>
 
-              <div className="p-6 space-y-4">
-                <div>
-                  <label className="text-[#A69697] text-[13px] block mb-1">{t('settings.subscription.checkout.name_on_card')}</label>
-                  <input type="text" placeholder="John Doe" value={cardName} onChange={(e) => setCardName(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-[12px] py-3 px-4 text-[14px] text-white outline-none focus:border-[#D98F8F]" />
-                </div>
-                <div>
-                  <label className="text-[#A69697] text-[13px] block mb-1">{t('settings.subscription.checkout.card_number')}</label>
-                  <input type="text" placeholder="**** **** **** 4242" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-[12px] py-3 px-4 text-[14px] text-white outline-none focus:border-[#D98F8F] font-mono tracking-widest" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[#A69697] text-[13px] block mb-1">{t('settings.subscription.checkout.expiry')}</label>
-                    <input type="text" placeholder="12/26" value={cardExpiry} onChange={(e) => setCardExpiry(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-[12px] py-3 px-4 text-[14px] text-white outline-none focus:border-[#D98F8F] font-mono" />
-                  </div>
-                  <div>
-                    <label className="text-[#A69697] text-[13px] block mb-1">{t('settings.subscription.checkout.cvc')}</label>
-                    <input type="text" placeholder="123" value={cardCvc} onChange={(e) => setCardCvc(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-[12px] py-3 px-4 text-[14px] text-white outline-none focus:border-[#D98F8F] font-mono" />
-                  </div>
-                </div>
+              <div className="p-6 text-center">
+                <p className="text-white text-[15px] leading-relaxed">
+                  {t('settings.subscription.checkout.subtitle', { plan: selectedPlan }).replace('{{plan}}', selectedPlan)}
+                </p>
               </div>
 
-              <div className="p-6 bg-white/[0.02] border-t border-white/5">
+              <div className="p-6 bg-white/[0.02] border-t border-white/5 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsCheckoutModalOpen(false)}
+                  className="flex-1 py-3 rounded-[12px] bg-white/5 text-white font-medium hover:bg-white/10 transition-colors"
+                >
+                  {t('settings.company.cancel') || 'Annuler'}
+                </button>
                 <button 
                   onClick={async () => {
-                    if (!cardName.trim() || !cardNumber.trim() || !cardExpiry.trim() || !cardCvc.trim()) {
-                      toast.error(t('settings.subscription.checkout.error_fill_details'));
-                      return;
-                    }
-                    
                     setCheckoutLoading(true);
                     try {
                       const { subscriptionAPI } = await import('@/lib/api');
@@ -181,7 +179,7 @@ export default function SubscriptionPage() {
                     }
                   }}
                   disabled={checkoutLoading}
-                  className="w-full py-4 rounded-[12px] bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white font-bold shadow-lg hover:shadow-[0_0_15px_rgba(217,143,143,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-1 py-3 rounded-[12px] bg-gradient-to-r from-[#D98F8F] to-[#8E1B3A] text-white font-bold shadow-lg hover:shadow-[0_0_15px_rgba(217,143,143,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {checkoutLoading ? t('settings.subscription.checkout.processing') : t('settings.subscription.checkout.pay_and_upgrade', { plan: selectedPlan }).replace('{{plan}}', selectedPlan)}
                 </button>

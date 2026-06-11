@@ -8,7 +8,6 @@ import { analyticsAPI, reportAPI, invoiceAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/i18n-context';// Report icons mapping
 const iconMap: Record<string, any> = {
-  'Profit & Loss Statement': FileBarChart,
   'Tax Compliance Audit': FileText,
   'Vendor Spend Analysis': PieChart,
   'AI Extraction Accuracy': Zap,
@@ -30,7 +29,6 @@ export default function ReportsPage() {
 
   // Type Maps for Translation
   const typeMap: Record<string, string> = {
-    'Profit & Loss Statement': 'profit_loss',
     'Tax Compliance Audit': 'tax_compliance',
     'Vendor Spend Analysis': 'vendor_spend',
     'AI Extraction Accuracy': 'ai_extraction',
@@ -47,7 +45,6 @@ export default function ReportsPage() {
 
   // Dropdown options
   const reportTypes = [
-    'Profit & Loss Statement',
     'Tax Compliance Audit',
     'Vendor Spend Analysis',
     'AI Extraction Accuracy'

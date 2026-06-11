@@ -14,7 +14,8 @@
     "account_settings": "Paramètres du Compte",
     "logout": "Se Déconnecter",
     "subscription": "Abonnement",
-    "messages": "Messages"
+    "messages": "Messages",
+    "services": "Services"
   },
   "dashboard": {
     "total_revenue": "Revenu Total",
@@ -249,7 +250,7 @@
       "recipients_placeholder": "comptable@aura.com, admin@aura.com",
       "cancel": "Annuler",
       "schedule": "Planifier",
-      "access_denied_admin": "Accès refusé. Administrateur uniquement."
+      "access_denied_admin": "Accès refusé. Administrateur Organisation uniquement."
     }
   },
   "suppliers": {
@@ -323,8 +324,8 @@
     "toggle_all_employees": "Sélectionner Tous les Employés",
     "search_employees": "Tapez pour rechercher des employés...",
     "employee": "Employé",
-    "admin": "Admin",
-    "super_admin": "Super Admin",
+    "admin": "Administrateur Organisation",
+    "super_admin": "Opérateur de service",
     "no_suggestions": "Aucune suggestion trouvée.",
     "subject": "Sujet",
     "subject_placeholder": "Entrez le sujet",
@@ -357,7 +358,7 @@
     "full_name": "Nom complet",
     "primary_role": "Rôle principal",
     "analyst": "Analyste",
-    "admin": "Admin",
+    "admin": "Administrateur Organisation",
     "send_invite": "Envoyer l'invitation",
     "directory": "Annuaire des Employés",
     "search_members": "Rechercher des membres...",
@@ -436,7 +437,8 @@
       "member_since": "Membre depuis 2026",
       "full_name": "Nom complet",
       "email": "E-mail",
-      "save_changes": "Enregistrer les modifications"
+      "save_changes": "Enregistrer les modifications",
+      "delete_image": "Supprimer la photo de profil"
     },
     "security": {
       "title": "Sécurité et Authentification",
@@ -482,14 +484,9 @@
       "scans_limit": "Limite de Scans IA",
       "checkout": {
         "title": "Passer à {{plan}}",
-        "subtitle": "Complétez vos détails de paiement pour passer à la formule supérieure.",
-        "name_on_card": "Nom sur la carte",
-        "card_number": "Numéro de carte",
-        "expiry": "Expiration (MM/AA)",
-        "cvc": "CVC",
-        "error_fill_details": "Veuillez remplir tous les détails de la carte de crédit pour procéder à la mise à niveau.",
+        "subtitle": "Voulez-vous vraiment changer votre plan d'abonnement pour passer au plan {{plan}} ?",
         "processing": "Traitement en cours...",
-        "pay_and_upgrade": "Payer et passer à {{plan}}"
+        "pay_and_upgrade": "Confirmer"
       },
       "upgrade_plan": "Mettre à niveau le forfait",
       "unlimited": "Illimité",
@@ -549,7 +546,7 @@
     "security": "Sécurité",
     "audit_logs": "Journaux d'audit",
     "logout": "Se déconnecter",
-    "system_admin": "Administrateur Système",
+    "system_admin": "Opérateur de service",
     "notifications_title": "Notifications",
     "mark_all_read": "Tout marquer comme lu",
     "no_notifications": "Aucune notification pour le moment",
@@ -566,8 +563,8 @@
       "platform_growth": "Croissance de la Plateforme",
       "user_role_distribution": "Distribution des Rôles",
       "accountants": "Comptables",
-      "admins": "Administrateurs",
-      "super_admins": "Super Administrateurs",
+      "admins": "Administrateurs Organisation",
+      "super_admins": "Opérateurs de service",
       "loading": "Chargement...",
       "error": "Erreur",
       "all_services": "Tous les services sont opérationnels",
@@ -593,9 +590,9 @@
       "subtitle": "Gérer tous les comptes de chaque organisation.",
       "search_placeholder": "Rechercher des utilisateurs ou emails...",
       "all_roles": "Tous les Rôles",
-      "org_admin": "Admin d'Organisation",
+      "org_admin": "Administrateur Organisation",
       "accountant": "Comptable",
-      "super_admin": "Super Admin",
+      "super_admin": "Opérateur de service",
       "user_details": "Détails Utilisateur",
       "role": "Rôle",
       "status": "Statut",
@@ -614,7 +611,7 @@
       "platform_name": "Nom de la Plateforme",
       "maintenance_mode": "Mode Maintenance",
       "enable_maintenance": "Activer la Maintenance",
-      "maintenance_desc": "Bloque tous les utilisateurs sauf les administrateurs système.",
+      "maintenance_desc": "Bloque tous les utilisateurs sauf les opérateurs de service.",
       "api_title": "Intégrations Externes",
       "google_vision_key": "Clé API Google Vision",
       "google_vision_placeholder": "Entrez la clé API pour l'extraction IA...",
@@ -631,8 +628,8 @@
       "toast_fill_fields": "Veuillez remplir tous les champs et sélectionner au moins un destinataire.",
       "toast_sent_success": "Message envoyé avec succès !",
       "toast_send_failed": "Échec de l'envoi du message.",
-      "title": "Boîte de Réception Administrateur",
-      "subtitle": "Communiquez avec les administrateurs de l'entreprise sur toute la plateforme.",
+      "title": "Boîte de Réception de l'Opérateur de service",
+      "subtitle": "Communiquez avec les administrateurs d'organisation sur toute la plateforme.",
       "compose_btn": "Rédiger une Diffusion",
       "inbox_tab": "Boîte de réception",
       "sent_tab": "Envoyés",
@@ -640,8 +637,8 @@
       "loading": "Chargement...",
       "no_messages": "Aucun message trouvé.",
       "to_label": "À :",
-      "toggle_all_admins": "Basculer Tous les Administrateurs",
-      "search_admins_placeholder": "Tapez pour rechercher des administrateurs...",
+      "toggle_all_admins": "Basculer Tous les Administrateurs Organisation",
+      "search_admins_placeholder": "Tapez pour rechercher des administrateurs d'organisation...",
       "no_suggestions": "Aucune suggestion trouvée.",
       "subject_label": "Sujet :",
       "subject_placeholder": "Entrez le sujet",
@@ -656,7 +653,7 @@
       "subtitle": "Aperçu du total des factures extraites pour chaque organisation sur la plateforme.",
       "search_placeholder": "Rechercher une entreprise ou un email...",
       "enterprise_name": "Nom de l'Entreprise",
-      "admin_email": "Email Administrateur",
+      "admin_email": "Email Administrateur Organisation",
       "invoices_extracted": "Factures Extraites",
       "no_results": "Aucune entreprise trouvée correspondant à votre recherche."
     },
@@ -681,7 +678,7 @@
       "title": "Journaux d'Audit",
       "subtitle": "Flux chronologique de toutes les actions critiques du système et de la sécurité.",
       "tab_all": "Toute l'Activité",
-      "tab_superadmin": "Super Administrateur",
+      "tab_superadmin": "Opérateur de service",
       "tab_orgs": "Organisations",
       "search_placeholder": "Rechercher des journaux par acteur, email ou action...",
       "export_csv": "Exporter CSV",
@@ -693,7 +690,7 @@
       "no_org_logs": "Aucun journal d'organisation trouvé.",
       "events": "événements",
       "system": "Système",
-      "super_admin": "Super Administrateur",
+      "super_admin": "Opérateur de service",
       "organization": "Organisation",
       "unknown_org": "Organisation Inconnue"
     },
@@ -745,7 +742,7 @@
     "export": "Exporter",
     "table": {
       "organization": "Organisation",
-      "client_admin": "Admin Client",
+      "client_admin": "Administrateur Client",
       "subscription": "Abonnement",
       "time_left": "Temps Restant",
       "actions": "Actions",
@@ -1013,5 +1010,37 @@
     "verify_email_desc": "Nous avons envoyé un code de vérification à 6 chiffres à",
     "verify_email_desc_2": "Entrez-le ci-dessous pour déverrouiller votre compte.",
     "verifying": "Vérification en cours..."
+  },
+  "services_page": {
+    "title": "Aperçu",
+    "subtitle": "Découvrez et activez les services intelligents disponibles sur la plateforme Aura Finance.",
+    "obtenir": "Obtenir",
+    "actif": "Actif",
+    "extraction": {
+      "title": "Service d'Extraction par IA",
+      "desc": "Exploitez l'apprentissage profond de pointe et la reconnaissance optique de caractères (OCR) pour extraire automatiquement les métadonnées clés (numéros de facture, dates, TVA, articles de ligne et totaux) à partir de factures PDF, JPEG et PNG avec une précision de 99.9%, éliminant la saisie manuelle de données."
+    },
+    "ttn": {
+      "title": "Connexion au TTN",
+      "desc": "Connectez votre compte directement au portail Tunisian TradeNet (TTN) pour une validation instantanée et automatisée des factures électroniques. Vérifiez la conformité réglementaire locale et synchronisez les statuts en temps réel."
+    },
+    "app_conn": {
+      "title": "Connexion à des Apps (API)",
+      "desc": "Accédez à des API REST et des SDK sécurisés pour développeurs afin d'intégrer Aura Finance directement dans vos systèmes ERP, logiciels comptables, applications métiers internes et bases de données."
+    },
+    "telegram": {
+      "title": "Services Telegram",
+      "desc": "Activez notre assistant Telegram intelligent propulsé par l'IA pour soumettre des factures en déplacement, suivre les flux d'approbation, recevoir des notifications instantanées pour les factures en attente ou rejetées, et consulter vos statistiques en temps réel."
+    },
+    "comparison": {
+      "title": "Service de Comparaison",
+      "desc": "Utilisez des algorithmes intelligents pour comparer le prix unitaire des fournisseurs avec les indices actuels du marché et l'historique des devis. Identifiez les opportunités d'économies et renégociez vos contrats sur la base de données fiables."
+    },
+    "active_organizations": "Organisations Actives",
+    "org_count_single": "{{count}} Organisation",
+    "org_count_plural": "{{count}} Organisations",
+    "view_organizations": "Voir les organisations",
+    "back_to_services": "Retour aux services",
+    "search_orgs": "Rechercher des organisations..."
   }
 }

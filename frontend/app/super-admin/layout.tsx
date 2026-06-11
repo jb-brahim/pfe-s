@@ -3,7 +3,7 @@
 import { useAuth } from '@/lib/auth-context';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Loader, ShieldCheck, LogOut, Settings, Users, LayoutDashboard, Menu, X, ChevronDown, Building, CreditCard, Megaphone, Activity, Globe, Bell, Check, Mail } from 'lucide-react';
+import { Loader, ShieldCheck, LogOut, Settings, Users, LayoutDashboard, Menu, X, ChevronDown, Building, CreditCard, Megaphone, Activity, Globe, Bell, Check, Mail, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { Logo } from '@/components/logo';
 import { useLanguage } from '@/lib/i18n-context';
@@ -143,7 +143,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
         <div className="h-16 flex items-center px-6 border-b border-white/5 gap-3">
           <Logo size="sm" />
           <h1 className="text-[15px] font-semibold text-white tracking-wide">
-            {t('superadmin.title')} <span className="text-[#A69697] font-normal">{t('superadmin.subtitle')}</span>
+            Aura <span className="text-[#A69697] font-normal">Finance</span>
           </h1>
         </div>
 

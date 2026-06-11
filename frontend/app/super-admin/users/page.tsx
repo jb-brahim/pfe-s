@@ -137,7 +137,10 @@ export default function GlobalUsersPage() {
                         u.role === 'ADMIN' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
                         'bg-white/5 text-white border-white/10'
                       }`}>
-                        {u.role}
+                        {u.role === 'SUPER_ADMIN' ? t('superadmin.users_page.super_admin') :
+                         u.role === 'ADMIN' ? t('superadmin.users_page.org_admin') :
+                         u.role === 'ACCOUNTANT' ? t('superadmin.users_page.accountant') :
+                         u.role}
                       </span>
                     </td>
                     <td className="py-3 px-5">

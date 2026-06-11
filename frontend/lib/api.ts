@@ -501,6 +501,11 @@ export const userAPI = {
     return response.data;
   },
 
+  deleteProfileImage: async () => {
+    const response = await apiClient.delete('users/profile-image');
+    return response.data;
+  },
+
   deleteUser: async (id: string) => {
     const response = await apiClient.delete(`users/${id}`);
     return response.data;

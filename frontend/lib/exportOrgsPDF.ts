@@ -129,9 +129,9 @@ export async function exportOrgsPDF(orgs: any[], filename?: string) {
       const head = [['Employé', 'Adresse Email', 'Rôle']];
       const body = employees.map((emp: any) => {
         let roleText = emp.role || 'N/A';
-        if (roleText === 'ADMIN') roleText = 'Administrateur';
+        if (roleText === 'ADMIN') roleText = 'Administrateur Organisation';
         if (roleText === 'ACCOUNTANT') roleText = 'Comptable';
-        if (roleText === 'SUPER_ADMIN') roleText = 'Super Admin';
+        if (roleText === 'SUPER_ADMIN') roleText = 'Opérateur de service';
         return [emp.name || 'N/A', emp.email || 'N/A', roleText];
       });
 

@@ -16,7 +16,8 @@
     "subscription": "الاشتراك",
     "cancel": "إلغاء",
     "access_denied_admin": "تم رفض الوصول. للمسؤولين فقط.",
-    "messages": "الرسائل"
+    "messages": "الرسائل",
+    "services": "الخدمات"
   },
   "dashboard": {
     "total_revenue": "إجمالي الإيرادات",
@@ -337,8 +338,8 @@
     "toggle_all_employees": "تحديد جميع الموظفين",
     "search_employees": "اكتب للبحث عن الموظفين...",
     "employee": "موظف",
-    "admin": "مسؤول",
-    "super_admin": "مسؤول متميز",
+    "admin": "Administrateur Organisation",
+    "super_admin": "Opérateur de service",
     "no_suggestions": "لم يتم العثور على اقتراحات.",
     "subject": "الموضوع",
     "subject_placeholder": "أدخل الموضوع",
@@ -371,7 +372,7 @@
     "full_name": "الاسم الكامل",
     "primary_role": "الدور الأساسي",
     "analyst": "محلل",
-    "admin": "مسؤول",
+    "admin": "Administrateur Organisation",
     "send_invite": "إرسال دعوة",
     "directory": "دليل الموظفين",
     "search_members": "البحث عن أعضاء...",
@@ -464,7 +465,8 @@
       "member_since": "عضو منذ 2026",
       "full_name": "الاسم الكامل",
       "email": "البريد الإلكتروني",
-      "save_changes": "حفظ التغييرات"
+      "save_changes": "حفظ التغييرات",
+      "delete_image": "حذف صورة الملف الشخصي"
     },
     "security": {
       "title": "الأمان والمصادقة",
@@ -560,7 +562,7 @@
     "security": "الأمان",
     "audit_logs": "سجلات التدقيق",
     "logout": "تسجيل الخروج",
-    "system_admin": "مدير النظام",
+    "system_admin": "Opérateur de service",
     "notifications_title": "الإشعارات",
     "mark_all_read": "تحديد الكل كمقروء",
     "no_notifications": "لا توجد إشعارات حتى الآن",
@@ -577,8 +579,8 @@
       "platform_growth": "نمو المنصة",
       "user_role_distribution": "توزيع أدوار المستخدمين",
       "accountants": "المحاسبين",
-      "admins": "المدراء",
-      "super_admins": "المدراء المتميزين",
+      "admins": "Administrateurs Organisation",
+      "super_admins": "Opérateurs de service",
       "loading": "جاري التحميل...",
       "error": "خطأ",
       "all_services": "جميع الخدمات تعمل",
@@ -644,9 +646,9 @@
       "subtitle": "إدارة جميع الحسابات عبر كل منظمة.",
       "search_placeholder": "البحث عن المستخدمين أو رسائل البريد الإلكتروني...",
       "all_roles": "جميع الأدوار",
-      "org_admin": "مسؤول المنظمة",
+      "org_admin": "Administrateur Organisation",
       "accountant": "محاسب",
-      "super_admin": "مدير النظام",
+      "super_admin": "Opérateur de service",
       "user_details": "تفاصيل المستخدم",
       "role": "الدور",
       "status": "الحالة",
@@ -732,7 +734,7 @@
       "title": "سجلات التدقيق",
       "subtitle": "خلاصة زمنية لجميع إجراءات النظام والأمان الهامة.",
       "tab_all": "كل الأنشطة",
-      "tab_superadmin": "المدير المتميز",
+      "tab_superadmin": "Opérateur de service",
       "tab_orgs": "المؤسسات",
       "search_placeholder": "ابحث في السجلات عن طريق الممثل، البريد الإلكتروني، أو الإجراء...",
       "export_csv": "تصدير CSV",
@@ -744,7 +746,7 @@
       "no_org_logs": "لم يتم العثور على سجلات المؤسسة.",
       "events": "أحداث",
       "system": "النظام",
-      "super_admin": "المدير المتميز",
+      "super_admin": "Opérateur de service",
       "organization": "المؤسسة",
       "unknown_org": "مؤسسة غير معروفة"
     }
@@ -756,7 +758,7 @@
     "export": "تصدير",
     "table": {
       "organization": "المنظمة",
-      "client_admin": "مسؤول العميل",
+      "client_admin": "Administrateur Organisation",
       "subscription": "الاشتراك",
       "time_left": "الوقت المتبقي",
       "actions": "إجراءات",
@@ -1027,5 +1029,37 @@
     "verify_email_desc": "لقد أرسلنا رمز تحقق مكونًا من 6 أرقام إلى",
     "verify_email_desc_2": "أدخله أدناه لإلغاء قفل حسابك.",
     "verifying": "جاري التحقق..."
+  },
+  "services_page": {
+    "title": "نظرة عامة",
+    "subtitle": "اكتشف وفعّل الخدمات الذكية المتاحة على منصة Aura Finance.",
+    "obtenir": "احصل على الخدمة",
+    "actif": "نشط",
+    "extraction": {
+      "title": "خدمة الاستخراج بالذكاء الاصطناعي",
+      "desc": "استخدم أحدث تقنيات التعلم العميق والتعرف الضوئي على الحروف (OCR) لاستخراج البيانات التعريفية الرئيسية تلقائياً (أرقام الفواتير، التواريخ، مبالغ الضرائب، تفاصيل البنود، والإجماليات) من فواتير PDF وJPEG وPNG بدقة تصل إلى 99.9%، مما يلغي تماماً إدخال البيانات يدوياً."
+    },
+    "ttn": {
+      "title": "الاتصال بشبكة الفواتير الإلكترونية TTN",
+      "desc": "اربط حسابك مباشرة ببوابة شبكة تونس التجارية (TTN) للتحقق الفوري والآلي من الفواتير الإلكترونية. تحقق بالكامل من الامتثال للوائح التجارية المحلية ومزامنة حالة المعاملات في الوقت الفعلي."
+    },
+    "app_conn": {
+      "title": "تكامل التطبيقات (واجهة API)",
+      "desc": "احصل على واجهات برمجة تطبيقات REST ومجموعات أدوات تطوير البرمجيات (SDK) آمنة وعالية الكفاءة لدمج Aura Finance مباشرة في أنظمة تخطيط موارد المؤسسات (ERP)، برامج المحاسبة، وأدوات العمل الداخلية الخاصة بك."
+    },
+    "telegram": {
+      "title": "خدمات بوت تيليجرام الذكي",
+      "desc": "فعّل مساعد تيليجرام الذكي المدعوم بالذكاء الاصطناعي لرفع الفواتير أثناء التنقل، ومتابعة سير عمل الموافقات، وتلقي إشعارات فورية للفواتير المعلقة أو المرفوضة، والاستعلام عن الإحصائيات المالية في الوقت الفعلي مباشرة عبر هاتفك."
+    },
+    "comparison": {
+      "title": "مقارنة الأسعار مع المنافسين",
+      "desc": "استخدم خوارزميات ذكاء الأسعار المتقدمة لمقارنة أسعار الوحدات لدى البائعين مع مؤشرات السوق الحالية وعروض أسعار الموردين السابقة. حدد مجالات خفض التكاليف، واكتشف المبالغ الزائدة، وأعد تفاوض العقود بناءً على تحليلات دقيقة."
+    },
+    "active_organizations": "المنظمات النشطة",
+    "org_count_single": "منظمة واحدة",
+    "org_count_plural": "{{count}} منظمات",
+    "view_organizations": "عرض المنظمات",
+    "back_to_services": "العودة للخدمات",
+    "search_orgs": "البحث عن المنظمات..."
   }
 }

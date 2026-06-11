@@ -13,6 +13,7 @@ const {
   generateApiKey,
   updateIntegrations,
   uploadProfileImage,
+  deleteProfileImage,
   requestTelegramLink,
   linkTelegram
 } = require('../controllers/userController');
@@ -23,6 +24,7 @@ const upload = require('../middlewares/uploadMiddleware');
 // Profile & Preferences (Current User)
 router.get('/profile', protect, getProfile);
 router.post('/profile-image', protect, upload.single('profileImage'), uploadProfileImage);
+router.delete('/profile-image', protect, deleteProfileImage);
 router.put('/preferences', protect, updatePreferences);
 router.post('/company', protect, updateCompanyDetails);
 router.post('/apikeys', protect, generateApiKey);

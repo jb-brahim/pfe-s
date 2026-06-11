@@ -342,6 +342,34 @@ const uploadProfileImage = async (req, res, next) => {
 };
 
 // ──────────────────────────────────────────────
+// DELETE PROFILE IMAGE
+// ──────────────────────────────────────────────
+const deleteProfileImage = async (req, res, next) => {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.profileImage) {
+      const filePath = path.join(__dirname, '../../', user.profileImage);
+      fs.unlink(filePath, (err) => {
+        if (err) console.error('Error deleting profile image file:', err);
+      });
+    }
+
+    user.profileImage = '';
+    await user.save();
+
+    res.json({ data: user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ──────────────────────────────────────────────
 // REQUEST TELEGRAM BOT LINK (Admin only)
 // ──────────────────────────────────────────────
 const requestTelegramLink = async (req, res, next) => {
@@ -419,6 +447,7 @@ module.exports = {
   updateIntegrations,
   updateUserLevel,
   uploadProfileImage,
+  deleteProfileImage,
   requestTelegramLink,
   linkTelegram
 };

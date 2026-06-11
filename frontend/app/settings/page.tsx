@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth-context';
 import { authAPI, userAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/i18n-context';
-import { User as UserIcon, Lock, Bell, Key, Link as LinkIcon, Save, CheckCircle2, ChevronRight, Network, X, Copy } from 'lucide-react';
+import { User as UserIcon, Lock, Bell, Key, Link as LinkIcon, Save, CheckCircle2, ChevronRight, Network, X, Copy, Trash2 } from 'lucide-react';
 
 export default function SettingsPage() {
   const { user, updateUser } = useAuth();
@@ -76,6 +76,25 @@ export default function SettingsPage() {
       }
     } catch (err: any) {
       toast.error(t('settings.toast.img_failed'));
+    } finally {
+      if (e.target) {
+        e.target.value = '';
+      }
+    }
+  };
+
+  const handleDeleteProfileImage = async () => {
+    try {
+      const res = await userAPI.deleteProfileImage();
+      if (res.data) {
+        updateUser({ profileImage: '' });
+        if (profileInputRef.current) {
+          profileInputRef.current.value = '';
+        }
+        toast.success(t('settings.toast.img_delete_success') || "Image de profil supprimée");
+      }
+    } catch (err: any) {
+      toast.error(t('settings.toast.img_delete_failed') || "Échec de la suppression");
     }
   };
 
@@ -302,7 +321,17 @@ export default function SettingsPage() {
                     </div>
                     <div>
                       <p className="text-white font-bold text-[18px]">{user?.name || 'User'}</p>
-                      <p className="text-[#A69697] text-[13px] mt-1">{user?.role === 'ADMIN' ? t('team.admin') : t('team.accountant')} • {t('settings.profile.member_since')}</p>
+                      <p className="text-[#A69697] text-[13px] mt-1 mb-2">{user?.role === 'ADMIN' ? t('team.admin') : t('team.accountant')} • {t('settings.profile.member_since')}</p>
+                      {user?.profileImage && (
+                        <button
+                          type="button"
+                          onClick={handleDeleteProfileImage}
+                          className="text-[#FF5C77] hover:text-[#FF5C77]/80 text-[12px] font-medium flex items-center gap-1.5 transition-colors bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 px-2.5 py-1.5 rounded-[10px]"
+                        >
+                          <Trash2 size={13} />
+                          <span>{t('settings.profile.delete_image') || "Supprimer l'image"}</span>
+                        </button>
+                      )}
                     </div>
                   </div>
 

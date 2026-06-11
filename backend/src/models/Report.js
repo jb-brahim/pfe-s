@@ -5,7 +5,7 @@ const reportSchema = new mongoose.Schema({
   type: { 
     type: String, 
     required: true,
-    enum: ['Profit & Loss Statement', 'Tax Compliance Audit', 'Vendor Spend Analysis', 'AI Extraction Accuracy'] 
+    enum: ['Tax Compliance Audit', 'Vendor Spend Analysis', 'AI Extraction Accuracy'] 
   },
   format: { 
     type: String, 
