@@ -403,12 +403,12 @@ export default function DashboardPage() {
               <div className="bg-black/20 border border-white/10 rounded-xl p-4 mb-8">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-white/70 text-[13px]">{t('dashboard.welcome.scans_label')}</span>
-                  <span className="text-white font-bold text-[14px]">{user?.billing?.aiScansLimit || 15} {t('dashboard.welcome.scans')}</span>
+                  <span className="text-white font-bold text-[14px]">{user?.billing?.aiScansLimit || 3} {t('dashboard.welcome.scans')}</span>
                 </div>
                 <div className="w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
                   <div 
                     className="bg-[#D98F8F] h-full rounded-full transition-all duration-1000"
-                    style={{ width: `${Math.min(100, ((user?.billing?.aiScansUsed || 0) / (user?.billing?.aiScansLimit || 15)) * 100)}%` }}
+                    style={{ width: `${Math.min(100, ((user?.billing?.aiScansUsed || 0) / (user?.billing?.aiScansLimit || 3)) * 100)}%` }}
                   ></div>
                 </div>
                 <p className="text-white/60 text-[12px] mt-3">

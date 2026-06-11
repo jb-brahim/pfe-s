@@ -55,7 +55,7 @@ const userSchema = new mongoose.Schema({
     plan: { type: String, enum: ['Free', 'Basic', 'Normal', 'Pro', 'Premium'], default: 'Free' },
     status: { type: String, enum: ['Trialing', 'Active', 'Suspended', 'Canceled'], default: 'Trialing' },
     aiScansUsed: { type: Number, default: 0 },
-    aiScansLimit: { type: Number, default: 50 },
+    aiScansLimit: { type: Number, default: 3 },
     storageUsedGB: { type: Number, default: 0 },
     storageLimitGB: { type: Number, default: 1 },
     amount: { type: Number, default: 49 },

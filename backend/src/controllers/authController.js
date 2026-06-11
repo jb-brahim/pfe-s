@@ -70,7 +70,7 @@ const registerUser = async (req, res, next) => {
         billing: {
           plan: 'Free',
           status: 'Active',
-          aiScansLimit: 15,
+          aiScansLimit: 3,
           storageLimitGB: 1,
           amount: 0,
           renewalDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) // 14 days
