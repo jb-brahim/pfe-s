@@ -72,7 +72,7 @@ export default function PricingPage() {
               <p className="text-[#A69697] text-[12px] mt-1">{isAnnual ? (t('landing.pricing_cards.billed_annually') || 'Billed annually') : (t('landing.pricing_cards.billed_monthly') || 'Billed monthly')}</p>
             </div>
             <ul className="space-y-4 mb-10 text-[15px] text-[#A69697] flex-1">
-              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> {t('landing.pricing_cards.f_basic_1') || "Module d'extraction 200 scans/mois"}</li>
+              <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> {t('landing.pricing_cards.f_basic_1') || "Module d'extraction 15 scans/mois"}</li>
               <li className="flex items-center gap-3"><CheckCircle2 size={18} className="text-white/30" /> {t('landing.pricing_cards.f_basic_2') || "Module d'intégration TTN"}</li>
             </ul>
             <Link href="/auth/register" className="w-full py-4 rounded-full border border-white/20 text-center text-[#A69697] font-bold hover:bg-white/10 hover:text-white transition-colors">{t('landing.pricing_cards.get_started') || 'Get Started'}</Link>

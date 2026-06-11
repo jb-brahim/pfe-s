@@ -52,7 +52,7 @@ const userSchema = new mongoose.Schema({
     quickbooksActive: { type: Boolean, default: false }
   },
   billing: {
-    plan: { type: String, enum: ['Free', 'Normal', 'Pro', 'Premium'], default: 'Free' },
+    plan: { type: String, enum: ['Free', 'Basic', 'Normal', 'Pro', 'Premium'], default: 'Free' },
     status: { type: String, enum: ['Trialing', 'Active', 'Suspended', 'Canceled'], default: 'Trialing' },
     aiScansUsed: { type: Number, default: 0 },
     aiScansLimit: { type: Number, default: 50 },

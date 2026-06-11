@@ -75,7 +75,7 @@ export default function SubscriptionPage() {
                   name: 'Basic',  
                   price: '19 TND', 
                   features: [
-                    t('landing.pricing_cards.f_basic_1') || "Module d'extraction 200 scans/mois", 
+                    t('landing.pricing_cards.f_basic_1') || "Module d'extraction 15 scans/mois", 
                     t('landing.pricing_cards.f_basic_2') || "Module d'intégration TTN"
                   ] 
                 },

@@ -34,7 +34,7 @@ const checkout = async (req, res, next) => {
     user.billing.plan = plan;
     // Set limits based on plan
     if (plan === 'Basic') {
-      user.billing.aiScansLimit = 200;
+      user.billing.aiScansLimit = 15;
       user.billing.storageLimitGB = 5;
     } else if (plan === 'Normal' || plan === 'Pro') {
       user.billing.aiScansLimit = 5000;

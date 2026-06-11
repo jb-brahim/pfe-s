@@ -12,8 +12,8 @@ mongoose.connect(process.env.MONGO_URI || process.env.MONGODB_URI).then(async ()
         user.billing.aiScansLimit = 5000;
         needsUpdate = true;
       }
-      if (user.billing.plan === 'Basic' && user.billing.aiScansLimit !== 200) {
-        user.billing.aiScansLimit = 200;
+      if (user.billing.plan === 'Basic' && user.billing.aiScansLimit !== 15) {
+        user.billing.aiScansLimit = 15;
         needsUpdate = true;
       }
       if (user.billing.plan === 'Premium' && user.billing.aiScansLimit !== 999999) {
