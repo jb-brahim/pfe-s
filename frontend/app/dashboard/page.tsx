@@ -84,7 +84,9 @@ export default function DashboardPage() {
 
   // Compute KPI values from real data
   const totalRevenue = dashboardStats?.totalAmount || 0;
-  const totalInvoices = invoices.length;
+  const totalInvoices = user?.role === 'ADMIN'
+    ? invoices.length
+    : invoices.filter((inv: any) => ['APPROVED', 'SUBMITTED', 'EXTRACTED', 'VERIFIED'].includes(inv.status)).length;
   const approvedCount = invoices.filter((inv: any) => inv.status === 'APPROVED').length;
   const rejectedCount = invoices.filter((inv: any) => inv.status === 'REJECTED').length;
   const pendingCount = invoices.filter((inv: any) => ['SUBMITTED', 'EXTRACTED', 'VERIFIED'].includes(inv.status)).length;

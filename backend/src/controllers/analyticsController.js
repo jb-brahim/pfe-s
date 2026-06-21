@@ -37,11 +37,26 @@ const getDashboardStats = async (req, res, next) => {
       if (s._id === 'SUBMITTED') stats.pending = s.count;
       if (s._id === 'APPROVED') stats.approved = s.count;
       if (s._id === 'REJECTED') stats.rejected = s.count;
-      stats.total += s.count;
+      
+      // For accountants, stats.total (My Submissions) counts non-rejected extracted invoices
+      if (role === 'ACCOUNTANT') {
+        if (['APPROVED', 'SUBMITTED', 'EXTRACTED', 'VERIFIED'].includes(s._id)) {
+          stats.total += s.count;
+        }
+      } else {
+        stats.total += s.count;
+      }
     });
 
-    // 2. Metric: Total Spending (Approved only)
-    const approvedInvoices = await Invoice.find({ ...filter, status: 'APPROVED' }).select('_id');
+    // 2. Metric: Total Spending / Submissions (Approved only for Admin/Level 2, but for Accountant Level 1 all non-rejected extracted invoices)
+    let eligibleFilter = { ...filter };
+    if (role === 'ADMIN' || req.user.approvalLevel >= 2) {
+      eligibleFilter.status = 'APPROVED';
+    } else {
+      eligibleFilter.status = { $in: ['APPROVED', 'SUBMITTED', 'EXTRACTED', 'VERIFIED'] };
+    }
+
+    const approvedInvoices = await Invoice.find(eligibleFilter).select('_id');
     const approvedIds = approvedInvoices.map(i => i._id);
     
     const spendingAgg = await ExtractedData.aggregate([
@@ -194,11 +209,14 @@ const getMonthlyStats = async (req, res, next) => {
       { $sort: { _id: 1 } }
     ]);
 
-    // 2. Approved Invoices & Expenses
-    const approvedInvoices = await Invoice.find({ 
-      ...filter, 
-      status: 'APPROVED' 
-    }).select('_id');
+    // 2. Approved Invoices & Expenses (Or all non-rejected for Accountant)
+    let eligibleMonthlyFilter = { ...filter };
+    if (role === 'ADMIN' || req.user.approvalLevel >= 2) {
+      eligibleMonthlyFilter.status = 'APPROVED';
+    } else {
+      eligibleMonthlyFilter.status = { $in: ['APPROVED', 'SUBMITTED', 'EXTRACTED', 'VERIFIED'] };
+    }
+    const approvedInvoices = await Invoice.find(eligibleMonthlyFilter).select('_id');
     const approvedIds = approvedInvoices.map(i => i._id);
 
     const monthlyExpenses = await ExtractedData.aggregate([
